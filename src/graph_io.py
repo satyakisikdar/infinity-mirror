@@ -23,6 +23,8 @@ class GraphReader:
         self.possible_extensions = ['.g', '.gexf', '.gml', '.txt', '.mat']
         self.filename = filename
         self.path = Path(filename)
+        assert self.path.exists(), f'Path: {self.path} does not exist'
+
         if gname != '':
             self.gname = gname
         else:
