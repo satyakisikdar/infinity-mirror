@@ -6,10 +6,10 @@ from typing import List, Dict, Any
 
 class BaseGraphModel:
     def __init__(self, model_name: str, input_graph: nx.Graph):
-        self.input_graph = input_graph
-        self.model_name = model_name
+        self.input_graph = input_graph  # networkX graph to be fitted
+        self.model_name = model_name  # name of the model
         self.params: Dict[Any] = {}  # dictionary of model parameters
-        self.generated_graphs: List[nx.Graph] = []
+        self.generated_graphs: List[nx.Graph] = []   # list of NetworkX graphs
 
     def fit(self):
         pass
@@ -28,7 +28,6 @@ class ErdosRenyi(BaseGraphModel):
         super().__init__(model_name='Erdos-Renyi', input_graph=input_graph)
 
     def fit(self):
-        self.params = {}
         n = self.input_graph.order()
         m = self.input_graph.size()
 
