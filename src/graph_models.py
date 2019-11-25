@@ -1,6 +1,6 @@
-'''
+"""
 Container for different graph models
-'''
+"""
 import networkx as nx
 from typing import List, Dict, Any, Union
 import abc
@@ -65,7 +65,7 @@ class ChungLu(BaseGraphModel):
         super().__init__(model_name='Chung-Lu', input_graph=input_graph)
 
     def _fit(self):
-        self.params['degree_seq'] = sorted(deg for node, deg in self.input_graph.degree())
+        self.params['degree_seq'] = sorted([d for n, d in self.input_graph.degree()], reverse=True)  # degree sequence
 
     def _gen(self) -> nx.Graph:
         self._fit()
