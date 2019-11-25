@@ -1,4 +1,15 @@
 import sys
+from pathlib import Path
+
+def check_file_exists(path):
+    """
+    Checks if file exists at path
+    :param path:
+    :return:
+    """
+    if isinstance(path, str):
+        path = Path(path)
+    return path.exists()
 
 class bcolors:
     HEADER = '\033[95m'
@@ -11,7 +22,6 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 
-# TODO: Write reasonable multicolor printing and pretty print methods
 class ColorPrint:
     @staticmethod
     def print_red(message, end='\n'):
