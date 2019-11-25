@@ -7,7 +7,8 @@ import numpy as np
 import pyintergraph as pig
 import igraph as ig
 
-from src.print_utils import ColorPrint as CP
+from src.utils import ColorPrint as CP
+from src.utils import check_file_exists
 
 
 class GraphReader:
@@ -25,7 +26,7 @@ class GraphReader:
         self.possible_extensions = ['.g', '.gexf', '.gml', '.txt', '.mat']
         self.filename = filename
         self.path = Path(filename)
-        assert self.path.exists(), f'Path: {self.path} does not exist'
+        assert check_file_exists(self.path), f'Path: {self.path} does not exist'
 
         if gname != '':
             self.gname = gname
