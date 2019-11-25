@@ -3,6 +3,7 @@
     * CNRG + 
     * HRG --
     * Kronecker +
+    * ForestFire
     * Chung-Lu, Chungu-Lu + clustering +, x 
     * Erdos-Renyi, + 
     * BTER, +
@@ -28,6 +29,8 @@
     * Assortativity
     * Clustering coefficient
     * Hop Plots
+    * Scree plot
+    * Core decomposition
     
 4. Matplotlib / webweb animations for visualizing generations of graphs
       
