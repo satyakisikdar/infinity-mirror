@@ -15,9 +15,10 @@ from src.utils import ColorPrint as CP
 class BaseGraphModel:
     def __init__(self, model_name: str, input_graph: nx.Graph):
         self.input_graph: nx.Graph = input_graph  # networkX graph to be fitted
-        self.model_name = model_name  # name of the model
+        self.model_name: str = model_name  # name of the model
         self.params: Dict[Any] = {}  # dictionary of model parameters
         self.generated_graphs: List[nx.Graph] = []   # list of NetworkX graphs
+        self._fit()  # fit the parameters
 
     @abc.abstractmethod
     def _fit(self):
@@ -34,7 +35,6 @@ class BaseGraphModel:
         for _ in range(num_graphs):
             g = self._gen()
             self.generated_graphs.append(g)
-
 
     def __str__(self):
         return f'name: {self.model_name}, input_graph: {self.input_graph.name}, params: {self.params}'
@@ -55,7 +55,6 @@ class ErdosRenyi(BaseGraphModel):
         self.params['p'] = m / (n * (n - 1) / 2)
 
     def _gen(self) -> nx.Graph:
-        self._fit()
         assert 'n' in self.params and 'p' in self.params, 'Improper parameters for Erdos-Renyi'
         return nx.erdos_renyi_graph(n=self.params['n'], p=self.params['p'])
 
@@ -68,7 +67,6 @@ class ChungLu(BaseGraphModel):
         self.params['degree_seq'] = sorted([d for n, d in self.input_graph.degree()], reverse=True)  # degree sequence
 
     def _gen(self) -> nx.Graph:
-        self._fit()
         assert 'degree_seq' in self.params, 'imporper parameters for Chung-Lu'
 
         g = nx.configuration_model(self.params['degree_seq'])  # fit the model to the degree seq
