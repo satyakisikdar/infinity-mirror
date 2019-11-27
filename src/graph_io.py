@@ -36,7 +36,6 @@ class GraphReader:
         self._preprocess(reindex_nodes=reindex_nodes, first_label=first_label, take_lcc=take_lcc)
         assert self.graph.name != '', 'Graph name is empty'
 
-
     def _read(self) -> nx.Graph:
         """
         Reads the graph based on its extension

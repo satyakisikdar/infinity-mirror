@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 
+
 def check_file_exists(path):
     """
     Checks if file exists at path
