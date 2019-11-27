@@ -31,7 +31,7 @@ class GraphStats:
         degree_counts = Counter(degree_seq)
         return dict(degree_counts)
 
-    def k_hop_reachability(self) -> Dict[int, float]:
+    def k_hop_reachability(self) -> np.array:
         """
         Returns the average number of nodes reachable from any node in k-hops
         Two levels of aggregation:
@@ -77,15 +77,28 @@ class GraphStats:
         # normalized_reachability_counter = {key: value / n for key, value in reachability_counter.items()}
         return reachability_counter
 
-    def effective_diameter(self):
+    def effective_diameter(self) -> None:
         """
         Returns the 90% effective diameter of a graph
         :return:
         """
-        raise(NotImplementedError)
+        raise (NotImplementedError)
 
+    def pgd_graphlet_counts(self) -> None:
+        """
+        Return the dictionary of graphlets and their counts - based on Neville's PGD
+        :return:
+        """
+        raise (NotImplementedError)
 
-def make_plot(y, kind='line', x=None, title='', xlabel='', ylabel=''):
+    def orca_graphlet_counts(self) -> None:
+        """
+        Return the dictionary of graphlets as counted by Orca
+        :return:
+        """
+        raise (NotImplementedError)
+
+def make_plot(y, kind='line', x=None, title='', xlabel='', ylabel='') -> None:
     if isinstance(x, dict):
         x, y = zip(*x)
     else: # if isinstance(x, list) or isinstance(x, np.array):
@@ -97,3 +110,4 @@ def make_plot(y, kind='line', x=None, title='', xlabel='', ylabel=''):
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.show()
+    return
