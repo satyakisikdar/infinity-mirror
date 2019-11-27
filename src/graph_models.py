@@ -65,6 +65,7 @@ class ChungLu(BaseGraphModel):
 
     def _fit(self):
         self.params['degree_seq'] = sorted([d for n, d in self.input_graph.degree()], reverse=True)  # degree sequence
+        return
 
     def _gen(self) -> nx.Graph:
         assert 'degree_seq' in self.params, 'imporper parameters for Chung-Lu'
@@ -108,7 +109,7 @@ class BTER(BaseGraphModel):
         # fix BTER to use the directory..
         CP.print_blue('Starting BTER... Checking for MATLAB.')
 
-        completed_process = subprocess.run('matlab -h', shell=True)
+        completed_process = subprocess.run('matlab -h', shell=True, stdout=subprocess.DEVNULL)
         assert completed_process.returncode != 0, 'MATLAB not found'
 
         assert g.name != '', 'Graph name cannot be blank'
