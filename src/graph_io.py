@@ -96,6 +96,10 @@ class GraphReader:
                                                             label_attribute='old_label')
             CP.print_green(f'Re-indexing nodes to start from {first_label}, old labels are stored in node attr "old_label"')
 
+        CP.print_green(f'Removing multi-edges and self-loops')
+        self.graph = nx.Graph(self.graph)  # make it into a simple graph
+        self.graph.remove_edges_from(nx.selfloop_edges(self.graph))  # remove self-loops
+
         CP.print_blue(f'Pre-processed graph "{self.gname}" n:{self.graph.order():,} m:{self.graph.size():,}')
         return
 
