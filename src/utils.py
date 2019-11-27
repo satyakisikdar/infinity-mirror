@@ -11,6 +11,16 @@ def check_file_exists(path):
         path = Path(path)
     return path.exists()
 
+
+def print_float(x):
+    """
+    Prints a floating point rounded to 3 decimal places
+    :param x:
+    :return:
+    """
+    return round(x, 3)
+
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
