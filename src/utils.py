@@ -1,8 +1,10 @@
 import sys
 from pathlib import Path
+import pickle
+from typing import Union, Any
 
 
-def check_file_exists(path):
+def check_file_exists(path: Union[Path, str]) -> bool:
     """
     Checks if file exists at path
     :param path:
@@ -13,7 +15,7 @@ def check_file_exists(path):
     return path.exists()
 
 
-def print_float(x):
+def print_float(x: float) -> float:
     """
     Prints a floating point rounded to 3 decimal places
     :param x:
@@ -22,15 +24,14 @@ def print_float(x):
     return round(x, 3)
 
 
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+def load_pickle(path: Union[Path, str]) -> Any:
+    """
+    Loads a pickle from the path
+    :param path:
+    :return:
+    """
+    assert check_file_exists(path), f'{path} does not exist'
+    return pickle.load(open(path, 'rb'))
 
 
 class ColorPrint:
