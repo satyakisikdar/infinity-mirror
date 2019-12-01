@@ -186,7 +186,7 @@ class CNRG(BaseGraphModel):
         pass  # HRGs can generate multiple graphs at once
 
     def generate(self, num_graphs: int) -> None:
-        raise (NotImplementedError, 'CNRG not implemented yet')
+        raise (NotImplementedError, 'CNRG not implemented yet, fix code to generate graphs from generate_graphs.py')
         gname = self.input_graph.name
 
         assert gname != '', 'Input graph does not have a name'
@@ -228,3 +228,32 @@ class HRG(BaseGraphModel):
             'Failed to generate graphs'
 
         return
+
+class Kronecker(BaseGraphModel):
+    """
+    Kronecker Graph Model
+    """
+
+
+class StochasticBlockModel(BaseGraphModel):
+    """
+    Stochastic Block Model  - basic and degree corrected
+    """
+
+
+class RMAT(BaseGraphModel):
+    """
+    Recursive-matrix graph generators
+    """
+
+
+class ERGM(BaseGraphModel):
+    """
+    Exponential Random Graph Models
+    """
+
+
+class GraphNeuralNet(BaseGraphModel):
+    """
+    Graph Neural Network Based Models
+    """
