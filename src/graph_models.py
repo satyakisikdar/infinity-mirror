@@ -174,12 +174,33 @@ class BTER(BaseGraphModel):
 
 class CNRG(BaseGraphModel):
     """
-    Satyaki's Clustering-Based Node Replacement Grammars
+    Satyaki's Clustering-Based Node Replacement Grammars https://github.com/satyakisikdar/cnrg
     """
+    def __init__(self, input_graph: nx.Graph):
+        super().__init__(model_name='CNRG', input_graph=input_graph)
+
+    def _fit(self) -> None:
+        pass  # the Python code does the fitting
+
+    def _gen(self) -> None:
+        pass  # HRGs can generate multiple graphs at once
+
+    def generate(self, num_graphs: int) -> None:
+        raise (NotImplementedError, 'CNRG not implemented yet')
+        gname = self.input_graph.name
+
+        assert gname != '', 'Input graph does not have a name'
+        nx.write_edgelist(self.input_graph, f'./src/cnrg/src/tmp/{gname}.g', data=False)
+
+        completed_process = subprocess.run(f'cd src/cnrg; python3 runner.py -g {gname} -n {num_graphs}',
+                                           shell=True)
+        assert completed_process.returncode == 0, 'Error in CNRG'
+        # output_pickle_path = f'./src/cnrg/output/'
+
 
 class HRG(BaseGraphModel):
     """
-    Sal's Hyperedge Replacement Graph Grammars
+    Sal's Hyperedge Replacement Graph Grammars https://github.com/abitofalchemy/hrg-nm
     """
     def __init__(self, input_graph: nx.Graph):
         super().__init__(model_name='HRG', input_graph=input_graph)
@@ -191,15 +212,17 @@ class HRG(BaseGraphModel):
         pass  # HRGs can generate multiple graphs at once
 
     def generate(self, num_graphs: int) -> None:
-        assert self.input_graph.name != '', 'Input graph does not have a name'
-        nx.write_edgelist(self.input_graph, f'./src/hrg/{self.input_graph.name}.g', data=False)
+        gname = self.input_graph.name
 
-        completed_process = subprocess.run(f'cd src/hrg; python2 exact_phrg.py --orig {self.input_graph.name}.g --trials {num_graphs}',
+        assert gname != '', 'Input graph does not have a name'
+        nx.write_edgelist(self.input_graph, f'./src/hrg/{gname}.g', data=False)
+
+        completed_process = subprocess.run(f'cd src/hrg; python2 exact_phrg.py --orig {gname}.g --trials {num_graphs}',
                                            shell=True)
 
         assert completed_process.returncode == 0, 'Error in HRG'
 
-        output_pickle_path = f'./src/hrg/Results/{self.input_graph.name}_hstars.pickle'
+        output_pickle_path = f'./src/hrg/Results/{gname}_hstars.pickle'
         self.generated_graphs = load_pickle(output_pickle_path)
         assert isinstance(self.generated_graphs, list) and len(self.generated_graphs) == num_graphs, \
             'Failed to generate graphs'
