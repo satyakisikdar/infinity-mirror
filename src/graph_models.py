@@ -8,9 +8,10 @@ import numpy as np
 import subprocess
 from time import time
 
-from src.utils import check_file_exists
+from src.utils import check_file_exists, load_pickle
 from src.utils import ColorPrint as CP
 
+__all__ = ['ErdosRenyi', 'ChungLu', 'TransitiveChungLu', 'BTER', 'CNRG', 'HRG']
 
 class BaseGraphModel:
     def __init__(self, model_name: str, input_graph: nx.Graph):
@@ -21,7 +22,7 @@ class BaseGraphModel:
         self._fit()  # fit the parameters
 
     @abc.abstractmethod
-    def _fit(self):
+    def _fit(self) -> None:
         pass
 
     @abc.abstractmethod
@@ -31,15 +32,19 @@ class BaseGraphModel:
         """
         pass
 
-    def generate(self, num_graphs: int):
+    def generate(self, num_graphs: int) -> None:
         for _ in range(num_graphs):
             g = self._gen()
             self.generated_graphs.append(g)
+        return
 
-    def __str__(self):
-        return f'name: {self.model_name}, input_graph: {self.input_graph.name}, params: {self.params}'
+    def __str__(self) -> str:
+        st = f'name: "{self.model_name}", input_graph: "{self.input_graph.name}"'
+        if len(self.params) > 0:
+            st += f'params: {self.params}'
+        return st
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
 
@@ -47,7 +52,7 @@ class ErdosRenyi(BaseGraphModel):
     def __init__(self, input_graph: nx.Graph):
         super().__init__(model_name='Erdos-Renyi', input_graph=input_graph)
 
-    def _fit(self):
+    def _fit(self) -> None:
         n = self.input_graph.order()
         m = self.input_graph.size()
 
@@ -63,7 +68,7 @@ class ChungLu(BaseGraphModel):
     def __init__(self, input_graph: nx.Graph):
         super().__init__(model_name='Chung-Lu', input_graph=input_graph)
 
-    def _fit(self):
+    def _fit(self) -> None:
         self.params['degree_seq'] = sorted([d for n, d in self.input_graph.degree()], reverse=True)  # degree sequence
         return
 
@@ -85,7 +90,7 @@ class TransitiveChungLu(BaseGraphModel):
     def __init__(self, input_graph: nx.Graph):
         super().__init__(model_name='Transitive-Chung-Lu', input_graph=input_graph)
 
-    def _fit(self):
+    def _fit(self) -> None:
         raise(NotImplementedError)
 
     def _gen(self) -> nx.Graph:
@@ -100,7 +105,7 @@ class BTER(BaseGraphModel):
     def __init__(self, input_graph: nx.Graph):
         super().__init__(model_name='BTER', input_graph=input_graph)
 
-    def _fit(self):
+    def _fit(self) -> None:
         pass  # the matlab code does the fitting
 
     def _gen(self) -> Union[nx.Graph, None]:
@@ -165,3 +170,38 @@ class BTER(BaseGraphModel):
 
         g_bter = nx.from_numpy_matrix(bter_mat, create_using=nx.Graph())
         return g_bter
+
+
+class CNRG(BaseGraphModel):
+    """
+    Satyaki's Clustering-Based Node Replacement Grammars
+    """
+
+class HRG(BaseGraphModel):
+    """
+    Sal's Hyperedge Replacement Graph Grammars
+    """
+    def __init__(self, input_graph: nx.Graph):
+        super().__init__(model_name='HRG', input_graph=input_graph)
+
+    def _fit(self) -> None:
+        pass  # the Python code does the fitting
+
+    def _gen(self) -> None:
+        pass  # HRGs can generate multiple graphs at once
+
+    def generate(self, num_graphs: int) -> None:
+        assert self.input_graph.name != '', 'Input graph does not have a name'
+        nx.write_edgelist(self.input_graph, f'./src/hrg/{self.input_graph.name}.g', data=False)
+
+        completed_process = subprocess.run(f'cd src/hrg; python2 exact_phrg.py --orig {self.input_graph.name}.g --trials {num_graphs}',
+                                           shell=True)
+
+        assert completed_process.returncode == 0, 'Error in HRG'
+
+        output_pickle_path = f'./src/hrg/Results/{self.input_graph.name}_hstars.pickle'
+        self.generated_graphs = load_pickle(output_pickle_path)
+        assert isinstance(self.generated_graphs, list) and len(self.generated_graphs) == num_graphs, \
+            'Failed to generate graphs'
+
+        return
