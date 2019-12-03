@@ -2,7 +2,10 @@ import sys
 from pathlib import Path
 import pickle
 from typing import Union, Any
+import matplotlib.pyplot as plt
+import seaborn as sns; sns.set()
 
+sns.set_style("darkgrid")
 
 def check_file_exists(path: Union[Path, str]) -> bool:
     """
@@ -32,6 +35,26 @@ def load_pickle(path: Union[Path, str]) -> Any:
     """
     assert check_file_exists(path), f'{path} does not exist'
     return pickle.load(open(path, 'rb'))
+
+
+def make_plot(y, kind='line', x=None, title='', xlabel='', ylabel='') -> None:
+    if isinstance(y, dict):
+        lists = sorted(y.items())
+        x, y = zip(*lists)
+    else: # if isinstance(x, list) or isinstance(x, np.array):
+        x = list(range(len(y)))
+
+    if kind == 'line':
+        # plt.plot(x, y, marker='o', linestyle='--')
+        sns.lineplot(x, y, marker='o', dashes=True)
+    if kind =='scatter':
+        # plt.scatter(x, y, marker='o')
+        sns.scatterplot(x, y, alpha=0.75)
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.show()
+    return
 
 
 class ColorPrint:
