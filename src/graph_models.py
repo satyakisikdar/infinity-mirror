@@ -91,10 +91,10 @@ class TransitiveChungLu(BaseGraphModel):
         super().__init__(model_name='Transitive-Chung-Lu', input_graph=input_graph)
 
     def _fit(self) -> None:
-        raise(NotImplementedError)
+        raise NotImplementedError()
 
     def _gen(self) -> nx.Graph:
-        raise(NotImplementedError)
+        raise NotImplementedError()
 
 
 class BTER(BaseGraphModel):
@@ -186,7 +186,7 @@ class CNRG(BaseGraphModel):
         pass  # HRGs can generate multiple graphs at once
 
     def generate(self, num_graphs: int) -> None:
-        raise (NotImplementedError, 'CNRG not implemented yet, fix code to generate graphs from generate_graphs.py')
+        raise NotImplementedError('CNRG not implemented yet, fix code to generate graphs from generate_graphs.py')
         gname = self.input_graph.name
 
         assert gname != '', 'Input graph does not have a name'
