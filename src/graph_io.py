@@ -4,7 +4,6 @@ Grpah i/o helpers
 import networkx as nx
 from pathlib import Path
 import numpy as np
-import pyintergraph as pig
 import igraph as ig
 
 from src.utils import ColorPrint as CP, check_file_exists, print_float
@@ -158,6 +157,12 @@ class GraphWriter:
 
     def __repr__(self) -> str:
         return str(self)
+
+
+try:
+    import pyintergraph as pig
+except ImportError as e:
+    print(e)
 
 
 def networkx_to_graphtool(nx_G: nx.Graph):
