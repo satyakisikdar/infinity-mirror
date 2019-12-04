@@ -71,6 +71,43 @@ def cvm_distance(data1, data2):
     return np.round(d / len(cdf1), 3)
 
 
+def _pad(A,N):
+    """Pad A so A.shape is (N,N)"""
+    n,_ = A.shape
+    if n>=N:
+        return A
+    else:
+        if issparse(A):
+            # thrown if we try to np.concatenate sparse matrices
+            side = sps.csr_matrix((n,N-n))
+            bottom = sps.csr_matrix((N-n,N))
+            A_pad = sps.hstack([A,side])
+            A_pad = sps.vstack([A_pad,bottom])
+        else:
+            side = np.zeros((n,N-n))
+            bottom = np.zeros((N-n,N))
+            A_pad = np.concatenate([A,side],axis=1)
+            A_pad = np.concatenate([A_pad,bottom])
+        return A_pad
+
+
+def fast_bp(A,eps=None):
+    n, m = A.shape
+    degs = np.array(A.sum(axis=1)).flatten()
+    if eps is None:
+        eps = 1 / (1 + max(degs))
+    I = sps.identity(n)
+    D = sps.dia_matrix((degs,[0]),shape=(n,n))
+    # form inverse of S and invert (slow!)
+    Sinv = I + eps**2*D - eps*A
+    try:
+        S = la.inv(Sinv)
+    except:
+        Sinv = sps.csc_matrix(Sinv)
+        S = sps.linalg.inv(Sinv)
+    return S
+
+
 class ColorPrint:
     @staticmethod
     def print_red(message, end='\n'):
