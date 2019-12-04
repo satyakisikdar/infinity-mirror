@@ -54,7 +54,21 @@ def make_plot(y, kind='line', x=None, title='', xlabel='', ylabel='') -> None:
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.show()
+
     return
+
+
+def cvm_distance(data1, data2):
+    data1, data2 = map(np.asarray, (data1, data2))
+    n1 = len(data1)
+    n2 = len(data2)
+    data1 = np.sort(data1)
+    data2 = np.sort(data2)
+    data_all = np.concatenate([data1, data2])
+    cdf1 = np.searchsorted(data1, data_all, side='right') / n1
+    cdf2 = np.searchsorted(data2, data_all, side='right') / n2
+    d = np.sum(np.absolute(cdf1 - cdf2))
+    return np.round(d / len(cdf1), 3)
 
 
 class ColorPrint:
