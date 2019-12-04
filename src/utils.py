@@ -46,7 +46,7 @@ def make_plot(y, kind='line', x=None, title='', xlabel='', ylabel='') -> None:
 
     if kind == 'line':
         # plt.plot(x, y, marker='o', linestyle='--')
-        sns.lineplot(x, y, marker='o', dashes=True)
+        sns.lineplot(x, y, marker='o', dashes='--') #, dashes=True)
     if kind =='scatter':
         # plt.scatter(x, y, marker='o')
         sns.scatterplot(x, y, alpha=0.75)
