@@ -1,0 +1,10 @@
+Input	../graphs/karate.txt
+Command line options
+	i:../graphs/karate.txt
+	o:../graphs/karate-fit2
+Loglikelihood	   -314.72
+Absolute error (based on expected number of edges)	0.015015
+RunTime	26.5313
+Estimated initiator	[0.942912, 0.396935; 0.635341, 0.106868]
+0.6405      0.8528
+      0.8339      0.3991

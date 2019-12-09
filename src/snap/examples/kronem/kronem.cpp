@@ -51,16 +51,18 @@ int main(int argc, char* argv[]) {
   KronLL.RunKronEM(EMIter, GradIter, LrnRate, MnStep, MxStep, WarmUp, WarmUp, NSamples);
 
   const TKronMtx& FitMtx = KronLL.GetProbMtx();
-  FILE *F = fopen(TStr::Fmt("KronEM-%s.tab", InFNm.GetFMid().CStr()).CStr(), "at");
-  fprintf(F, "Input\t%s\n", InFNm.CStr());
-  TStrV ParamV; Env.GetCmLn().SplitOnAllCh(' ', ParamV);
-  fprintf(F, "Command line options\n");
-  for (int i = 0; i < ParamV.Len(); i++) {
-    fprintf(F, "\t%s\n", ParamV[i].CStr()+(ParamV[i][0]=='-'?1:0)); }
-  fprintf(F, "Loglikelihood\t%10.2f\n", KronLL.CalcApxGraphLL());
-//  fprintf(F, "Absolute error (based on expected number of edges)\t%f\n", KronLL.GetAbsErr());
-  fprintf(F, "RunTime\t%g\n", ExeTm.GetSecs());
-  fprintf(F, "Estimated initiator\t%s\n", FitMtx.GetMtxStr().CStr());
+//  FILE *F = fopen(TStr::Fmt("KronEM-%s.tab", InFNm.GetFMid().CStr()).CStr(), "at");
+  FILE *F = fopen(OutFNm.CStr(), "w");
+//  fprintf(F, "Input\t%s\n", InFNm.CStr());
+//  TStrV ParamV; Env.GetCmLn().SplitOnAllCh(' ', ParamV);
+//  fprintf(F, "Command line options\n");
+//  for (int i = 0; i < ParamV.Len(); i++) {
+//    fprintf(F, "\t%s\n", ParamV[i].CStr()+(ParamV[i][0]=='-'?1:0)); }
+//  fprintf(F, "Loglikelihood\t%10.2f\n", KronLL.CalcApxGraphLL());
+////  fprintf(F, "Absolute error (based on expected number of edges)\t%f\n", KronLL.GetAbsErr());
+//  fprintf(F, "RunTime\t%g\n", ExeTm.GetSecs());
+//  fprintf(F, "Estimated initiator\t%s\n", FitMtx.GetMtxStr().CStr());
+	fprintf(F, "Estimated initiator\t%s\n", FitMtx.GetMtxStr().CStr());
   fclose(F);
 
   Catch
