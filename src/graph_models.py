@@ -1,21 +1,26 @@
 """
 Container for different graph models
 """
-import networkx as nx
-from typing import List, Dict, Any, Union
 import abc
-import numpy as np
 import subprocess
+import math
 from time import time
+from typing import List, Dict, Any, Union
 
-from src.utils import check_file_exists, load_pickle
+import networkx as nx
+import numpy as np
+
 from src.utils import ColorPrint as CP
+from src.utils import check_file_exists, load_pickle
 
-__all__ = ['ErdosRenyi', 'ChungLu', 'TransitiveChungLu', 'BTER', 'CNRG', 'HRG']
+__all__ = ['ErdosRenyi', 'ChungLu', 'TransitiveChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker']
 
 class BaseGraphModel:
     def __init__(self, model_name: str, input_graph: nx.Graph):
         self.input_graph: nx.Graph = input_graph  # networkX graph to be fitted
+        assert self.input_graph.name != '', 'Input graph does not have a name'
+        self.gname = self.input_graph.name  # name of the graph
+
         self.model_name: str = model_name  # name of the model
         self.params: Dict[Any] = {}  # dictionary of model parameters
         self.generated_graphs: List[nx.Graph] = []   # list of NetworkX graphs
@@ -23,6 +28,10 @@ class BaseGraphModel:
 
     @abc.abstractmethod
     def _fit(self) -> None:
+        """
+        Fits the parameters of the model
+        :return:
+        """
         pass
 
     @abc.abstractmethod
@@ -33,6 +42,12 @@ class BaseGraphModel:
         pass
 
     def generate(self, num_graphs: int) -> None:
+        """
+        Generates num_graphs many graphs by repeatedly calling _gen
+        maybe use a generator
+        :param num_graphs:
+        :return:
+        """
         for _ in range(num_graphs):
             g = self._gen()
             self.generated_graphs.append(g)
@@ -53,6 +68,15 @@ class ErdosRenyi(BaseGraphModel):
         super().__init__(model_name='Erdos-Renyi', input_graph=input_graph)
 
     def _fit(self) -> None:
+        """
+        G(n, p)
+        n: number of nodes
+        p: probability of edges
+
+        <m>: expected number of edges
+        for fitting, p = <m> / (n * (n - 1) / 2)
+        :return:
+        """
         n = self.input_graph.order()
         m = self.input_graph.size()
 
@@ -91,10 +115,10 @@ class TransitiveChungLu(BaseGraphModel):
         super().__init__(model_name='Transitive-Chung-Lu', input_graph=input_graph)
 
     def _fit(self) -> None:
-        raise NotImplementedError()
+        raise NotImplementedError('Transitive Chung-Lu is not implemented yet')
 
     def _gen(self) -> nx.Graph:
-        raise NotImplementedError()
+        raise NotImplementedError('Transitive Chung-Lu is not implemented yet')
 
 
 class BTER(BaseGraphModel):
@@ -117,7 +141,6 @@ class BTER(BaseGraphModel):
         completed_process = subprocess.run('matlab -h', shell=True, stdout=subprocess.DEVNULL)
         assert completed_process.returncode != 0, 'MATLAB not found'
 
-        assert g.name != '', 'Graph name cannot be blank'
         np.savetxt('./src/bter/{}.mat'.format(g.name), nx.to_numpy_matrix(g), fmt='%d')
 
         matlab_code = [
@@ -186,16 +209,18 @@ class CNRG(BaseGraphModel):
         pass  # HRGs can generate multiple graphs at once
 
     def generate(self, num_graphs: int) -> None:
-        raise NotImplementedError('CNRG not implemented yet, fix code to generate graphs from generate_graphs.py')
-        gname = self.input_graph.name
+        nx.write_edgelist(self.input_graph, f'./src/cnrg/src/tmp/{self.gname}.g', data=False)
 
-        assert gname != '', 'Input graph does not have a name'
-        nx.write_edgelist(self.input_graph, f'./src/cnrg/src/tmp/{gname}.g', data=False)
-
-        completed_process = subprocess.run(f'cd src/cnrg; python3 runner.py -g {gname} -n {num_graphs}',
+        completed_process = subprocess.run(f'cd src/cnrg; python3 runner.py -g {self.gname} -n {num_graphs}',
                                            shell=True)
         assert completed_process.returncode == 0, 'Error in CNRG'
-        # output_pickle_path = f'./src/cnrg/output/'
+        output_pickle_path = f'./src/cnrg/output/{self.gname}_cnrg.pkl'
+        assert check_file_exists(output_pickle_path)
+
+        self.generated_graphs = load_pickle(output_pickle_path)
+        assert isinstance(self.generated_graphs, list) and len(self.generated_graphs) == num_graphs, \
+            'Failed to generate graphs'
+        return
 
 
 class HRG(BaseGraphModel):
@@ -212,26 +237,90 @@ class HRG(BaseGraphModel):
         pass  # HRGs can generate multiple graphs at once
 
     def generate(self, num_graphs: int) -> None:
-        gname = self.input_graph.name
+        nx.write_edgelist(self.input_graph, f'./src/hrg/{self.gname}.g', data=False)
 
-        assert gname != '', 'Input graph does not have a name'
-        nx.write_edgelist(self.input_graph, f'./src/hrg/{gname}.g', data=False)
-
-        completed_process = subprocess.run(f'cd src/hrg; python2 exact_phrg.py --orig {gname}.g --trials {num_graphs}',
+        completed_process = subprocess.run(f'cd src/hrg; python2 exact_phrg.py --orig {self.gname}.g --trials {num_graphs}',
                                            shell=True)
 
         assert completed_process.returncode == 0, 'Error in HRG'
 
-        output_pickle_path = f'./src/hrg/Results/{gname}_hstars.pickle'
+        output_pickle_path = f'./src/hrg/Results/{self.gname}_hstars.pickle'
         self.generated_graphs = load_pickle(output_pickle_path)
         assert isinstance(self.generated_graphs, list) and len(self.generated_graphs) == num_graphs, \
             'Failed to generate graphs'
 
         return
 
+
 class Kronecker(BaseGraphModel):
     """
-    Kronecker Graph Model
+    Kronecker Graph Model from SNAP
+    """
+    def __init__(self, input_graph: nx.Graph):
+        super().__init__(model_name='Kronecker', input_graph=input_graph)
+
+    def _fit(self) -> None:
+        """
+        call KronEM
+        """
+        # raise NotImplementedError('Check if KronEM can write in the right place')
+        output_file = f'./src/snap/examples/graphs/{self.gname}-fit'
+        if not check_file_exists(output_file):  # run kronem only if file does not exist
+            CP.print_green(f'Running KronEM for {self.gname}')
+
+            # write edgelist to the path, but graph needs to start from 1
+            g = nx.convert_node_labels_to_integers(self.input_graph, first_label=1, label_attribute='old_label')
+            directed_g = g.to_directed()  # kronecker expects a directed graph
+            nx.write_edgelist(directed_g, f'src/snap/examples/graphs/{self.gname}.txt', data=False)
+
+            bash_code = f'cd src/snap/examples/kronem; make; ./kronem -i:../graphs/{self.gname}.txt -o:../graphs/                                                                        {self.gname}-fit'
+            completed_process = subprocess.run(bash_code, shell=True)#, stdout=subprocess.PIPE)
+            assert completed_process.returncode == 0, 'Error in KronEM'
+
+        assert check_file_exists(output_file), f'File does not exist {output_file}'
+
+        with open(output_file) as f:
+            last_line = f.readlines()[-1]
+            last_line = last_line.replace(']', '')
+            matrix = last_line[last_line.find('[') + 1: ]
+            CP.print_blue('Initiator matrix:', matrix)
+            self.params['initiator_matrix'] = matrix
+
+        return
+
+    def _gen(self) -> nx.Graph:
+        """
+        call KronGen
+        """
+        assert 'initiator_matrix' in self.params, 'Initiator matrix not found'
+
+        orig_n = self.input_graph.order()
+
+        kron_iters = int(math.log2(orig_n))  # floor of log2 gives a bound on kronecker iteration count
+        if math.fabs(2**kron_iters - orig_n) > math.fabs(2**(kron_iters+1) - orig_n):
+            kron_iters = kron_iters + 1
+        matrix = self.params['initiator_matrix']
+        CP.print_blue(f'Running kronGen with n={kron_iters}, matrix={matrix}')
+
+        bash_code = f'cd src/snap/examples/krongen; make; ./krongen -o:../graphs/{self.gname}_kron.txt -m:"{matrix}" -i:{kron_iters}'
+        completed_process = subprocess.run(bash_code, shell=True)  # , stdout=subprocess.PIPE)
+        assert completed_process.returncode == 0, 'Error in KronGen'
+
+        output_file = f'src/snap/examples/graphs/{self.gname}_kron.txt'
+        assert check_file_exists(output_file), f'Output file does not exist {output_file}'
+
+        graph = nx.read_edgelist(output_file, nodetype=int, create_using=nx.Graph())
+        return graph
+
+class ForestFire(BaseGraphModel):
+    """
+    Forest fire model from SNAP
+    """
+
+
+class AGM(BaseGraphModel):
+    """
+    Affiliation Graph Model from SNAP
     """
 
 
@@ -257,3 +346,4 @@ class GraphNeuralNet(BaseGraphModel):
     """
     Graph Neural Network Based Models
     """
+
