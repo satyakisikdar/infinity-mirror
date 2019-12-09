@@ -1,10 +1,16 @@
+import pickle
 import sys
 from pathlib import Path
-import pickle
 from typing import Union, Any
-import matplotlib.pyplot as plt
-import seaborn as sns; sns.set()
 
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns;
+from numpy import linalg as la
+from scipy import sparse as sps
+from scipy.sparse import issparse
+
+sns.set()
 sns.set_style("darkgrid")
 
 def check_file_exists(path: Union[Path, str]) -> bool:

@@ -1,10 +1,11 @@
-'''
+"""
 Grpah i/o helpers
-'''
-import networkx as nx
+"""
 from pathlib import Path
-import numpy as np
+
 import igraph as ig
+import networkx as nx
+import numpy as np
 
 from src.utils import ColorPrint as CP, check_file_exists, print_float
 
