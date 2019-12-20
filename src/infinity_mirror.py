@@ -9,6 +9,7 @@ import math
 from src.graph_models import *
 from src.Graph import CustomGraph
 from src.graph_io import GraphReader
+from src.graph_stats import GraphStats
 
 
 class InfinityMirror:
@@ -51,7 +52,7 @@ class InfinityMirror:
         return
 
     def run(self, num_graphs: int=1) -> None:
-        for _ in range(self.num_generations):
+        for _ in range(self.num_generations + 1):
             self._get_next_generation(num_graphs=num_graphs)
         return
 
@@ -63,21 +64,36 @@ class InfinityMirror:
         pos = defaultdict(lambda: (0, 0))  # the default dict
         pos.update(nx.nx_agraph.graphviz_layout(self.initial_graph, prog=prog))  # get the pos of nodes of the original nodes
 
-
         N = self.num_generations
         cols = 2
         rows = int(math.ceil(N / cols))
 
         gs = gridspec.GridSpec(rows, cols)
         fig = plt.figure()
+
         for i in range(N):
             graph: CustomGraph = self.graphs_by_generation[i][0]  # pick the 1st graph by default
+            gstats = GraphStats(graph)
+
             ax = fig.add_subplot(gs[i])
-            graph.plot(ax=ax, pos=pos, update_pos=False)
+            # graph.plot(ax=ax, pos=pos, update_pos=False)
+
+            # deg_dist = gstats.degree_dist(normalized=True)
+            # gstats.plot(y=deg_dist, title=f'Degree-Dist for {graph.name}', xlabel='Degree $k$', ylabel='Count of nodes',
+            #           kind='scatter', ax=ax)
+
+            # k_hop = gstats.k_hop_reach()
+            # gstats.plot(y=k_hop, title=f'Hop-Plot for {graph.name}, gen:{i}, n:{graph.order():_}, m:{graph.size():_}',
+            #             xlabel='Hops',) # ylabel='Avg. fraction of reachable nodes')
+
+            cc_by_deg = gstats.clustering_coefficients_by_degree()
+            gstats.plot(y=cc_by_deg, title=f'gen:{i}, n:{graph.order():_}, m:{graph.size():_}', # Avg cc by Degree (k)', xlabel='Degree $k$',
+                      ylabel='Avg cc', kind='scatter', ax=ax)
+
 
         fig.tight_layout()
-        fig.suptitle(self.model.model_name)
-        plt.grid(False)
+        fig.suptitle(f'{graph.name} {self.model.model_name}')
+        # plt.grid(False)
         # plt.title(self.model.model_name)
         plt.show()
 
