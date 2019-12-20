@@ -14,7 +14,7 @@ from src.utils import ColorPrint as CP
 from src.utils import check_file_exists, load_pickle
 from src.Graph import CustomGraph
 
-__all__ = ['ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker']
+__all__ = ['BaseGraphModel', 'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker']
 
 class BaseGraphModel:
     def __init__(self, model_name: str, input_graph: CustomGraph):
@@ -63,6 +63,7 @@ class BaseGraphModel:
         self.generated_graphs = []  # reset the list of graphs - TODO: maybe double check if this is necessary
         for _ in range(num_graphs):
             g = self._gen()
+            g.name = self.input_graph.name
             g = CustomGraph(g, gen_id=gen_id)
             self.generated_graphs.append(g)
         return
@@ -100,7 +101,6 @@ class ErdosRenyi(BaseGraphModel):
     def _gen(self) -> CustomGraph:
         assert 'n' in self.params and 'p' in self.params, 'Improper parameters for Erdos-Renyi'
         g = nx.erdos_renyi_graph(n=self.params['n'], p=self.params['p'])
-        g.name = self.input_graph.name
         return CustomGraph(g)
 
 class ChungLu(BaseGraphModel):
@@ -117,6 +117,7 @@ class ChungLu(BaseGraphModel):
         g = nx.configuration_model(self.params['degree_seq'])  # fit the model to the degree seq
         g = CustomGraph(g)  # make it into a simple graph
         g.remove_edges_from(nx.selfloop_edges(g))  # remove self-loops
+
         return g
 
 
@@ -232,6 +233,8 @@ class CNRG(BaseGraphModel):
         assert check_file_exists(output_pickle_path)
 
         generated_graphs = load_pickle(output_pickle_path)
+        self.generated_graphs = []  # reset generated graphs
+
         for gen_graph in generated_graphs:
             gen_graph.name = self.input_graph.name
             gen_graph = CustomGraph(gen_graph)
@@ -256,19 +259,36 @@ class HRG(BaseGraphModel):
     def _gen(self) -> None:
         pass  # HRGs can generate multiple graphs at once
 
+    def _make_graph(self, graph) -> CustomGraph:
+        """
+        This is needed since HRGs use NetworkX 1.x and that's incompatible with 2.x
+        :param graph:
+        :return:
+        """
+        custom_g = CustomGraph()
+        custom_g.name = graph.name
+
+        for u, nbrs in graph.edge.items():
+            for v in nbrs.keys():
+                custom_g.add_edge(u, v)
+        return custom_g
+
     def generate(self, num_graphs: int, gen_id: int) -> None:
         nx.write_edgelist(self.input_graph, f'./src/hrg/{self.gname}.g', data=False)
 
-        completed_process = subprocess.run(f'cd src/hrg; python2 exact_phrg.py --orig {self.gname}.g --trials {num_graphs}',
+        completed_process = subprocess.run(f'cd src/hrg; python2 -m pip install networkx==1.11; python2 exact_phrg.py --orig {self.gname}.g --trials {num_graphs}',
                                            shell=True)
 
         assert completed_process.returncode == 0, 'Error in HRG'
 
         output_pickle_path = f'./src/hrg/Results/{self.gname}_hstars.pickle'
         generated_graphs = load_pickle(output_pickle_path)
+
+        self.generated_graphs = []
         for gen_graph in generated_graphs:
             gen_graph.name = self.input_graph.name
-            gen_graph = CustomGraph(gen_graph)
+
+            gen_graph = self._make_graph(gen_graph)
             gen_graph.gen_id = gen_id
             self.generated_graphs.append(gen_graph)
 
@@ -337,6 +357,7 @@ class Kronecker(BaseGraphModel):
 
         graph = nx.read_edgelist(output_file, nodetype=int, create_using=CustomGraph())
         return graph
+
 
 class ForestFire(BaseGraphModel):
     """
