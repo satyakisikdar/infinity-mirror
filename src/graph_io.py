@@ -3,7 +3,6 @@ Grpah i/o helpers
 """
 from pathlib import Path
 
-import igraph as ig
 import networkx as nx
 import numpy as np
 
@@ -167,6 +166,10 @@ try:
 except ImportError as e:
     print(e)
 
+try:
+    import igraph as ig
+except ImportError as e:
+    print(e)
 
 def networkx_to_graphtool(nx_G: CustomGraph):
     return pig.nx2gt(nx_G, labelname='node_label')
