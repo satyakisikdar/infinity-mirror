@@ -4,12 +4,19 @@ Container for different graph stats
 from collections import Counter, deque
 from typing import Dict, Tuple, List
 
+import matplotlib.pyplot as plt
+import seaborn as sns
 import editdistance as ed
 import networkx as nx
 import numpy as np
 
 from src.utils import ColorPrint as CP
 from src.Graph import CustomGraph
+
+
+sns.set()
+sns.set_style("darkgrid")
+
 
 class GraphStats:
     """
@@ -61,6 +68,25 @@ class GraphStats:
 
         assert item in self.stats, f'stat: {item} is not updated after function call'
         return self.stats[item]
+
+    def plot(self, y, ax=None, kind='line', x=None, title='', xlabel='', ylabel='') -> None:
+        if isinstance(y, dict):
+            lists = sorted(y.items())
+            x, y = zip(*lists)
+        else:  # if isinstance(x, list) or isinstance(x, np.array):
+            x = list(range(len(y)))
+
+        if kind == 'line':
+            # plt.plot(x, y, marker='o', linestyle='--')
+            sns.lineplot(x, y, marker='o', dashes='--', ax=ax)  # , dashes=True)
+        if kind == 'scatter':
+            # plt.scatter(x, y, marker='o')
+            sns.scatterplot(x, y, alpha=0.75, ax=ax)
+        plt.title(title)
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+
+        return
 
     def adj_eigenvalues(self):
         """
