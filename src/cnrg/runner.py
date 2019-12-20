@@ -1,26 +1,27 @@
-import networkx as nx
-import os
-import pickle
-from time import time
-import math
-import logging
-from joblib import Parallel, delayed
-from copy import deepcopy
 import argparse
 import csv
-import sys
 import glob
+import logging
+import math
+import os
+import sys
+import pickle
+from time import time
+
+import networkx as nx
+# from joblib import Parallel, delayed
 from tqdm import tqdm
-from shutil import copyfile
 
 sys.setrecursionlimit(1_000_000)
 
 from src.VRG import VRG
 from src.extract import MuExtractor, LocalExtractor, GlobalExtractor
-from src.Tree import create_tree, TreeNode
+from src.Tree import create_tree
 import src.partitions as partitions
 from src.LightMultiGraph import LightMultiGraph
 from src.MDL import graph_dl
+from src.generate import generate_graph
+
 
 def get_graph(filename='sample') -> LightMultiGraph:
     start_time = time()
@@ -113,7 +114,7 @@ def make_dirs(outdir: str, name: str) -> None:
     return
 
 
-def dump_grammar(name: str, clustering: str, grammar_type: str, mu: int) -> None:
+def dump_grammar(name: str, clustering: str, grammar_type: str, mu: int) -> VRG:
     """
     Dump the stats
     :return:
@@ -152,14 +153,13 @@ def dump_grammar(name: str, clustering: str, grammar_type: str, mu: int) -> None
 
     grammar = extractor.grammar
 
-    row = {'name': name, 'n': original_graph.order(), 'm': original_graph.size(), 'g_dl': round(g_dl, 3),
-           'type': grammar_type, 'mu': mu, 'clustering': clustering, '#rules': len(grammar), 'grammar_dl': round(grammar.cost, 3),
-           'time': time_taken, 'compression': round(grammar.cost / g_dl, 3)}
-
+    # row = {'name': name, 'n': original_graph.order(), 'm': original_graph.size(), 'g_dl': round(g_dl, 3),
+    #        'type': grammar_type, 'mu': mu, 'clustering': clustering, '#rules': len(grammar), 'grammar_dl': round(grammar.cost, 3),
+    #        'time': time_taken, 'compression': round(grammar.cost / g_dl, 3)}
     # tqdm.write(f"name: {name}, n: {row['n']}, m: {row['m']}, mu: {row['mu']}, graph_dl: {g_dl}, grammar_dl: {grammar.cost},"
     #            f"compression: {row['compression']}, time: {time_taken}s")
-    tqdm.write(f"name: {name}, original: {g_dl}, grammar: {grammar.cost}, time: {time_taken}")
-    return
+    # tqdm.write(f"name: {name}, original: {g_dl}, grammar: {grammar.cost}, time: {time_taken}")
+    return grammar
 
 
 def old_main():
@@ -225,12 +225,30 @@ def parse_args():
     return parser.parse_args()
 
 
+def generate_graphs(grammar, n):
+    """
+    Generate n graphs from grammar
+    """
+    print(f'Generating {n} graphs')
+    graphs = []
+    rule_dict = grammar.rule_dict
+
+    for _ in range(n):
+        graph, _ = generate_graph(rule_dict)
+        graph = nx.Graph(graph)
+        graphs.append(graph)
+
+    return graphs
+
 def main():
     args = parse_args()
-    name, clustering, mode, mu, type, outdir = args.graph, args.clustering, args.boundary, args.mu, \
-                                                   args.type, args.outdir
+    name, clustering, mode, mu, type, outdir, n = args.graph, args.clustering, args.boundary, args.mu, \
+                                                   args.type, args.outdir, args.n
+    make_dirs(outdir, name)
+    grammar = dump_grammar(name=name, grammar_type=type, clustering=clustering, mu=mu)
+    graphs = generate_graphs(grammar, n)
 
-    dump_grammar(name=name, grammar_type=type, clustering=clustering, mu=mu)
+    pickle.dump(graphs, open(f'./output/{name}_cnrg.pkl', 'wb'))
 
 
 if __name__ == '__main__':
