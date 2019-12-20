@@ -162,40 +162,6 @@ def dump_grammar(name: str, clustering: str, grammar_type: str, mu: int) -> VRG:
     return grammar
 
 
-def old_main():
-    if len(sys.argv) > 1:
-        name = sys.argv[1]
-    else:
-        name = 'sample'
-
-    grammar_types = ('mu_random', 'mu_level', 'mu_dl', 'mu_level_dl', 'local_dl', 'global_dl')
-    clustering_algs = ('cond', 'leiden', 'louvain', 'spectral', 'random')
-
-    # get_grammar_parallel(name, 'leiden', 'mu_random')
-
-    # gram = pickle.load(open('./dumps/grammars/karate/leiden_mu_random_3.pkl', 'rb'))
-    # print(gram.rule_list)
-    outdir = 'dumps'
-    fieldnames = ('name', 'n', 'm', 'g_dl', 'type', 'mu', 'clustering', '#rules', 'grammar_dl', 'time')
-
-    make_dirs(outdir, name)  # make the directories if needed
-
-    stats_path = f'{outdir}/grammar_stats/{name}.csv'
-    mode = 'w'
-    if os.path.exists(stats_path):
-        print('stats file exists')
-        mode = 'a'
-
-    if mode == 'w':
-        with open(stats_path, mode) as csv_file:
-            writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-            writer.writeheader()
-
-    Parallel(n_jobs=15, verbose=1)(delayed(dump_grammar)(name=name, clustering=clustering, grammar_type=grammar_type)
-                                  for grammar_type in grammar_types
-                                   for clustering in clustering_algs)
-
-
 def parse_args():
     graph_names = [fname[: fname.find('.g')].split('/')[-1]
                    for fname in glob.glob('./src/tmp/*.g')]
