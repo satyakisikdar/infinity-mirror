@@ -1,24 +1,23 @@
 """
 Container for different graph stats
 """
-from typing import Dict, Tuple, List
-import networkx as nx
 from collections import Counter, deque
-import numpy as np
+from typing import Dict, Tuple, List
+
 import editdistance as ed
+import networkx as nx
+import numpy as np
 
 from src.utils import ColorPrint as CP
-
+from src.Graph import CustomGraph
 
 class GraphStats:
     """
     GraphStats has methods for finding different statistics for a NetworkX graph
     """
-    def __init__(self, graph: nx.Graph):
-        self.graph = graph
-        self.stats: Dict[str, float] = {}
-        self.stats['n'] = graph.order()
-        self.stats['m'] = graph.size()
+    def __init__(self, graph: CustomGraph):
+        self.graph: CustomGraph = graph
+        self.stats: Dict[str, float] = {'n': graph.order(), 'm': graph.size()}
 
     def __str__(self) -> str:
         st = f'"{self.graph.name}" stats:'
@@ -232,8 +231,6 @@ class GraphStats:
         :param node: node to compute the k_hop_reach vector
         :return:
         """
-        n = self.graph.order()
-
         reachability_counter = {0: 1}  # within 0 hops, you can reach 1 node - itself
         hop_counter = {node: 0}  # node is 0 hops away from itself
         queue = deque([node])
