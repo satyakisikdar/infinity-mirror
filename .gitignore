@@ -1,2 +1,5 @@
 # ignore pycache stuff
 *.pyc
+*.idea
+__pycache__
+*.g
