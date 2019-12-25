@@ -111,6 +111,51 @@ class GraphReader:
         return str(self)
 
 
+class SyntheticGraph:
+    """
+    Container for Synthetic graphs
+    """
+    implemented_methods = {'chain': {'n'}, 'tree': {'r', 'h'}, 'ladder': {'n'}, 'circular_ladder': {'n'}, 'ring': {'n'},
+                           'ring_of_cliques': {'n', 'k'}, 'grid': {'m', 'n'}}
+    def __init__(self, kind, **kwargs):
+        self.kind = kind
+        assert kind in self.implemented_methods, f'Generator {kind} not implemented. Implemented methods: {self.implemented_methods.keys()}'
+        self.args = kwargs
+        self.g = self._make_graph()
+
+    def _make_graph(self) -> CustomGraph:
+        """
+        Makes the graph
+        :return:
+        """
+        assert self.implemented_methods[self.kind].issubset(self.args), f'Improper args {self.args.keys()}, need: {self.implemented_methods[self.kind]}'
+
+        if self.kind == 'chain':
+            g = nx.path_graph(self.args['n'])
+            name = f'chain_{g.order()}'
+        elif self.kind == 'tree':
+            g = nx.balanced_tree(self.args['r'], self.args['h'])
+            name = f"tree_{self.args['r'], self.args['h']}"
+        elif self.kind == 'ladder':
+            g = nx.ladder_graph(self.args['n'])
+            name = f'ladder_graph_{g.order()}'
+        elif self.kind == 'circular_ladder':
+            g = nx.circular_ladder_graph(self.args['n'])
+            name = f'circular_ladder_graph_{g.order()}'
+        elif self.kind == 'ring_of_cliques':
+            g = nx.ring_of_cliques(self.args['n'], self.args['k'])
+            name = f"clique_ring_{self.args['n'], self.args['k']}"
+        elif self.kind == 'grid':
+            g = nx.grid_2d_graph(self.args['m'], self.args['n'])
+            name = f"grid_{self.args['m'], self.args['n']}"
+        else:
+            name = ''
+            raise NotImplementedError(f'Improper kind: {self.kind}')
+        g = CustomGraph(g)
+        g.name = name
+        return g
+
+
 class GraphWriter:
     """
     Class for writing graphs, expects a networkx graph as input
