@@ -7,9 +7,9 @@ import networkx as nx
 import numpy as np
 from numpy import linalg as la
 
-from src.utils import fast_bp, _pad
+from src.utils import fast_bp, _pad, cvm_distance
 from src.Graph import CustomGraph
-
+from src.GCD import GCD
 
 class GraphPairCompare:
     """
@@ -32,6 +32,9 @@ class GraphPairCompare:
     def calculate(self):
         pass
 
+    def gcd(self) -> float:
+        return GCD(self.graph1, self.graph2)
+
     def lambda_dist(self, k=None, p=2) -> float:
         """
         compare the euclidean distance between the top-k eigenvalues of the laplacian
@@ -48,9 +51,9 @@ class GraphPairCompare:
         lambda_d = round(la.norm(lambda_seq_1 - lambda_seq_2, ord=p) / k, 3)
         self.stats['lambda_dist'] = lambda_d
 
-        return lambda_d
+        return round(lambda_d, 3)
 
-    def deltacon0(self, eps=None):
+    def deltacon0(self, eps=None) -> float:
         n1, n2 = self.graph1.order(), self.graph2.order()
         N = max(n1, n2)
 
@@ -62,39 +65,28 @@ class GraphPairCompare:
 
         return round(dist, 3)
 
-# def compare_two_graphs(g_true: CustomGraph, g_test: Union[CustomGraph, LightMultiGraph], true_deg=None, true_page=None):
-#     """
-#     Compares two graphs
-#     :param g_true: actual graph
-#     :param g_test: generated graph
-#     :return:
-#     """
-#     if true_deg is None:
-#         true_deg = nx.degree_histogram(g_true)
-#
-#     if true_page is None:
-#         true_page = list(nx.pagerank_scipy(g_true).values())
-#
-#     start = time()
-#     g_test_deg = nx.degree_histogram(g_test)
-#     deg_time = time() - start
-#
-#     start = time()
-#     g_test_pr = list(nx.pagerank_scipy(g_test).values())
-#     page_time = time() - start
-#
-#     start = time()
-#     gcd = GCD(g_true, g_test, 'orca')
-#     gcd_time = time() - start
-#
-#     start = time()
-#     cvm_deg = cvm_distance(true_deg, g_test_deg)
-#     cvm_page = cvm_distance(true_page, g_test_pr)
-#     cvm_time = time() - start
-#
-#     ld = lambda_dist(g_true, g_test, k=min(g_true.order(), g_test.order(), 10))
-#
-#     dc0 = deltacon0(g_true, g_test)
-#
-#     logging.debug(f'times: deg {round(deg_time, 3)}s, page {round(page_time, 3)}s, gcd {round(gcd_time, 3)}s, cvm {round(cvm_time, 3)}s')
-#     return gcd, cvm_deg, cvm_page, ld, dc0
+    def cvm_pagerank(self, pr1=None, pr2=None) -> float:
+        """
+        Calculate the CVM distance of the pagerank
+        """
+        if pr1 is None:
+            pr1 = list(nx.pagerank_scipy(self.graph1).values())
+        if pr2 is None:
+            pr2 = list(nx.pagerank_scipy(self.graph2).values())
+
+        dist = cvm_distance(pr1, pr2)
+        self.stats['pagerank_cvm'] = dist
+        return round(dist, 3)
+
+    def cvm_degree(self, deg1=None, deg2=None) -> float:
+        """
+        Calculate the CVM distance of the degree distr
+        """
+        if deg1 is None:
+            deg1 = nx.degree_histogram(self.graph1)
+        if deg2 is None:
+            deg2 = nx.degree_histogram(self.graph2)
+
+        dist = cvm_distance(deg1, deg2)
+        self.stats['degree_cvm'] = dist
+        return round(dist, 3)
