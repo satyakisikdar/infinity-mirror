@@ -13,6 +13,22 @@ from scipy.sparse import issparse
 sns.set()
 sns.set_style("darkgrid")
 
+
+def borda_sort(lists):
+    """
+    Finds the aggregate ranking from a list of individual rankings
+    :param lists:
+    :return:
+    """
+    scores = {}
+    for l in lists:
+        for idx, elem in enumerate(reversed(l)):
+            if not elem in scores:
+                scores[elem] = 0
+            scores[elem] += idx
+    return sorted(scores.keys(), key=lambda elem: scores[elem], reverse=True)
+
+
 def check_file_exists(path: Union[Path, str]) -> bool:
     """
     Checks if file exists at path
