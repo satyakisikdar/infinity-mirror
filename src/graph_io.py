@@ -116,10 +116,10 @@ class SyntheticGraph:
     Container for Synthetic graphs
     """
     implemented_methods = {'chain': {'n'}, 'tree': {'r', 'h'}, 'ladder': {'n'}, 'circular_ladder': {'n'}, 'ring': {'n'},
-                           'ring_of_cliques': {'n', 'k'}, 'grid': {'m', 'n'}, 'erodos_renyi': ['n', 'p', 'seed']}
+                           'ring_of_cliques': {'n', 'k'}, 'grid': {'m', 'n'}, 'erdos_renyi': {'n', 'p', 'seed'}}
     def __init__(self, kind, **kwargs):
         self.kind = kind
-        assert kind in self.implemented_methods, f'Generator {kind} not implemented. Implemented methods: {self.implemented_methods.keys()}'
+        assert kind in SyntheticGraph.implemented_methods, f'Generator {kind} not implemented. Implemented methods: {self.implemented_methods.keys()}'
         self.args = kwargs
         self.g = self._make_graph()
 
@@ -135,7 +135,7 @@ class SyntheticGraph:
             name = f'chain_{g.order()}'
         elif self.kind == 'tree':
             g = nx.balanced_tree(self.args['r'], self.args['h'])
-            name = f"tree_{self.args['r'], self.args['h']}"
+            name = f"tree_{self.args['r']}_{self.args['h']}"
         elif self.kind == 'ladder':
             g = nx.ladder_graph(self.args['n'])
             name = f'ladder_graph_{g.order()}'
@@ -144,13 +144,13 @@ class SyntheticGraph:
             name = f'circular_ladder_graph_{g.order()}'
         elif self.kind == 'ring_of_cliques':
             g = nx.ring_of_cliques(self.args['n'], self.args['k'])
-            name = f"clique_ring_{self.args['n'], self.args['k']}"
+            name = f"clique_ring_{self.args['n']}_{self.args['k']}"
         elif self.kind == 'grid':
             g = nx.grid_2d_graph(self.args['m'], self.args['n'])
-            name = f"grid_{self.args['m'], self.args['n']}"
+            name = f"grid_{self.args['m']}_{self.args['n']}"
         elif self.kind == 'erdos_renyi':
             g = nx.erdos_renyi_graph(n=self.args['n'], p=self.args['p'], seed=self.args['seed'])
-            name = f"erdos_renyi_{self.args['n'], self.args['p']}"
+            name = f"erdos_renyi_{self.args['n']}_{self.args['p']}"
         else:
             name = ''
             raise NotImplementedError(f'Improper kind: {self.kind}')
