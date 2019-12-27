@@ -10,15 +10,21 @@ from numpy import linalg as la
 from src.utils import fast_bp, _pad, cvm_distance
 from src.Graph import CustomGraph
 from src.GCD import GCD
+from src.graph_stats import GraphStats
+
 
 class GraphPairCompare:
     """
     Compares two graphs
     """
-    def __init__(self, graph1: CustomGraph, graph2: CustomGraph):
-        self.graph1: CustomGraph = graph1
-        self.graph2: CustomGraph = graph2
+    def __init__(self, gstats1: GraphStats, gstats2: GraphStats) -> None:
+        self.gstats1: GraphStats = gstats1
+        self.gstats2: GraphStats = gstats2
+        self.graph1: CustomGraph = gstats1.graph
+        self.graph2: CustomGraph = gstats2.graph
         self.stats: Dict[str, float] = {}
+        self.calculate()
+        return
 
     def __str__(self) -> str:
         st = f'Comparing graphs: "{self.graph1.name}" and "{self.graph2.name}"'
@@ -26,14 +32,23 @@ class GraphPairCompare:
             st += f'\n{key}: {round(val, 3)}'
         return st
 
-    def __getitem__(self, item):
+    def __getitem__(self, item) -> float:
+        assert item in self.stats, f'Invalid {item} in {self.stats.keys()}'
         return self.stats[item]
 
-    def calculate(self):
-        pass
+    def calculate(self) -> None:
+        self.lambda_dist(k=10)
+        self.gcd()
+        self.deltacon0()
+        self.cvm_degree()
+        self.cvm_pagerank()
+        return
 
     def gcd(self) -> float:
-        return GCD(self.graph1, self.graph2)
+        dist = GCD(self.graph1, self.graph2)
+        self.stats['gcd'] = dist
+
+        return round(dist, 3)
 
     def lambda_dist(self, k=None, p=2) -> float:
         """
@@ -44,14 +59,16 @@ class GraphPairCompare:
         """
         if k is None:
             k = min(self.graph1.order(), self.graph2.order())
+        else:
+            k = min(self.graph1.order(), self.graph2.order(), k)
 
-        lambda_seq_1 = np.array(sorted(nx.linalg.laplacian_spectrum(self.graph1), reverse=True)[: k])
-        lambda_seq_2 = np.array(sorted(nx.linalg.laplacian_spectrum(self.graph2), reverse=True)[: k])
+        lambda_seq_1 = np.array(sorted(self.gstats1['laplacian_eigenvalues'], reverse=True))[: k]
+        lambda_seq_2 = np.array(sorted(self.gstats2['laplacian_eigenvalues'], reverse=True)[: k])
 
-        lambda_d = round(la.norm(lambda_seq_1 - lambda_seq_2, ord=p) / k, 3)
-        self.stats['lambda_dist'] = lambda_d
+        dist = round(la.norm(lambda_seq_1 - lambda_seq_2, ord=p) / k, 3)
+        self.stats['lambda_dist'] = dist
 
-        return round(lambda_d, 3)
+        return round(dist, 3)
 
     def deltacon0(self, eps=None) -> float:
         n1, n2 = self.graph1.order(), self.graph2.order()
@@ -65,28 +82,31 @@ class GraphPairCompare:
 
         return round(dist, 3)
 
-    def cvm_pagerank(self, pr1=None, pr2=None) -> float:
+    def cvm_pagerank(self) -> float:
         """
         Calculate the CVM distance of the pagerank
         """
-        if pr1 is None:
-            pr1 = list(nx.pagerank_scipy(self.graph1).values())
-        if pr2 is None:
-            pr2 = list(nx.pagerank_scipy(self.graph2).values())
+        pr1 = list(self.gstats1['pagerank'].values())
+        pr2 = list(self.gstats2['pagerank'].values())
 
         dist = cvm_distance(pr1, pr2)
         self.stats['pagerank_cvm'] = dist
+
         return round(dist, 3)
 
-    def cvm_degree(self, deg1=None, deg2=None) -> float:
+    def cvm_degree(self) -> float:
         """
         Calculate the CVM distance of the degree distr
         """
-        if deg1 is None:
-            deg1 = nx.degree_histogram(self.graph1)
-        if deg2 is None:
-            deg2 = nx.degree_histogram(self.graph2)
+        # if deg1 is None:
+        #     deg1 = nx.degree_histogram(self.graph1)
+        # if deg2 is None:
+        #     deg2 = nx.degree_histogram(self.graph2)
+        deg1 = list(self.gstats1['degree_dist'].values())
+        deg2 = list(self.gstats2['degree_dist'].values())
 
         dist = cvm_distance(deg1, deg2)
         self.stats['degree_cvm'] = dist
+
         return round(dist, 3)
+
