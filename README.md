@@ -3,6 +3,7 @@
 pairwise graph distances, pick best, worst, and median.
 ranked choice voting.. Instant run-off voting
 
+0.5. Rejection sampling for CNRG - stable clustering (maybe)
 
 1. Get graph generators working
     * **works** ER, CNRG, HRG, BTER, Kronecker, Chung-Lu

@@ -1,34 +1,47 @@
 import os
 import networkx as nx
 
-from src.graph_io import GraphReader, GraphWriter
+from src.graph_io import GraphReader, GraphWriter, SyntheticGraph
 from src.graph_models import *
 from src.graph_stats import GraphStats
 from src.utils import make_plot
-
+from src.Graph import CustomGraph
+from src.infinity_mirror import InfinityMirror
+from src.GCD import GCD
 
 def make_dirs():
     """
     Makes input and output directories if they do not exist already
     :return:
     """
-    for dirname in ('input', 'output', 'analysis'):
+    for dirname in ('input', 'output', 'analysis', 'src/scratch'):
         if not os.path.exists(f'./{dirname}'):
             os.makedirs(f'./{dirname}')
 
 
-def test_generators(g: nx.Graph):
-    er = ErdosRenyi(input_graph=g)
-    er.generate(10)
-    print(er)
+def test_infinity_mirror(g: CustomGraph):
+    inf = InfinityMirror(initial_graph=g, num_generations=6, model_obj=ChungLu)  # CNRG seems to create rings
+    inf.run()
+    inf.plot()
+    print(inf)
+
+
+def test_generators(g: CustomGraph):
+    # er = ErdosRenyi(input_graph=g)
+    # er.generate(10)
+    # print(er)
+
+    # kron = Kronecker(input_graph=g)
+    # kron.generate(10)
+    # print(kron)
 
     # hrg = HRG(input_graph=g)
     # hrg.generate(10)
     # print(hrg)
 
-    # cnrg = CNRG(input_graph=g)
-    # cnrg.generate(10)
-    # print(cnrg)
+    cnrg = CNRG(input_graph=g)
+    cnrg.generate(10, gen_id=0)
+    print(cnrg)
 
     # cl = ChungLu(input_graph=g)
     # cl.generate(10)
@@ -39,7 +52,7 @@ def test_generators(g: nx.Graph):
     # print(bter)
 
 
-def test_graph_stats(g: nx.Graph):
+def test_graph_stats(g: CustomGraph):
     g_stats = GraphStats(graph=g)
     g_stats._calculate_all_stats()
     print(g_stats)
@@ -63,10 +76,17 @@ def test_graph_stats(g: nx.Graph):
 
 def main():
     make_dirs()
-    graph_reader = GraphReader(filename='./input/karate.g', reindex_nodes=True, first_label=0)
-    g = graph_reader.graph
-    # test_generators(g)
-    test_graph_stats(g)
+    # graph_reader = GraphReader(filename='./input/karate.g', reindex_nodes=True, first_label=0)
+    # g = graph_reader.graph
+    # g = CustomGraph(nx.ring_of_cliques(50, clique_size=4))
+    # g.name = f'ring_{g.order()}'
+
+    # g = SyntheticGraph(kind='ladder', n=25).g
+    # h = SyntheticGraph(kind='ladder', n=25).g
+    g = SyntheticGraph(kind='erdos_renyi', n=20, p=0.5, seed=1).g
+    h = SyntheticGraph(kind='erdos_renyi', n=20, p=0.5, seed=1).g
+    # print(GCD(g, h))
+    test_infinity_mirror(g)
 
 
 if __name__ == '__main__':
