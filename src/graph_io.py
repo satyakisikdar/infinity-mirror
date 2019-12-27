@@ -116,7 +116,7 @@ class SyntheticGraph:
     Container for Synthetic graphs
     """
     implemented_methods = {'chain': {'n'}, 'tree': {'r', 'h'}, 'ladder': {'n'}, 'circular_ladder': {'n'}, 'ring': {'n'},
-                           'ring_of_cliques': {'n', 'k'}, 'grid': {'m', 'n'}}
+                           'ring_of_cliques': {'n', 'k'}, 'grid': {'m', 'n'}, 'erodos_renyi': ['n', 'p', 'seed']}
     def __init__(self, kind, **kwargs):
         self.kind = kind
         assert kind in self.implemented_methods, f'Generator {kind} not implemented. Implemented methods: {self.implemented_methods.keys()}'
@@ -148,6 +148,9 @@ class SyntheticGraph:
         elif self.kind == 'grid':
             g = nx.grid_2d_graph(self.args['m'], self.args['n'])
             name = f"grid_{self.args['m'], self.args['n']}"
+        elif self.kind == 'erdos_renyi':
+            g = nx.erdos_renyi_graph(n=self.args['n'], p=self.args['p'], seed=self.args['seed'])
+            name = f"erdos_renyi_{self.args['n'], self.args['p']}"
         else:
             name = ''
             raise NotImplementedError(f'Improper kind: {self.kind}')
