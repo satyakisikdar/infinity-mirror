@@ -1,5 +1,6 @@
 # ignore pycache stuff
+.DS_Store
 *.pyc
-*.idea
-__pycache__
+*.idea/
+__pycache__/
 *.g
