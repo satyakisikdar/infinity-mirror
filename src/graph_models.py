@@ -17,15 +17,18 @@ from src.Graph import CustomGraph
 __all__ = ['BaseGraphModel', 'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker']
 
 class BaseGraphModel:
-    def __init__(self, model_name: str, input_graph: CustomGraph):
+    def __init__(self, model_name: str, input_graph: CustomGraph, **kwargs) -> None:
         self.input_graph: CustomGraph = CustomGraph(input_graph)  # networkX graph to be fitted
         assert self.input_graph.name != '', 'Input graph does not have a name'
-        self.gname = self.input_graph.name  # name of the graph
 
+        self.gname = self.input_graph.name  # name of the graph
         self.model_name: str = model_name  # name of the model
         self.params: Dict[Any] = {}  # dictionary of model parameters
         self.generated_graphs: List[CustomGraph] = []   # list of NetworkX graphs
+
         self._fit()  # fit the parameters initially
+
+        return
 
     @abc.abstractmethod
     def _fit(self) -> None:
@@ -48,8 +51,10 @@ class BaseGraphModel:
         :return:
         """
         CP.print_blue('Updating graph')
+
         self.input_graph = new_input_graph
         self._fit()  # re-fit the parameters
+
         return
 
     def generate(self, num_graphs: int, gen_id: int) -> None:
@@ -61,11 +66,13 @@ class BaseGraphModel:
         :return:
         """
         self.generated_graphs = []  # reset the list of graphs - TODO: maybe double check if this is necessary
-        for _ in range(num_graphs):
+
+        for i in range(num_graphs):
             g = self._gen()
-            g.name = self.input_graph.name
+            g.name = f'{self.input_graph.name}_{gen_id}_{i+1}'  # name of the generated graph - input graph name + gen id + iteration no
             g = CustomGraph(g, gen_id=gen_id)
             self.generated_graphs.append(g)
+
         return
 
     def __str__(self) -> str:
@@ -79,8 +86,14 @@ class BaseGraphModel:
 
 
 class ErdosRenyi(BaseGraphModel):
-    def __init__(self, input_graph: CustomGraph):
+    def __init__(self, input_graph: CustomGraph, **kwargs) -> None:
         super().__init__(model_name='Erdos-Renyi', input_graph=input_graph)
+        if 'seed' in kwargs:
+            seed = kwargs['seed']
+        else:
+            seed = None
+        self.params['seed'] = seed
+        return
 
     def _fit(self) -> None:
         """
@@ -98,17 +111,23 @@ class ErdosRenyi(BaseGraphModel):
         self.params['n'] = n
         self.params['p'] = m / (n * (n - 1) / 2)
 
+        return
+
     def _gen(self) -> CustomGraph:
         assert 'n' in self.params and 'p' in self.params, 'Improper parameters for Erdos-Renyi'
-        g = nx.erdos_renyi_graph(n=self.params['n'], p=self.params['p'])
+
+        g = nx.erdos_renyi_graph(n=self.params['n'], p=self.params['p'], seed=self.params['seed'])
+
         return CustomGraph(g)
 
 class ChungLu(BaseGraphModel):
-    def __init__(self, input_graph: CustomGraph):
+    def __init__(self, input_graph: CustomGraph, **kwargs) -> None:
         super().__init__(model_name='Chung-Lu', input_graph=input_graph)
+        return
 
     def _fit(self) -> None:
         self.params['degree_seq'] = sorted([d for n, d in self.input_graph.degree()], reverse=True)  # degree sequence
+
         return
 
     def _gen(self) -> CustomGraph:
@@ -126,8 +145,9 @@ class TransitiveChungLu(BaseGraphModel):
     Chung-Lu with transitive closures - Pfeiffer, La Fond, Moreno, Neville - implementation not found
     https://ieeexplore.ieee.org/document/6406280/
     """
-    def __init__(self, input_graph: CustomGraph):
+    def __init__(self, input_graph: CustomGraph, **kwargs) -> None:
         super().__init__(model_name='Transitive-Chung-Lu', input_graph=input_graph)
+        return
 
     def _fit(self) -> None:
         raise NotImplementedError('Transitive Chung-Lu is not implemented yet')
@@ -141,8 +161,9 @@ class BTER(BaseGraphModel):
     BTER model by Tammy Kolda
     feastpack implementation at https://www.sandia.gov/~tgkolda/feastpack/feastpack_v1.2.zip
     """
-    def __init__(self, input_graph: CustomGraph):
+    def __init__(self, input_graph: CustomGraph, **kwargs) -> None:
         super().__init__(model_name='BTER', input_graph=input_graph)
+        return
 
     def _fit(self) -> None:
         pass  # the matlab code does the fitting
@@ -207,6 +228,7 @@ class BTER(BaseGraphModel):
         bter_mat = np.loadtxt(f'./src/bter/{g.name}_bter.mat', dtype=int)
 
         g_bter = nx.from_numpy_matrix(bter_mat, create_using=CustomGraph())
+
         return g_bter
 
 
@@ -214,8 +236,9 @@ class CNRG(BaseGraphModel):
     """
     Satyaki's Clustering-Based Node Replacement Grammars https://github.com/satyakisikdar/cnrg
     """
-    def __init__(self, input_graph: CustomGraph):
+    def __init__(self, input_graph: CustomGraph, **kwargs) -> None:
         super().__init__(model_name='CNRG', input_graph=input_graph)
+        return
 
     def _fit(self) -> None:
         pass  # the Python code does the fitting
@@ -235,10 +258,11 @@ class CNRG(BaseGraphModel):
         generated_graphs = load_pickle(output_pickle_path)
         self.generated_graphs = []  # reset generated graphs
 
-        for gen_graph in generated_graphs:
+        for i, gen_graph in enumerate(generated_graphs):
             gen_graph.name = self.input_graph.name
             gen_graph = CustomGraph(gen_graph)
             gen_graph.gen_id = gen_id
+            gen_graph.name += f'_{i+1}'  # append the number of graph generated
             self.generated_graphs.append(gen_graph)
 
         assert isinstance(self.generated_graphs, list) and len(self.generated_graphs) == num_graphs, \
@@ -250,8 +274,9 @@ class HRG(BaseGraphModel):
     """
     Sal's Hyperedge Replacement Graph Grammars https://github.com/abitofalchemy/hrg-nm
     """
-    def __init__(self, input_graph: CustomGraph):
+    def __init__(self, input_graph: CustomGraph, **kwargs) -> None:
         super().__init__(model_name='HRG', input_graph=input_graph)
+        return
 
     def _fit(self) -> None:
         pass  # the Python code does the fitting
@@ -285,11 +310,11 @@ class HRG(BaseGraphModel):
         generated_graphs = load_pickle(output_pickle_path)
 
         self.generated_graphs = []
-        for gen_graph in generated_graphs:
+        for i, gen_graph in enumerate(generated_graphs):
             gen_graph.name = self.input_graph.name
-
             gen_graph = self._make_graph(gen_graph)
             gen_graph.gen_id = gen_id
+            gen_graph.name += f'_{i+1}'  # adding the number of graph
             self.generated_graphs.append(gen_graph)
 
         assert isinstance(self.generated_graphs, list) and len(self.generated_graphs) == num_graphs, \
@@ -302,8 +327,9 @@ class Kronecker(BaseGraphModel):
     """
     Kronecker Graph Model from SNAP
     """
-    def __init__(self, input_graph: CustomGraph):
+    def __init__(self, input_graph: CustomGraph, **kwargs) -> None:
         super().__init__(model_name='Kronecker', input_graph=input_graph)
+        return
 
     def _fit(self) -> None:
         """
