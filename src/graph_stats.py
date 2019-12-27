@@ -4,15 +4,14 @@ Container for different graph stats
 from collections import Counter, deque
 from typing import Dict, Tuple, List
 
-import matplotlib.pyplot as plt
-import seaborn as sns
 import editdistance as ed
+import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
+import seaborn as sns
 
-from src.utils import ColorPrint as CP
 from src.Graph import CustomGraph
-
+from src.utils import ColorPrint as CP
 
 sns.set()
 sns.set_style("darkgrid")
@@ -54,13 +53,19 @@ class GraphStats:
 
         for method in object_methods:
             dist = ed.eval(method, item)
+            if dist == 0:
+                best_match_score = dist
+                best_match_func = method
+                break
+
             if dist < best_match_score:
                 best_match_score = dist
                 best_match_func = method
 
         assert best_match_func != '', 'edit distance did not work'
         item = best_match_func
-        CP.print_orange(f'Best matching function found for "{item}": "{best_match_func}()", edit distance: {best_match_score}')
+        if best_match_score != 0:
+            CP.print_orange(f'Best matching function found for "{item}": "{best_match_func}()", edit distance: {best_match_score}')
 
         if best_match_func not in self.stats:
             best_match_func = getattr(self, best_match_func)  # translates best_match_fun from string to a function object
@@ -208,7 +213,6 @@ class GraphStats:
                 degree_counts[deg] /= self.graph.order()
 
         self.stats['degree_dist'] = dict(degree_counts)
-
         return dict(degree_counts)
 
     def diameter(self) -> float:
@@ -288,20 +292,13 @@ class GraphStats:
 
         return laplacian_eigs
 
-    def orca_graphlet_counts(self) -> None:
-        """
-        Return the dictionary of graphlets as counted by Orca
-        :return:
-        """
-        raise NotImplementedError()
-
     def pagerank(self) -> Dict[int, float]:
         """
         PageRank centrality
         """
         CP.print_blue('Calculating PageRank')
 
-        pagerank = nx.pagerank_numpy(self.graph)
+        pagerank = nx.pagerank_scipy(self.graph)
         self.stats['pagerank'] = pagerank
 
         return pagerank
@@ -311,4 +308,5 @@ class GraphStats:
         Return the dictionary of graphlets and their counts - based on Neville's PGD
         :return:
         """
-        raise NotImplementedError()
+        CP.print_blue('Calculating the graphlet counts by PGD')
+        raise NotImplementedError('PGD does not work yet')
