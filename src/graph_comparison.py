@@ -17,6 +17,8 @@ class GraphPairCompare:
     """
     Compares two graphs
     """
+    __slots__ = ['gstats1', 'gstats2', 'graph1', 'graph2', 'stats']
+
     def __init__(self, gstats1: GraphStats, gstats2: GraphStats) -> None:
         self.gstats1: GraphStats = gstats1
         self.gstats2: GraphStats = gstats2

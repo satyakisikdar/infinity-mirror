@@ -21,6 +21,8 @@ class GraphStats:
     """
     GraphStats has methods for finding different statistics for a NetworkX graph
     """
+    __slots__ = ['graph', 'stats']
+
     def __init__(self, graph: CustomGraph):
         self.graph: CustomGraph = graph
         self.stats: Dict[str, float] = {'n': graph.order(), 'm': graph.size()}

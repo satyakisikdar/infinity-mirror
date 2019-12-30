@@ -17,6 +17,8 @@ class GraphReader:
     .gml, .gexf for Gephi
     .mat for adjacency matrix
     """
+    __slots__ = ['possible_extensions', 'filename', 'path', 'gname', 'graph']
+
     def __init__(self, filename: str, gname: str='', reindex_nodes: bool=False, first_label: int=0, take_lcc: bool=True) -> None:
         """
         :param filename: path to input file
@@ -115,6 +117,8 @@ class SyntheticGraph:
     """
     Container for Synthetic graphs
     """
+    __slots__ = ['kind', 'args', 'g']
+
     implemented_methods = {'chain': {'n'}, 'tree': {'r', 'h'}, 'ladder': {'n'}, 'circular_ladder': {'n'}, 'ring': {'n'},
                            'ring_of_cliques': {'n', 'k'}, 'grid': {'m', 'n'}, 'erdos_renyi': {'n', 'p', 'seed'}}
     def __init__(self, kind, **kwargs):
@@ -163,6 +167,8 @@ class GraphWriter:
     """
     Class for writing graphs, expects a networkx graph as input
     """
+    __slots__ = ['graph', 'path', 'fmt']
+
     def __init__(self, graph: CustomGraph, path: str, fmt: str='', gname: str=''):
         self.graph: CustomGraph = graph
 

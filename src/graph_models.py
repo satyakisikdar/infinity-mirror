@@ -17,6 +17,8 @@ from src.Graph import CustomGraph
 __all__ = ['BaseGraphModel', 'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker']
 
 class BaseGraphModel:
+    __slots__ = ['input_graph', 'gname', 'model_name', 'params', 'generated_graphs']
+
     def __init__(self, model_name: str, input_graph: CustomGraph, **kwargs) -> None:
         self.input_graph: CustomGraph = CustomGraph(input_graph)  # networkX graph to be fitted
         assert self.input_graph.name != '', 'Input graph does not have a name'
