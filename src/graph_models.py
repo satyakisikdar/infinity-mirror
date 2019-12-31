@@ -117,9 +117,40 @@ class ErdosRenyi(BaseGraphModel):
     def _gen(self) -> CustomGraph:
         assert 'n' in self.params and 'p' in self.params, 'Improper parameters for Erdos-Renyi'
 
-        g = nx.erdos_renyi_graph(n=self.params['n'], p=self.params['p'], seed=self.params['seed'])
+        g = nx.fast_gnp_random_graph(n=self.params['n'], p=self.params['p'], seed=self.params['seed'])
 
         return CustomGraph(g)
+
+
+class UniformRandom(BaseGraphModel):
+    """
+    model, a graph is chosen uniformly at random from the set of all graphs with n nodes and m edges.
+    """
+    def __init__(self, input_graph: CustomGraph, **kwargs) -> None:
+        super().__init__(model_name='Uniform-Random', input_graph=input_graph)
+        if 'seed' in kwargs:
+            seed = kwargs['seed']
+        else:
+            seed = None
+        self.params['seed'] = seed
+        return
+
+    def _fit(self):
+        n = self.input_graph.order()
+        m = self.input_graph.size()
+
+        self.params['n'] = n
+        self.params['m'] = m
+
+        return
+
+    def _gen(self) -> CustomGraph:
+        assert 'n' in self.params and 'm' in self.params, 'Improper parameters for Uniform Random'
+
+        g = nx.gnm_random_graph(n=self.params['n'], m=self.params['m'], seed=self.params['seed'])
+
+        return CustomGraph(g)
+
 
 class ChungLu(BaseGraphModel):
     def __init__(self, input_graph: CustomGraph, **kwargs) -> None:
