@@ -1,7 +1,6 @@
 import math
-from collections import defaultdict, namedtuple
-from statistics import median_low  # median_low returns the lower median
-from typing import Any, List, Dict
+from collections import defaultdict, namedtuple, deque
+from typing import Any, List, Dict, Deque
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -12,45 +11,63 @@ from src.graph_comparison import GraphPairCompare
 from src.graph_models import *
 from src.graph_stats import GraphStats
 from src.utils import borda_sort
+from src.Tree import TreeNode
 
 # mpl.rcParams['figure.dpi'] = 600
 
 Stats = namedtuple('Stats', 'id graph score')
 GraphTriple = namedtuple('GraphTriple', 'best worst median')
 
+## Add anytree to store the tree of graphs
+
 class InfinityMirror:
     """
     Class for InfinityMirror
     For each generation, store 3 graphs - best, worst, and the 50^th percentile -
-        use ranked choice voting for deciding the winner from 10 graphs <- rcv gives the
-
+        use ranked choice voting for deciding the winner from 10 graphs <- borda list
+        store the three graphs into a tree
     """
-    __slots__ = ('initial_graph', 'num_generations', 'model', '_current_generation', 'graphs_by_generation',
-                'filtered_graphs_by_generation', 'initial_graph_stats')
+    __slots__ = ('initial_graph', 'num_generations', 'model', 'initial_graph_stats', 'root')
 
     def __init__(self, initial_graph: CustomGraph, model_obj: Any, num_generations: int) -> None:
         self.initial_graph: CustomGraph = initial_graph  # the initial starting point H_0
         self.num_generations: int = num_generations  # number of generations
-        self.model: BaseGraphModel = self.init_model(model_obj)  # init BaseGraphModel object based on the parameters
-        self._current_generation: int = 0  # counter for current generations
-        self.graphs_by_generation: Dict[int, List[CustomGraph]] = {0: [self.initial_graph]}  # stores ALL the graphs for every generation
-        self.filtered_graphs_by_generation: Dict[int, GraphTriple] = {0: GraphTriple(best=self.initial_graph, worst=None, median=None)}  # stores only 3 graphs per generation
+        self.model: BaseGraphModel = model_obj(input_graph=self.initial_graph)  # initialize and fit the model
         self.initial_graph_stats = GraphStats(graph=self.initial_graph)  # initialize graph_stats object for the initial_graph which is the same across generations
+        self.root = TreeNode('root', graph=self.initial_graph)  # root of the tree with the initial graph
         return
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'model: "{self.model.model_name}"  initial graph: "{self.initial_graph.name}"  #gens: {self.num_generations}'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def init_model(self, model_obj) -> BaseGraphModel:
+    def run(self, num_graphs: int=10):
         """
-        Initializes Infinity Mirror object - calls the right Model object
+        Do a BFS starting with the root
+        :return:
         """
-        return model_obj(input_graph=self.initial_graph)  # initialize and fit the model
+        stack: List[TreeNode] = [self.root]
 
-    def _get_next_generation(self, input_graph: CustomGraph, num_graphs: int) -> None:
+        while len(stack) != 0:
+            tnode = stack.pop()
+            if tnode.depth >= self.num_generations:  # do not further expand the tree
+                continue
+
+            graph_triple = self._get_next_generation(input_graph=tnode.graph, num_graphs=num_graphs, gen_id=tnode.depth+1)
+            best_graph, worst_graph, median_graph = graph_triple.best, graph_triple.worst, graph_triple.median
+
+            ## creating the three nodes and attaching it to the tree
+            TreeNode(name=f'{tnode}-best', graph=best_graph, parent=tnode)
+            TreeNode(name=f'{tnode}-med', graph=median_graph, parent=tnode)
+            TreeNode(name=f'{tnode}-worst', graph=worst_graph, parent=tnode)
+
+            assert len(tnode.children) == 3, f'tree node {tnode} does not have 3 children'
+            stack.extend(tnode.children)  # add the children to the end of the queue
+        return
+
+    def _get_next_generation(self, input_graph: CustomGraph, num_graphs: int, gen_id: int) -> GraphTriple:
         """
         step 1: get input graph
         step 2: fit model
@@ -60,25 +77,20 @@ class InfinityMirror:
         :param num_graphs: number of graphs to generate
         :return:
         """
-        ## set input_graph to use the 3 chosen graphs not just the one graph
-        # input_graph: CustomGraph = self.graphs_by_generation[self.current_generation][0]  # use the prior generation's graph as input
+        # raise NotImplementedError('dont use current gen, keep update, generate; fix graphs_by_gen; fix filter graphs; ')
 
-        self._current_generation += 1  # update current generation
         self.model.update(new_input_graph=input_graph)
-        self.model.generate(num_graphs=num_graphs, gen_id=self._current_generation)  # populates self.generated_graphs list
-        self.graphs_by_generation[self._current_generation] = self.model.generated_graphs
-        self.filtered_graphs_by_generation[self._current_generation] = self._filter_graphs()
+        generated_graphs = self.model.generate(num_graphs=num_graphs, gen_id=gen_id)
+        return self._filter_graphs(generated_graphs)
 
-        return
-
-    def _filter_graphs(self) -> None:
+    def _filter_graphs(self, generated_graphs: List[CustomGraph]) -> GraphTriple:
         """
         Filter the graphs per generation to store the 3 chosen graphs - best, worst, and 50^th percentile
+
         Populates the filtered_graphs_by_generation
         :return: None
         """
-        assert self._current_generation in self.graphs_by_generation, f'Invalid generation {self._current_generation}'
-        assert len(self.graphs_by_generation[self._current_generation]) != 0, f'Graph list empty for gen: {self._current_generation}'
+        assert len(generated_graphs) != 0, f'generated graphs empty'
 
         ## For each graph in the generation
         #### compute graph distance with the original input graph and the generated graph
@@ -88,8 +100,7 @@ class InfinityMirror:
 
         scores: Dict[str, List[Stats]] = {'gcd': [], 'deltacon0': [], 'pagerank_cvm': [], 'degree_cvm': [], 'lambda_dist': []}
 
-        gen_graphs = self.graphs_by_generation[self._current_generation]
-        for i, gen_graph in enumerate(gen_graphs):
+        for i, gen_graph in enumerate(generated_graphs):
             gen_gstats = GraphStats(gen_graph)
             graph_comp = GraphPairCompare(gstats1=self.initial_graph_stats, gstats2=gen_gstats)
             for metric in scores.keys():
@@ -102,28 +113,15 @@ class InfinityMirror:
         for metric, stats in sorted_scores.items():
             rankings[metric] = list(map(lambda item: item.id, stats))
 
-        overall_ranking = borda_sort(rankings.values())
-        best_graph = gen_graphs[overall_ranking[0] - 1]  # ranking is 1-based
-        worst_graph = gen_graphs[overall_ranking[-1] - 1]  # same
-        median_graph = gen_graphs[median_low(overall_ranking) - 1]
-        self.filtered_graphs_by_generation[self._current_generation] = GraphTriple(best=best_graph, worst=worst_graph, median=median_graph)
-        return
+        overall_ranking = borda_sort(rankings.values())  # compute the overall ranking
 
-    def run(self, num_graphs: int=10) -> None:
-        ## start with the input graph, but moving forward, use the best, worst, and median graphs as seeds from the filtered_graphs list -
-        ## each spawning 3 graphs each - keep a tree of the graphs
+        best_graph = generated_graphs[overall_ranking[0] - 1]  # ranking is 1-based
+        worst_graph = generated_graphs[overall_ranking[-1] - 1]  # same
+        median_graph = generated_graphs[overall_ranking[len(overall_ranking)//2 - 1] - 1]   # 5th element from the list
 
-        if self._current_generation == 0:
-            input_graph = self.initial_graph  # start with the initial graph
+        return GraphTriple(best=best_graph, worst=worst_graph, median=median_graph)
 
-
-        # self._get_next_generation(num_graphs=num_graphs, input_graph=self.initial_graph)
-        # for _ in range(self.num_generations):
-        #     self._get_next_generation(num_graphs=num_graphs)
-        # return
-        pass
-
-    def plot(self, prog: str = 'neato'):
+    def plot(self, prog: str='neato'):
         """
         Plot the progression of the infinity mirror - fix the node positions
         :return:
