@@ -154,7 +154,7 @@ class SyntheticGraph:
             name = f"grid_{self.args['m']}_{self.args['n']}"
         elif self.kind == 'erdos_renyi':
             g = nx.erdos_renyi_graph(n=self.args['n'], p=self.args['p'], seed=self.args['seed'])
-            name = f"erdos_renyi_{self.args['n']}_{g.order()}"
+            name = f"erdos_renyi_{self.args['n']}_{g.size()}"
         else:
             name = ''
             raise NotImplementedError(f'Improper kind: {self.kind}')
