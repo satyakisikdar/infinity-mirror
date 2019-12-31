@@ -17,7 +17,7 @@ from src.Graph import CustomGraph
 __all__ = ['BaseGraphModel', 'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker']
 
 class BaseGraphModel:
-    __slots__ = ['input_graph', 'gname', 'model_name', 'params', 'generated_graphs']
+    __slots__ = ['input_graph', 'gname', 'model_name', 'params']
 
     def __init__(self, model_name: str, input_graph: CustomGraph, **kwargs) -> None:
         self.input_graph: CustomGraph = CustomGraph(input_graph)  # networkX graph to be fitted
@@ -26,7 +26,6 @@ class BaseGraphModel:
         self.gname = self.input_graph.name  # name of the graph
         self.model_name: str = model_name  # name of the model
         self.params: Dict[Any] = {}  # dictionary of model parameters
-        self.generated_graphs: List[CustomGraph] = []   # list of NetworkX graphs
 
         self._fit()  # fit the parameters initially
 
@@ -59,7 +58,7 @@ class BaseGraphModel:
 
         return
 
-    def generate(self, num_graphs: int, gen_id: int) -> None:
+    def generate(self, num_graphs: int, gen_id: int) -> List[CustomGraph]:
         """
         Generates num_graphs many graphs by repeatedly calling _gen
         maybe use a generator
@@ -67,15 +66,15 @@ class BaseGraphModel:
         :param gen_id: generation id
         :return:
         """
-        self.generated_graphs = []  # reset the list of graphs - TODO: maybe double check if this is necessary
+        generated_graphs = []  # reset the list of graphs - TODO: maybe double check if this is necessary
 
         for i in range(num_graphs):
             g = self._gen()
             g.name = f'{self.input_graph.name}_{gen_id}_{i+1}'  # name of the generated graph - input graph name + gen id + iteration no
             g = CustomGraph(g, gen_id=gen_id)
-            self.generated_graphs.append(g)
+            generated_graphs.append(g)
 
-        return
+        return generated_graphs
 
     def __str__(self) -> str:
         st = f'name: "{self.model_name}", input_graph: "{self.input_graph.name}"'
@@ -248,7 +247,7 @@ class CNRG(BaseGraphModel):
     def _gen(self) -> None:
         pass  # HRGs can generate multiple graphs at once
 
-    def generate(self, num_graphs: int, gen_id:int) -> None:
+    def generate(self, num_graphs: int, gen_id:int) -> List[CustomGraph]:
         nx.write_edgelist(self.input_graph, f'./src/cnrg/src/tmp/{self.gname}.g', data=False)
 
         completed_process = subprocess.run(f'cd src/cnrg; python3 runner.py -g {self.gname} -n {num_graphs}',
@@ -257,19 +256,18 @@ class CNRG(BaseGraphModel):
         output_pickle_path = f'./src/cnrg/output/{self.gname}_cnrg.pkl'
         assert check_file_exists(output_pickle_path)
 
-        generated_graphs = load_pickle(output_pickle_path)
-        self.generated_graphs = []  # reset generated graphs
+        generated_graphs = []  # reset generated graphs
 
-        for i, gen_graph in enumerate(generated_graphs):
+        for i, gen_graph in enumerate(load_pickle(output_pickle_path)):
             gen_graph.name = self.input_graph.name
             gen_graph = CustomGraph(gen_graph)
             gen_graph.gen_id = gen_id
             gen_graph.name += f'_{i+1}'  # append the number of graph generated
-            self.generated_graphs.append(gen_graph)
+            generated_graphs.append(gen_graph)
 
-        assert isinstance(self.generated_graphs, list) and len(self.generated_graphs) == num_graphs, \
+        assert isinstance(generated_graphs, list) and len(generated_graphs) == num_graphs, \
             'Failed to generate graphs'
-        return
+        return generated_graphs
 
 
 class HRG(BaseGraphModel):
@@ -300,7 +298,7 @@ class HRG(BaseGraphModel):
                 custom_g.add_edge(u, v)
         return custom_g
 
-    def generate(self, num_graphs: int, gen_id: int) -> None:
+    def generate(self, num_graphs: int, gen_id: int) -> List[CustomGraph]:
         nx.write_edgelist(self.input_graph, f'./src/hrg/{self.gname}.g', data=False)
 
         completed_process = subprocess.run(f'cd src/hrg; python2 -m pip install networkx==1.11; python2 exact_phrg.py --orig {self.gname}.g --trials {num_graphs}',
@@ -309,20 +307,19 @@ class HRG(BaseGraphModel):
         assert completed_process.returncode == 0, 'Error in HRG'
 
         output_pickle_path = f'./src/hrg/Results/{self.gname}_hstars.pickle'
-        generated_graphs = load_pickle(output_pickle_path)
 
-        self.generated_graphs = []
-        for i, gen_graph in enumerate(generated_graphs):
+        generated_graphs = []
+        for i, gen_graph in enumerate(load_pickle(output_pickle_path)):
             gen_graph.name = self.input_graph.name
             gen_graph = self._make_graph(gen_graph)
             gen_graph.gen_id = gen_id
             gen_graph.name += f'_{i+1}'  # adding the number of graph
-            self.generated_graphs.append(gen_graph)
+            generated_graphs.append(gen_graph)
 
-        assert isinstance(self.generated_graphs, list) and len(self.generated_graphs) == num_graphs, \
+        assert isinstance(generated_graphs, list) and len(generated_graphs) == num_graphs, \
             'Failed to generate graphs'
 
-        return
+        return generated_graphs
 
 
 class Kronecker(BaseGraphModel):
@@ -347,7 +344,7 @@ class Kronecker(BaseGraphModel):
             directed_g = g.to_directed()  # kronecker expects a directed graph
             nx.write_edgelist(directed_g, f'src/snap/examples/graphs/{self.gname}.txt', data=False)
 
-            bash_code = f'cd src/snap/examples/kronem; make; ./kronem -i:../graphs/{self.gname}.txt -o:../graphs/                                                                        {self.gname}-fit'
+            bash_code = f'cd src/snap/examples/kronem; make; ./kronem -i:../graphs/{self.gname}.txt -o:../graphs/{self.gname}-fit'
             completed_process = subprocess.run(bash_code, shell=True)#, stdout=subprocess.PIPE)
             assert completed_process.returncode == 0, 'Error in KronEM'
 
