@@ -55,7 +55,7 @@ def load_pickle(path: Union[Path, str]) -> Any:
     :param path:
     :return:
     """
-    assert check_file_exists(path), f'{path} does not exist'
+    assert check_file_exists(path), f'"{path}" does not exist'
     return pickle.load(open(path, 'rb'))
 
 
