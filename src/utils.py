@@ -2,7 +2,7 @@ import pickle
 import sys
 from pathlib import Path
 from typing import Union, Any
-
+import statsmodels.stats.api as sm
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns;
@@ -13,6 +13,9 @@ from scipy.sparse import issparse
 sns.set()
 sns.set_style("darkgrid")
 
+
+def confidence_interval(arr, alpha=0.05):
+    return sm.DescrStatsW(arr).tconfint_mean(alpha=alpha)
 
 def borda_sort(lists):
     """
@@ -150,3 +153,4 @@ class ColorPrint:
     @staticmethod
     def print_bold(message, end='\n'):
         sys.stdout.write('\x1b[1;37m' + message.strip() + '\x1b[0m' + end)
+
