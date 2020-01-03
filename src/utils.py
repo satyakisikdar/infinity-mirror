@@ -15,6 +15,8 @@ sns.set_style("darkgrid")
 
 
 def mean_confidence_interval(arr, alpha=0.05):
+    if len(arr) == 1:
+        return (0, 0)
     return sm.DescrStatsW(arr).tconfint_mean(alpha=alpha)
 
 def borda_sort(lists):
