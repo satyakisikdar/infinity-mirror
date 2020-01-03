@@ -1,24 +1,29 @@
 import math
-from collections import defaultdict, namedtuple, deque
-from typing import Any, List, Dict, Deque
+from collections import defaultdict, namedtuple
+from typing import Any, List, Dict
 
 import matplotlib.pyplot as plt
+import seaborn as sns
 import networkx as nx
+import pickle
+import numpy as np
 from matplotlib import gridspec
 
 from src.Graph import CustomGraph
 from src.graph_comparison import GraphPairCompare
 from src.graph_models import *
 from src.graph_stats import GraphStats
-from src.utils import borda_sort
+from src.utils import borda_sort, mean_confidence_interval, ColorPrint as CP, load_pickle, check_file_exists
 from src.Tree import TreeNode
 
 # mpl.rcParams['figure.dpi'] = 600
 
-Stats = namedtuple('Stats', 'id graph score')
-GraphTriple = namedtuple('GraphTriple', 'best worst median')
+Stats = namedtuple('Stats', 'name id graph score')  # stores the different stats for each graph. name: name of metric, id: graph_id
+GraphStatDouble = namedtuple('GraphStatDouble', 'graph stats')   # graph: CustomGraph object, stat: dictionary of comparison stats with the input
+GraphStatTriple = namedtuple('GraphStatTriple', 'best worst median')  # stores the best, worst, and median graphs and their stats (GraphStat double)
 
-## Add anytree to store the tree of graphs
+
+# TODO: write new plotting method to plot the confidence intervals across generations
 
 class InfinityMirror:
     """
@@ -27,14 +32,16 @@ class InfinityMirror:
         use ranked choice voting for deciding the winner from 10 graphs <- borda list
         store the three graphs into a tree
     """
-    __slots__ = ('initial_graph', 'num_generations', 'model', 'initial_graph_stats', 'root')
+    __slots__ = ('initial_graph', 'num_generations', 'model', 'initial_graph_stats', 'root', '_metrics', 'root_pickle_path')
 
     def __init__(self, initial_graph: CustomGraph, model_obj: Any, num_generations: int) -> None:
         self.initial_graph: CustomGraph = initial_graph  # the initial starting point H_0
         self.num_generations: int = num_generations  # number of generations
         self.model: BaseGraphModel = model_obj(input_graph=self.initial_graph)  # initialize and fit the model
         self.initial_graph_stats = GraphStats(graph=self.initial_graph)  # initialize graph_stats object for the initial_graph which is the same across generations
-        self.root = TreeNode('root', graph=self.initial_graph)  # root of the tree with the initial graph
+        self.root = TreeNode('root', graph=self.initial_graph, stats={})  # root of the tree with the initial graph and empty stats dictionary
+        self._metrics = ['gcd', 'deltacon0', 'lambda_dist', 'pagerank_cvm', 'degree_cvm']  # list of metrics
+        self.root_pickle_path = f'./output/pickles/{self.initial_graph.name}_{self.model.model_name}_{self.num_generations}.pkl.gz'
         return
 
     def __str__(self) -> str:
@@ -43,11 +50,17 @@ class InfinityMirror:
     def __repr__(self) -> str:
         return str(self)
 
-    def run(self, num_graphs: int=10):
+    def run(self, use_pickle: bool, num_graphs: int=10):
         """
         Do a BFS starting with the root
         :return:
         """
+
+        if use_pickle and check_file_exists(self.root_pickle_path):
+            CP.print_green(f'Using pickle at "{self.root_pickle_path}"')
+            self.root = load_pickle(self.root_pickle_path)
+            return
+
         stack: List[TreeNode] = [self.root]
 
         while len(stack) != 0:
@@ -55,19 +68,26 @@ class InfinityMirror:
             if tnode.depth >= self.num_generations:  # do not further expand the tree
                 continue
 
-            graph_triple = self._get_next_generation(input_graph=tnode.graph, num_graphs=num_graphs, gen_id=tnode.depth+1)
-            best_graph, worst_graph, median_graph = graph_triple.best, graph_triple.worst, graph_triple.median
+            graph_stat_triple: GraphStatTriple = self._get_next_generation(input_graph=tnode.graph, num_graphs=num_graphs, gen_id=tnode.depth+1)
+            best_graph_stat_double: GraphStatDouble = graph_stat_triple.best
+            median_graph_stat_double: GraphStatDouble = graph_stat_triple.median
+            worst_graph_stat_double: GraphStatDouble = graph_stat_triple.worst
 
             ## creating the three nodes and attaching it to the tree
-            TreeNode(name=f'{tnode}-best', graph=best_graph, parent=tnode)
-            TreeNode(name=f'{tnode}-med', graph=median_graph, parent=tnode)
-            TreeNode(name=f'{tnode}-worst', graph=worst_graph, parent=tnode)
+            TreeNode(name=f'{tnode}-best', graph=best_graph_stat_double.graph, stats=best_graph_stat_double.stats, parent=tnode)
+            TreeNode(name=f'{tnode}-med', graph=median_graph_stat_double.graph, stats=median_graph_stat_double.stats, parent=tnode)
+            TreeNode(name=f'{tnode}-worst', graph=worst_graph_stat_double.graph, stats=worst_graph_stat_double.stats, parent=tnode)
 
             assert len(tnode.children) == 3, f'tree node {tnode} does not have 3 children'
             stack.extend(tnode.children)  # add the children to the end of the queue
+
+        ## pickle the root
+        CP.print_green(f'Root object is pickled at "{self.root_pickle_path}"')
+        pickle.dump(self.root, open(self.root_pickle_path, 'wb'))
+
         return
 
-    def _get_next_generation(self, input_graph: CustomGraph, num_graphs: int, gen_id: int) -> GraphTriple:
+    def _get_next_generation(self, input_graph: CustomGraph, num_graphs: int, gen_id: int) -> GraphStatTriple:
         """
         step 1: get input graph
         step 2: fit model
@@ -83,7 +103,17 @@ class InfinityMirror:
         generated_graphs = self.model.generate(num_graphs=num_graphs, gen_id=gen_id)
         return self._filter_graphs(generated_graphs)
 
-    def _filter_graphs(self, generated_graphs: List[CustomGraph]) -> GraphTriple:
+    def _make_graph_stat_double(self, graph, scores, idx) -> GraphStatDouble:
+        """
+        Makes GraphStatDouble objects
+        :param scores:
+        :param idx:
+        :return:
+        """
+        stats = {metric: scores[metric][idx].score for metric in self._metrics}
+        return GraphStatDouble(graph=graph, stats=stats)
+
+    def _filter_graphs(self, generated_graphs: List[CustomGraph]) -> GraphStatTriple:
         """
         Filter the graphs per generation to store the 3 chosen graphs - best, worst, and 50^th percentile
 
@@ -98,13 +128,13 @@ class InfinityMirror:
         ## combine the ranked lists to create an overall ranking
         ## pick the best, worst, and the median - use named tuple?
 
-        scores: Dict[str, List[Stats]] = {'gcd': [], 'deltacon0': [], 'pagerank_cvm': [], 'degree_cvm': [], 'lambda_dist': []}
+        scores: Dict[str, List[Stats]] = {metric: [] for metric in self._metrics}
 
         for i, gen_graph in enumerate(generated_graphs):
             gen_gstats = GraphStats(gen_graph)
             graph_comp = GraphPairCompare(gstats1=self.initial_graph_stats, gstats2=gen_gstats)
-            for metric in scores.keys():
-                stat = Stats(id=i+1, graph=gen_graph, score=graph_comp[metric])
+            for metric in self._metrics:
+                stat = Stats(id=i+1, graph=gen_graph, score=graph_comp[metric], name=metric)
                 scores[metric].append(stat)
 
         sorted_scores = {key: sorted(val, key=lambda item: item.score) for key, val in scores.items()}
@@ -115,51 +145,92 @@ class InfinityMirror:
 
         overall_ranking = borda_sort(rankings.values())  # compute the overall ranking
 
-        best_graph = generated_graphs[overall_ranking[0] - 1]  # ranking is 1-based
-        worst_graph = generated_graphs[overall_ranking[-1] - 1]  # same
-        median_graph = generated_graphs[overall_ranking[len(overall_ranking)//2 - 1] - 1]   # 5th element from the list
+        best_idx = overall_ranking[0] - 1   # all indexing is 1 based
+        median_idx = overall_ranking[len(overall_ranking)//2 - 1] - 1
+        worst_idx = overall_ranking[-1] - 1
 
-        return GraphTriple(best=best_graph, worst=worst_graph, median=median_graph)
+        best_graph_stat_double = self._make_graph_stat_double(graph=generated_graphs[best_idx], idx=best_idx, scores=scores)
+        median_graph_stat_double = self._make_graph_stat_double(graph=generated_graphs[median_idx], idx=median_idx, scores=scores)
+        worst_graph_stat_double = self._make_graph_stat_double(graph=generated_graphs[worst_idx], idx=worst_idx, scores=scores)
 
-    def plot(self, prog: str='neato'):
+        return GraphStatTriple(best=best_graph_stat_double, median=median_graph_stat_double, worst=worst_graph_stat_double)
+
+    def _group_by_gen(self, tnode: TreeNode) -> Dict:
         """
-        Plot the progression of the infinity mirror - fix the node positions
+        Group the stats by descendants of tnode into best, median, and worst
+        :param tnode:
+        :param kind:
         :return:
         """
-        pos = defaultdict(lambda: (0, 0))  # the default dict
-        pos.update(nx.nx_agraph.graphviz_layout(self.initial_graph, prog=prog))  # get the pos of nodes of the original nodes
+        agg_stats_by_gen = {}
 
-        N = self.num_generations
-        cols = 2
-        rows = int(math.ceil(N / cols))
+        for metric in self._metrics:
+            stats = tnode.stats
+            agg_stats_by_gen[metric] = {1: [stats[metric]]}  # populate this for the tnode -> gen 1
+            for gen in range(2, self.num_generations+1):
+                agg_stats_by_gen[metric][gen] = []
+
+        for desc in tnode.descendants:
+            desc: TreeNode
+            gen = desc.depth
+            for metric in self._metrics:
+                agg_stats_by_gen[metric][gen].append(desc.stats[metric])
+
+        return agg_stats_by_gen
+
+    def aggregate_stats(self) -> Dict:
+        """
+        group the descendants of root-best, root-median, root-worst
+        :return:
+        """
+        root_best, root_med, root_worst = self.root.children
+        aggregated_stats = {'best': self._group_by_gen(root_best), 'median': self._group_by_gen(root_med),
+                           'worst': self._group_by_gen(root_worst)}
+
+        return aggregated_stats
+
+    def plot(self):
+        """
+        Plot the progression of the infinity mirror - for different metrics across generations
+        from the aggregated stats, find mean and plot it then add 95% conf intervals
+        :return:
+        """
+        aggregated_stats = self.aggregate_stats()
+        compressed_stats_mean = {}  # with the mean
+        compressed_stats_intervals = {}  # with the confidence intervals
+
+        self._metrics = self._metrics[: 2]  # use only the first two metrics
+
+        for kind in ('best', 'median', 'worst'):
+            compressed_stats_mean[kind] = {}
+            compressed_stats_intervals[kind] = {}
+            for metric in self._metrics:
+                compressed_stats_mean[kind][metric] = list(map(lambda l: np.mean(l),
+                                                               aggregated_stats[kind][metric].values()))
+                compressed_stats_intervals[kind][metric] = list(map(lambda l: mean_confidence_interval(l),
+                                                               aggregated_stats[kind][metric].values()))
+
+        x = list(range(1, self.num_generations+1))
+
+        rows = len(self._metrics)  # for each of the metrics
+        cols = 1
 
         gs = gridspec.GridSpec(rows, cols)
         fig = plt.figure()
 
-        for i in range(N):
-            graph: CustomGraph = self.graphs_by_generation[i][0]  # pick the 1st graph by default
-            # gstats = GraphStats(graph)
+        for i, grid in enumerate(gs):
+            ax = fig.add_subplot(grid)
+            for kind in ('best', 'median', 'worst'):
+                metric = self._metrics[i]
+                ax1 = sns.lineplot(x, compressed_stats_mean[kind][metric], marker='o', alpha=0.75, label=kind, ax=ax)
+                ax1.lines[-1].set_linestyle('--')
+                if i != 0:  # disable legend on all the plots except the first
+                    ax.get_legend().set_visible(False)
 
-            ax = fig.add_subplot(gs[i])
-            graph.plot(ax=ax, pos=pos, update_pos=True)
+                plt.ylabel(f'{metric}')
+                plt.xticks(x, x)
 
-            # deg_dist = gstats.degree_dist(normalized=True)
-            # gstats.plot(y=deg_dist, title=f'Degree-Dist for {graph.name}', xlabel='Degree $k$', ylabel='Count of nodes',
-            #           kind='scatter', ax=ax)
-
-            # k_hop = gstats.k_hop_reach()
-            # gstats.plot(y=k_hop, title=f'Hop-Plot for {graph.name}, gen:{i}, n:{graph.order():_}, m:{graph.size():_}',
-            #             xlabel='Hops',) # ylabel='Avg. fraction of reachable nodes')
-
-            # cc_by_deg = gstats.clustering_coefficients_by_degree()
-            # gstats.plot(y=cc_by_deg, title=f'gen:{i}, n:{graph.order():_}, m:{graph.size():_}', # Avg cc by Degree (k)', xlabel='Degree $k$',
-            #           ylabel='Avg cc', kind='scatter', ax=ax)
-
-
-        fig.tight_layout()
-        fig.suptitle(f'{graph.name} {self.model.model_name}', y=1)
-        # plt.grid(False)
-        # plt.title(self.model.model_name)
+        plt.suptitle(f'Metrics across generations for {self.model.model_name}')
         plt.show()
 
 
