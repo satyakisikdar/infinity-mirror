@@ -14,42 +14,42 @@ def make_dirs():
     Makes input and output directories if they do not exist already
     :return:
     """
-    for dirname in ('input', 'output', 'analysis', 'src/scratch'):
+    for dirname in ('input', 'output', 'analysis', 'src/scratch', 'output/pickles'):
         if not os.path.exists(f'./{dirname}'):
             os.makedirs(f'./{dirname}')
 
 
 def test_infinity_mirror(g: CustomGraph):
-    inf = InfinityMirror(initial_graph=g, num_generations=6, model_obj=ChungLu)  # CNRG seems to create rings
-    inf.run()
+    inf = InfinityMirror(initial_graph=g, num_generations=5, model_obj=ChungLu)  # CNRG seems to create rings
+    inf.run(use_pickle=True)
     inf.plot()
     print(inf)
 
 
 def test_generators(g: CustomGraph):
     # er = ErdosRenyi(input_graph=g)
-    # er.generate(10)
+    # er.generate(10, gen_id=0)
     # print(er)
-
+    #
     # kron = Kronecker(input_graph=g)
-    # kron.generate(10)
+    # kron.generate(5, gen_id=0)
     # print(kron)
 
-    # hrg = HRG(input_graph=g)
-    # hrg.generate(10)
-    # print(hrg)
+    hrg = HRG(input_graph=g)
+    hrg.generate(10, gen_id=0)
+    print(hrg)
 
     cnrg = CNRG(input_graph=g)
     cnrg.generate(10, gen_id=0)
     print(cnrg)
 
-    # cl = ChungLu(input_graph=g)
-    # cl.generate(10)
-    # print(cl)
-    #
-    # bter = BTER(input_graph=g)
-    # bter.generate(1)
-    # print(bter)
+    cl = ChungLu(input_graph=g)
+    cl.generate(10, gen_id=0)
+    print(cl)
+
+    bter = BTER(input_graph=g)
+    bter.generate(1, gen_id=0)
+    print(bter)
 
 
 def test_graph_stats(g: CustomGraph):
@@ -83,11 +83,11 @@ def main():
 
     # g = SyntheticGraph(kind='ladder', n=25).g
     # h = SyntheticGraph(kind='ladder', n=25).g
-    g = SyntheticGraph(kind='erdos_renyi', n=20, p=0.5, seed=1).g
-    h = SyntheticGraph(kind='erdos_renyi', n=20, p=0.5, seed=1).g
+    g = SyntheticGraph(kind='erdos_renyi', n=20, p=0.15, seed=1).g
+    # h = SyntheticGraph(kind='erdos_renyi', n=20, p=0.5, seed=1).g
     # print(GCD(g, h))
     test_infinity_mirror(g)
-
+    # test_generators(g)
 
 if __name__ == '__main__':
     # try:
