@@ -239,7 +239,7 @@ def networkx_to_igraph(nx_G: CustomGraph):
     return graph.to_igraph()
 
 
-def igraph_to_networkx(ig_G: ig.Graph):
+def igraph_to_networkx(ig_G):
     graph = pig.InterGraph.from_igraph(ig_G)
     return graph.to_networkX()
 
