@@ -24,8 +24,15 @@ def GCD(h1, h2):
 
 
 def external_orca(g: nx.Graph, gname: str):
-    g = nx.Graph(g)  # convert it into a simple graph
-    g = g.subgraph(max(nx.connected_components(g), key=len))
+    if not isinstance(g, nx.Graph):
+        g = nx.Graph(g)  # convert it into a simple graph
+
+    self_loop_edges = list(nx.selfloop_edges(g))
+    if len(self_loop_edges) > 0:
+        g.remove_edges_from(self_loop_edges)
+
+    if nx.number_connected_components(g) > 1:
+        g = g.subgraph(max(nx.connected_components(g), key=len))
     if nx.is_directed(g):
         selfloops = g.selfloop_edges()
         g.remove_edges_from(selfloops)   # removing self-loop edges
