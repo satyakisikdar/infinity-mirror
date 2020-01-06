@@ -9,6 +9,7 @@ from typing import List, Dict, Any, Union
 
 import networkx as nx
 import numpy as np
+from joblib import Parallel, delayed
 
 from src.utils import ColorPrint as CP
 from src.utils import check_file_exists, load_pickle
@@ -58,15 +59,6 @@ class BaseGraphModel:
 
         return
 
-    def new_generate(self, num_graphs: int, gen_id: int) -> List[nx.Graph]:
-        """
-        Calls _gen in parallel using joblib
-        :param num_graphs:
-        :param gen_id:
-        :return:
-        """
-
-
     def generate(self, num_graphs: int, gen_id: int) -> List[nx.Graph]:
         """
         Generates num_graphs many graphs by repeatedly calling _gen
@@ -78,9 +70,15 @@ class BaseGraphModel:
         generated_graphs = []
 
         ## TODO: parallelize this for loop
-        for i in range(num_graphs):
-            g = self._gen(gen_id=gen_id, gname=f'{self.gname}_{gen_id}_{i+1}')
-            generated_graphs.append(g)
+        generated_graphs =  Parallel(n_jobs=2, prefer="threads")(
+            delayed(self._gen)(gen_id=gen_id, gname=f'{self.gname}_{gen_id}_{i+1}')
+            for i in range(num_graphs)
+        )
+
+        assert isinstance(generated_graphs, list) and len(generated_graphs) == 10, 'Parallel generation didnt work'
+        # for i in range(num_graphs):
+        #     g = self._gen(gen_id=gen_id, gname=f'{self.gname}_{gen_id}_{i+1}')
+        #     generated_graphs.append(g)
 
         return generated_graphs
 
