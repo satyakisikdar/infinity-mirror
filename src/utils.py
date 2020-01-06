@@ -171,3 +171,7 @@ class ColorPrint:
     def print_bold(message, end='\n'):
         sys.stdout.write('\x1b[1;37m' + message.strip() + '\x1b[0m' + end)
 
+    @staticmethod
+    def print_none(message, end='\n'):
+        pass
+        # sys.stdout.write(message + end)
