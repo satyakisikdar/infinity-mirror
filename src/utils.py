@@ -150,6 +150,7 @@ class ColorPrint:
 
     @staticmethod
     def print_blue(message, end='\n'):
+        # pass
         sys.stdout.write('\x1b[1;34m' + message.strip() + '\x1b[0m' + end)
 
     @staticmethod

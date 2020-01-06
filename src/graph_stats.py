@@ -10,7 +10,7 @@ import networkx as nx
 import numpy as np
 import seaborn as sns
 
-from src.Graph import CustomGraph
+# from src.Graph import CustomGraph
 from src.utils import ColorPrint as CP
 
 sns.set()
@@ -23,8 +23,8 @@ class GraphStats:
     """
     __slots__ = ['graph', 'stats']
 
-    def __init__(self, graph: CustomGraph):
-        self.graph: CustomGraph = graph
+    def __init__(self, graph: nx.Graph):
+        self.graph: nx.Graph = graph
         self.stats: Dict[str, float] = {'n': graph.order(), 'm': graph.size()}
 
     def __str__(self) -> str:

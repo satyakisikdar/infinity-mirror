@@ -7,7 +7,7 @@ import networkx as nx
 import numpy as np
 
 from src.utils import ColorPrint as CP, check_file_exists, print_float
-from src.Graph import CustomGraph
+# from src.Graph import CustomGraph
 
 
 class GraphReader:
@@ -34,12 +34,12 @@ class GraphReader:
         else:
             self.gname = self.path.stem
 
-        self.graph: CustomGraph = self._read()
+        self.graph: nx.Graph = self._read()
         self._preprocess(reindex_nodes=reindex_nodes, first_label=first_label, take_lcc=take_lcc)
         assert self.graph.name != '', 'Graph name is empty'
         return
 
-    def _read(self) -> CustomGraph:
+    def _read(self) -> nx.Graph:
         """
         Reads the graph based on its extension
         returns the largest connected component
@@ -53,22 +53,22 @@ class GraphReader:
         str_path = str(self.path)
 
         if extension in ('.g', '.txt'):
-            graph: CustomGraph = nx.read_edgelist(str_path)
+            graph: nx.Graph = nx.read_edgelist(str_path)
 
         elif extension == '.gml':
-            graph: CustomGraph = nx.read_gml(str_path)
+            graph: nx.Graph = nx.read_gml(str_path)
 
         elif extension == '.gexf':
-            graph: CustomGraph = nx.read_gexf(str_path)
+            graph: nx.Graph = nx.read_gexf(str_path)
 
         elif extension == '.mat':
             mat = np.loadtxt(fname=str_path, dtype=bool)
-            graph: CustomGraph = nx.from_numpy_array(mat)
+            graph: nx.Graph = nx.from_numpy_array(mat)
         else:
             raise(NotImplementedError, f'{extension} not supported')
 
         graph.name = self.gname
-        return CustomGraph(graph)
+        return graph
 
     def _preprocess(self, reindex_nodes: bool, first_label: int=0, take_lcc: bool=True) -> None:
         """
@@ -91,16 +91,15 @@ class GraphReader:
             perc_edges = graph_lcc.size() / self.graph.size() * 100
             CP.print_orange(f'LCC has {print_float(perc_nodes)}% of nodes and {print_float(perc_edges)}% edges in the original graph')
 
-            self.graph = CustomGraph(graph_lcc)
+            self.graph = graph_lcc
 
         if reindex_nodes:
             # re-index nodes, stores the old label in old_label
-            self.graph = CustomGraph(nx.convert_node_labels_to_integers(self.graph, first_label=first_label,
-                                                            label_attribute='old_label'))
+            self.graph = nx.convert_node_labels_to_integers(self.graph, first_label=first_label,
+                                                            label_attribute='old_label')
             CP.print_green(f'Re-indexing nodes to start from {first_label}, old labels are stored in node attr "old_label"')
 
         CP.print_green(f'Removing multi-edges and self-loops')
-        self.graph = CustomGraph(self.graph)  # make it into a simple graph
         self.graph.remove_edges_from(nx.selfloop_edges(self.graph))  # remove self-loops
 
         CP.print_blue(f'Pre-processed graph "{self.gname}" n:{self.graph.order():,} m:{self.graph.size():,}')
@@ -127,7 +126,7 @@ class SyntheticGraph:
         self.args = kwargs
         self.g = self._make_graph()
 
-    def _make_graph(self) -> CustomGraph:
+    def _make_graph(self) -> nx.Graph:
         """
         Makes the graph
         :return:
@@ -158,7 +157,6 @@ class SyntheticGraph:
         else:
             name = ''
             raise NotImplementedError(f'Improper kind: {self.kind}')
-        g = CustomGraph(g)
         g.name = name
         return g
 
@@ -169,8 +167,8 @@ class GraphWriter:
     """
     __slots__ = ['graph', 'path', 'fmt']
 
-    def __init__(self, graph: CustomGraph, path: str, fmt: str='', gname: str=''):
-        self.graph: CustomGraph = graph
+    def __init__(self, graph: nx.Graph, path: str, fmt: str='', gname: str=''):
+        self.graph: nx.Graph = graph
 
         if self.graph == '':
             self.graph.name = gname
@@ -225,7 +223,7 @@ try:
 except ImportError as e:
     print(e)
 
-def networkx_to_graphtool(nx_G: CustomGraph):
+def networkx_to_graphtool(nx_G: nx.Graph):
     return pig.nx2gt(nx_G, labelname='node_label')
 
 
@@ -234,7 +232,7 @@ def graphtool_to_networkx(gt_G):
     return graph.to_networkX()
 
 
-def networkx_to_igraph(nx_G: CustomGraph):
+def networkx_to_igraph(nx_G: nx.Graph):
     graph = pig.InterGraph.from_networkX(nx_G)
     return graph.to_igraph()
 
