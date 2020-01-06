@@ -4,7 +4,7 @@ import networkx as nx
 from src.graph_io import GraphReader, GraphWriter, SyntheticGraph
 from src.graph_models import *
 from src.graph_stats import GraphStats
-from src.utils import make_plot
+from src.utils import make_plot, timer
 # from src.Graph import CustomGraph
 from src.infinity_mirror import InfinityMirror
 from src.GCD import GCD
@@ -23,10 +23,10 @@ def make_dirs():
         if not os.path.exists(f'./{dirname}'):
             os.makedirs(f'./{dirname}')
 
-
+@timer
 def test_infinity_mirror(g: nx.Graph):
-    inf = InfinityMirror(initial_graph=g, num_generations=3, model_obj=Kronecker)  # CNRG seems to create rings
-    inf.run(use_pickle=True)
+    inf = InfinityMirror(initial_graph=g, num_generations=3, model_obj=ChungLu)  # CNRG seems to create rings
+    inf.run(use_pickle=False)
     inf.plot()
     print(inf)
 
