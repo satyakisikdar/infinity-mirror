@@ -4,10 +4,15 @@ import networkx as nx
 from src.graph_io import GraphReader, GraphWriter, SyntheticGraph
 from src.graph_models import *
 from src.graph_stats import GraphStats
-from src.utils import make_plot
-from src.Graph import CustomGraph
+from src.utils import make_plot, timer
+# from src.Graph import CustomGraph
 from src.infinity_mirror import InfinityMirror
 from src.GCD import GCD
+
+## TODO: add argparse stuff
+## TODO: parallelize stuff
+## TODO: add tqdm to filter_graphs
+
 
 def make_dirs():
     """
@@ -18,22 +23,22 @@ def make_dirs():
         if not os.path.exists(f'./{dirname}'):
             os.makedirs(f'./{dirname}')
 
-
-def test_infinity_mirror(g: CustomGraph):
-    inf = InfinityMirror(initial_graph=g, num_generations=5, model_obj=ChungLu)  # CNRG seems to create rings
-    inf.run(use_pickle=True)
+@timer
+def test_infinity_mirror(g: nx.Graph):
+    inf = InfinityMirror(initial_graph=g, num_generations=3, model_obj=ChungLu)  # CNRG seems to create rings
+    inf.run(use_pickle=False)
     inf.plot()
     print(inf)
 
 
-def test_generators(g: CustomGraph):
-    # er = ErdosRenyi(input_graph=g)
-    # er.generate(10, gen_id=0)
-    # print(er)
-    #
-    # kron = Kronecker(input_graph=g)
-    # kron.generate(5, gen_id=0)
-    # print(kron)
+def test_generators(g: nx.Graph):
+    er = ErdosRenyi(input_graph=g)
+    er.generate(10, gen_id=0)
+    print(er)
+
+    kron = Kronecker(input_graph=g)
+    kron.generate(2, gen_id=0)
+    print(kron)
 
     hrg = HRG(input_graph=g)
     hrg.generate(10, gen_id=0)
@@ -52,7 +57,7 @@ def test_generators(g: CustomGraph):
     print(bter)
 
 
-def test_graph_stats(g: CustomGraph):
+def test_graph_stats(g: nx.Graph):
     g_stats = GraphStats(graph=g)
     g_stats._calculate_all_stats()
     print(g_stats)
@@ -76,16 +81,7 @@ def test_graph_stats(g: CustomGraph):
 
 def main():
     make_dirs()
-    # graph_reader = GraphReader(filename='./input/karate.g', reindex_nodes=True, first_label=0)
-    # g = graph_reader.graph
-    # g = CustomGraph(nx.ring_of_cliques(50, clique_size=4))
-    # g.name = f'ring_{g.order()}'
-
-    # g = SyntheticGraph(kind='ladder', n=25).g
-    # h = SyntheticGraph(kind='ladder', n=25).g
-    g = SyntheticGraph(kind='erdos_renyi', n=20, p=0.15, seed=1).g
-    # h = SyntheticGraph(kind='erdos_renyi', n=20, p=0.5, seed=1).g
-    # print(GCD(g, h))
+    g = SyntheticGraph(kind='ladder', n=20).g
     test_infinity_mirror(g)
     # test_generators(g)
 

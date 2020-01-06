@@ -8,7 +8,7 @@ import numpy as np
 from numpy import linalg as la
 
 from src.utils import fast_bp, _pad, cvm_distance
-from src.Graph import CustomGraph
+# from src.Graph import CustomGraph
 from src.GCD import GCD
 from src.graph_stats import GraphStats
 
@@ -22,8 +22,8 @@ class GraphPairCompare:
     def __init__(self, gstats1: GraphStats, gstats2: GraphStats) -> None:
         self.gstats1: GraphStats = gstats1
         self.gstats2: GraphStats = gstats2
-        self.graph1: CustomGraph = gstats1.graph
-        self.graph2: CustomGraph = gstats2.graph
+        self.graph1: nx.Graph = gstats1.graph
+        self.graph2: nx.Graph = gstats2.graph
         self.stats: Dict[str, float] = {}
         self.calculate()
         return

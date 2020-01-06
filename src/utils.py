@@ -1,18 +1,32 @@
+import functools
 import pickle
 import sys
+import time
+
 from pathlib import Path
 from typing import Union, Any
-import statsmodels.stats.api as sm
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns;
+import seaborn as sns
+import statsmodels.stats.api as sm
 from numpy import linalg as la
 from scipy import sparse as sps
 from scipy.sparse import issparse
 
+
 sns.set()
 sns.set_style("darkgrid")
 
+def timer(func):
+    @functools.wraps(func)
+    def wrapper_timer(*args, **kwargs):
+        tic = time.perf_counter()
+        value = func(*args, **kwargs)
+        toc = time.perf_counter()
+        elapsed_time = toc - tic
+        ColorPrint.print_bold(f"Elapsed time: {elapsed_time:0.4f} seconds")
+        return value
+    return wrapper_timer
 
 def mean_confidence_interval(arr, alpha=0.05):
     if len(arr) == 1:
@@ -150,6 +164,7 @@ class ColorPrint:
 
     @staticmethod
     def print_blue(message, end='\n'):
+        # pass
         sys.stdout.write('\x1b[1;34m' + message.strip() + '\x1b[0m' + end)
 
     @staticmethod

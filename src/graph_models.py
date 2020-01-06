@@ -9,18 +9,19 @@ from typing import List, Dict, Any, Union
 
 import networkx as nx
 import numpy as np
+from joblib import Parallel, delayed
 
 from src.utils import ColorPrint as CP
 from src.utils import check_file_exists, load_pickle
-from src.Graph import CustomGraph
+# from src.Graph import CustomGraph
 
 __all__ = ['BaseGraphModel', 'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker']
 
 class BaseGraphModel:
     __slots__ = ['input_graph', 'gname', 'model_name', 'params']
 
-    def __init__(self, model_name: str, input_graph: CustomGraph, **kwargs) -> None:
-        self.input_graph: CustomGraph = CustomGraph(input_graph)  # networkX graph to be fitted
+    def __init__(self, model_name: str, input_graph: nx.Graph, **kwargs) -> None:
+        self.input_graph: nx.Graph = input_graph  # networkX graph to be fitted
         assert self.input_graph.name != '', 'Input graph does not have a name'
 
         self.gname = self.input_graph.name  # name of the graph
@@ -40,13 +41,13 @@ class BaseGraphModel:
         pass
 
     @abc.abstractmethod
-    def _gen(self) -> CustomGraph:
+    def _gen(self, gname: str, gen_id: int) -> nx.Graph:
         """
-        Generates one graph
+        Generates one graph with given gname and gen_id
         """
         pass
 
-    def update(self, new_input_graph: CustomGraph) -> None:
+    def update(self, new_input_graph: nx.Graph) -> None:
         """
         Update the model to (a) update the input graph, (b) fit the parameters
         :return:
@@ -58,7 +59,7 @@ class BaseGraphModel:
 
         return
 
-    def generate(self, num_graphs: int, gen_id: int) -> List[CustomGraph]:
+    def generate(self, num_graphs: int, gen_id: int) -> List[nx.Graph]:
         """
         Generates num_graphs many graphs by repeatedly calling _gen
         maybe use a generator
@@ -66,13 +67,18 @@ class BaseGraphModel:
         :param gen_id: generation id
         :return:
         """
-        generated_graphs = []  # reset the list of graphs - TODO: maybe double check if this is necessary
+        generated_graphs = []
 
-        for i in range(num_graphs):
-            g = self._gen()
-            g.name = f'{self.input_graph.name}_{gen_id}_{i+1}'  # name of the generated graph - input graph name + gen id + iteration no
-            g = CustomGraph(g, gen_id=gen_id)
-            generated_graphs.append(g)
+        ## TODO: parallelize this for loop
+        generated_graphs =  Parallel(n_jobs=2, prefer="threads")(
+            delayed(self._gen)(gen_id=gen_id, gname=f'{self.gname}_{gen_id}_{i+1}')
+            for i in range(num_graphs)
+        )
+
+        assert isinstance(generated_graphs, list) and len(generated_graphs) == 10, 'Parallel generation didnt work'
+        # for i in range(num_graphs):
+        #     g = self._gen(gen_id=gen_id, gname=f'{self.gname}_{gen_id}_{i+1}')
+        #     generated_graphs.append(g)
 
         return generated_graphs
 
@@ -87,7 +93,7 @@ class BaseGraphModel:
 
 
 class ErdosRenyi(BaseGraphModel):
-    def __init__(self, input_graph: CustomGraph, **kwargs) -> None:
+    def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
         super().__init__(model_name='Erdos-Renyi', input_graph=input_graph)
         if 'seed' in kwargs:
             seed = kwargs['seed']
@@ -114,19 +120,21 @@ class ErdosRenyi(BaseGraphModel):
 
         return
 
-    def _gen(self) -> CustomGraph:
+    def _gen(self, gname: str, gen_id: int) -> nx.Graph:
         assert 'n' in self.params and 'p' in self.params, 'Improper parameters for Erdos-Renyi'
 
         g = nx.fast_gnp_random_graph(n=self.params['n'], p=self.params['p'], seed=self.params['seed'])
+        g.name = gname
+        g.gen_id = gen_id
 
-        return CustomGraph(g)
+        return g
 
 
 class UniformRandom(BaseGraphModel):
     """
     model, a graph is chosen uniformly at random from the set of all graphs with n nodes and m edges.
     """
-    def __init__(self, input_graph: CustomGraph, **kwargs) -> None:
+    def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
         super().__init__(model_name='Uniform-Random', input_graph=input_graph)
         if 'seed' in kwargs:
             seed = kwargs['seed']
@@ -144,16 +152,18 @@ class UniformRandom(BaseGraphModel):
 
         return
 
-    def _gen(self) -> CustomGraph:
+    def _gen(self, gname: str, gen_id: int) -> nx.Graph:
         assert 'n' in self.params and 'm' in self.params, 'Improper parameters for Uniform Random'
 
         g = nx.gnm_random_graph(n=self.params['n'], m=self.params['m'], seed=self.params['seed'])
+        g.name = gname
+        g.gen_id = gen_id
 
-        return CustomGraph(g)
+        return g
 
 
 class ChungLu(BaseGraphModel):
-    def __init__(self, input_graph: CustomGraph, **kwargs) -> None:
+    def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
         super().__init__(model_name='Chung-Lu', input_graph=input_graph)
         return
 
@@ -162,12 +172,15 @@ class ChungLu(BaseGraphModel):
 
         return
 
-    def _gen(self) -> CustomGraph:
+    def _gen(self, gname: str, gen_id: int) -> nx.Graph:
         assert 'degree_seq' in self.params, 'imporper parameters for Chung-Lu'
 
         g = nx.configuration_model(self.params['degree_seq'])  # fit the model to the degree seq
-        g = CustomGraph(g)  # make it into a simple graph
+        g = nx.Graph(g)  # make it into a simple graph
         g.remove_edges_from(nx.selfloop_edges(g))  # remove self-loops
+
+        g.name = gname
+        g.gen_id = gen_id
 
         return g
 
@@ -177,14 +190,14 @@ class TransitiveChungLu(BaseGraphModel):
     Chung-Lu with transitive closures - Pfeiffer, La Fond, Moreno, Neville - implementation not found
     https://ieeexplore.ieee.org/document/6406280/
     """
-    def __init__(self, input_graph: CustomGraph, **kwargs) -> None:
+    def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
         super().__init__(model_name='Transitive-Chung-Lu', input_graph=input_graph)
         return
 
     def _fit(self) -> None:
         raise NotImplementedError('Transitive Chung-Lu is not implemented yet')
 
-    def _gen(self) -> CustomGraph:
+    def _gen(self, gname: str, gen_id: int) -> nx.Graph:
         raise NotImplementedError('Transitive Chung-Lu is not implemented yet')
 
 
@@ -193,14 +206,14 @@ class BTER(BaseGraphModel):
     BTER model by Tammy Kolda
     feastpack implementation at https://www.sandia.gov/~tgkolda/feastpack/feastpack_v1.2.zip
     """
-    def __init__(self, input_graph: CustomGraph, **kwargs) -> None:
+    def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
         super().__init__(model_name='BTER', input_graph=input_graph)
         return
 
     def _fit(self) -> None:
         pass  # the matlab code does the fitting
 
-    def _gen(self) -> Union[CustomGraph, None]:
+    def _gen(self, gname: str, gen_id: int) -> nx.Graph:
         g = self.input_graph
 
         # fix BTER to use the directory..
@@ -259,7 +272,9 @@ class BTER(BaseGraphModel):
         assert check_file_exists(f'./src/bter/{g.name}_bter.mat'), 'MATLAB did not write a graph'
         bter_mat = np.loadtxt(f'./src/bter/{g.name}_bter.mat', dtype=int)
 
-        g_bter = nx.from_numpy_matrix(bter_mat, create_using=CustomGraph())
+        g_bter = nx.from_numpy_matrix(bter_mat, create_using=nx.Graph())
+        g_bter.name = gname
+        gen_id = gen_id
 
         return g_bter
 
@@ -268,17 +283,17 @@ class CNRG(BaseGraphModel):
     """
     Satyaki's Clustering-Based Node Replacement Grammars https://github.com/satyakisikdar/cnrg
     """
-    def __init__(self, input_graph: CustomGraph, **kwargs) -> None:
+    def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
         super().__init__(model_name='CNRG', input_graph=input_graph)
         return
 
     def _fit(self) -> None:
         pass  # the Python code does the fitting
 
-    def _gen(self) -> None:
+    def _gen(self, gname: str, gen_id: int) -> nx.Graph:
         pass  # HRGs can generate multiple graphs at once
 
-    def generate(self, num_graphs: int, gen_id:int) -> List[CustomGraph]:
+    def generate(self, num_graphs: int, gen_id:int) -> List[nx.Graph]:
         nx.write_edgelist(self.input_graph, f'./src/cnrg/src/tmp/{self.gname}.g', data=False)
 
         completed_process = subprocess.run(f'cd src/cnrg; python3 runner.py -g {self.gname} -n {num_graphs}',
@@ -291,7 +306,6 @@ class CNRG(BaseGraphModel):
 
         for i, gen_graph in enumerate(load_pickle(output_pickle_path)):
             gen_graph.name = self.input_graph.name
-            gen_graph = CustomGraph(gen_graph)
             gen_graph.gen_id = gen_id
             gen_graph.name += f'_{i+1}'  # append the number of graph generated
             generated_graphs.append(gen_graph)
@@ -305,23 +319,23 @@ class HRG(BaseGraphModel):
     """
     Sal's Hyperedge Replacement Graph Grammars https://github.com/abitofalchemy/hrg-nm
     """
-    def __init__(self, input_graph: CustomGraph, **kwargs) -> None:
+    def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
         super().__init__(model_name='HRG', input_graph=input_graph)
         return
 
     def _fit(self) -> None:
         pass  # the Python code does the fitting
 
-    def _gen(self) -> None:
+    def _gen(self, gname: str, gen_id: int) -> nx.Graph:
         pass  # HRGs can generate multiple graphs at once
 
-    def _make_graph(self, graph) -> CustomGraph:
+    def _make_graph(self, graph) -> nx.Graph:
         """
         This is needed since HRGs use NetworkX 1.x and that's incompatible with 2.x
         :param graph:
         :return:
         """
-        custom_g = CustomGraph()
+        custom_g = nx.Graph()
         custom_g.name = graph.name
 
         for u, nbrs in graph.edge.items():
@@ -329,7 +343,7 @@ class HRG(BaseGraphModel):
                 custom_g.add_edge(u, v)
         return custom_g
 
-    def generate(self, num_graphs: int, gen_id: int) -> List[CustomGraph]:
+    def generate(self, num_graphs: int, gen_id: int) -> List[nx.Graph]:
         nx.write_edgelist(self.input_graph, f'./src/hrg/{self.gname}.g', data=False)
 
         completed_process = subprocess.run(f'cd src/hrg; python2 -m pip install networkx==1.11; python2 exact_phrg.py --orig {self.gname}.g --trials {num_graphs}',
@@ -341,10 +355,11 @@ class HRG(BaseGraphModel):
 
         generated_graphs = []
         for i, gen_graph in enumerate(load_pickle(output_pickle_path)):
-            gen_graph.name = self.input_graph.name
+
             gen_graph = self._make_graph(gen_graph)
+            gen_graph.name = f'{self.input_graph.name}_{i + 1}'  # adding the number of graph
             gen_graph.gen_id = gen_id
-            gen_graph.name += f'_{i+1}'  # adding the number of graph
+
             generated_graphs.append(gen_graph)
 
         assert isinstance(generated_graphs, list) and len(generated_graphs) == num_graphs, \
@@ -357,7 +372,7 @@ class Kronecker(BaseGraphModel):
     """
     Kronecker Graph Model from SNAP
     """
-    def __init__(self, input_graph: CustomGraph, **kwargs) -> None:
+    def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
         super().__init__(model_name='Kronecker', input_graph=input_graph)
         return
 
@@ -390,7 +405,7 @@ class Kronecker(BaseGraphModel):
 
         return
 
-    def _gen(self) -> CustomGraph:
+    def _gen(self, gname: str, gen_id: int) -> nx.Graph:
         """
         call KronGen
         """
@@ -401,6 +416,7 @@ class Kronecker(BaseGraphModel):
         kron_iters = int(math.log2(orig_n))  # floor of log2 gives a bound on kronecker iteration count
         if math.fabs(2**kron_iters - orig_n) > math.fabs(2**(kron_iters+1) - orig_n):
             kron_iters = kron_iters + 1
+
         matrix = self.params['initiator_matrix']
         CP.print_blue(f'Running kronGen with n={kron_iters}, matrix={matrix}')
 
@@ -411,7 +427,10 @@ class Kronecker(BaseGraphModel):
         output_file = f'src/snap/examples/graphs/{self.gname}_kron.txt'
         assert check_file_exists(output_file), f'Output file does not exist {output_file}'
 
-        graph = nx.read_edgelist(output_file, nodetype=int, create_using=CustomGraph())
+        graph = nx.read_edgelist(output_file, nodetype=int, create_using=nx.Graph())
+        graph.name = gname
+        graph.gen_id = gen_id
+
         return graph
 
 

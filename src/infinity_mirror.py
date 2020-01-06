@@ -9,7 +9,7 @@ import pickle
 import numpy as np
 from matplotlib import gridspec
 
-from src.Graph import CustomGraph
+# from src.Graph import CustomGraph
 from src.graph_comparison import GraphPairCompare
 from src.graph_models import *
 from src.graph_stats import GraphStats
@@ -19,7 +19,7 @@ from src.Tree import TreeNode
 # mpl.rcParams['figure.dpi'] = 600
 
 Stats = namedtuple('Stats', 'name id graph score')  # stores the different stats for each graph. name: name of metric, id: graph_id
-GraphStatDouble = namedtuple('GraphStatDouble', 'graph stats')   # graph: CustomGraph object, stat: dictionary of comparison stats with the input
+GraphStatDouble = namedtuple('GraphStatDouble', 'graph stats')   # graph: NetworkX object, stat: dictionary of comparison stats with the input
 GraphStatTriple = namedtuple('GraphStatTriple', 'best worst median')  # stores the best, worst, and median graphs and their stats (GraphStat double)
 
 
@@ -34,8 +34,8 @@ class InfinityMirror:
     """
     __slots__ = ('initial_graph', 'num_generations', 'model', 'initial_graph_stats', 'root', '_metrics', 'root_pickle_path')
 
-    def __init__(self, initial_graph: CustomGraph, model_obj: Any, num_generations: int) -> None:
-        self.initial_graph: CustomGraph = initial_graph  # the initial starting point H_0
+    def __init__(self, initial_graph: nx.Graph, model_obj: Any, num_generations: int) -> None:
+        self.initial_graph: nx.Graph = initial_graph  # the initial starting point H_0
         self.num_generations: int = num_generations  # number of generations
         self.model: BaseGraphModel = model_obj(input_graph=self.initial_graph)  # initialize and fit the model
         self.initial_graph_stats = GraphStats(graph=self.initial_graph)  # initialize graph_stats object for the initial_graph which is the same across generations
@@ -87,7 +87,7 @@ class InfinityMirror:
 
         return
 
-    def _get_next_generation(self, input_graph: CustomGraph, num_graphs: int, gen_id: int) -> GraphStatTriple:
+    def _get_next_generation(self, input_graph: nx.Graph, num_graphs: int, gen_id: int) -> GraphStatTriple:
         """
         step 1: get input graph
         step 2: fit model
@@ -113,7 +113,7 @@ class InfinityMirror:
         stats = {metric: scores[metric][idx].score for metric in self._metrics}
         return GraphStatDouble(graph=graph, stats=stats)
 
-    def _filter_graphs(self, generated_graphs: List[CustomGraph]) -> GraphStatTriple:
+    def _filter_graphs(self, generated_graphs: List[nx.Graph]) -> GraphStatTriple:
         """
         Filter the graphs per generation to store the 3 chosen graphs - best, worst, and 50^th percentile
 
@@ -129,6 +129,8 @@ class InfinityMirror:
         ## pick the best, worst, and the median - use named tuple?
 
         scores: Dict[str, List[Stats]] = {metric: [] for metric in self._metrics}
+
+        ## TODO: add tqdm status bar for progress
 
         for i, gen_graph in enumerate(generated_graphs):
             gen_gstats = GraphStats(gen_graph)
@@ -199,7 +201,7 @@ class InfinityMirror:
         compressed_stats_mean = {}  # with the mean
         compressed_stats_intervals = {}  # with the confidence intervals
 
-        self._metrics = self._metrics[: 2]  # use only the first two metrics
+        self._metrics = self._metrics[-2: ]  # use only the first two metrics
 
         for kind in ('best', 'median', 'worst'):
             compressed_stats_mean[kind] = {}
@@ -233,24 +235,3 @@ class InfinityMirror:
         plt.suptitle(f'Metrics across generations for {self.model.model_name}')
         plt.show()
 
-
-def main():
-    # g = nx.path_graph(20)
-    g = nx.ring_of_cliques(500, 4)
-    g = CustomGraph(g, gen_id=0)
-    g.name = f'ring_cliq_500_4'
-
-    # graph_reader = GraphReader(filename='../input/karate.g', reindex_nodes=True, first_label=0)
-    # g = graph_reader.graph
-
-    inf = InfinityMirror(initial_graph=g, num_generations=5, model_obj=CNRG)
-
-    # inf.graphs_by_generation[0][0].plot(prog='neato')
-    # plt.style.use('seaborn-white')
-    # plt.grid(False)
-    # plt.show()
-    print(inf)
-
-
-if __name__ == '__main__':
-    main()
