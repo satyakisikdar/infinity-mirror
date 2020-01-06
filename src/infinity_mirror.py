@@ -140,7 +140,7 @@ class InfinityMirror:
 
         scores: Dict[str, List[Stats]] = {metric: [] for metric in self._metrics}
 
-        graph_comps_list = Parallel(prefer="threads")(
+        graph_comps_list = Parallel()(
             delayed(GraphPairCompare)(gstats1=self.initial_graph_stats, gstats2=GraphStats(gen_graph))
             for i, gen_graph in enumerate(generated_graphs)
         )
