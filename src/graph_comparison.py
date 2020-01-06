@@ -47,7 +47,8 @@ class GraphPairCompare:
         return
 
     def gcd(self) -> float:
-        dist = GCD(self.graph1, self.graph2)
+        # dist = GCD(self.graph1, self.graph2)
+        dist = 0
         self.stats['gcd'] = dist
 
         return round(dist, 3)
