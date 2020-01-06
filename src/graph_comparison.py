@@ -10,6 +10,7 @@ from numpy import linalg as la
 from src.utils import fast_bp, _pad, cvm_distance
 # from src.Graph import CustomGraph
 from src.GCD import GCD
+from tqdm import tqdm
 from src.graph_stats import GraphStats
 
 
@@ -48,6 +49,7 @@ class GraphPairCompare:
 
     def gcd(self) -> float:
         # dist = GCD(self.graph1, self.graph2)
+        tqdm.write('Note: GCD is disabled')
         dist = 0
         self.stats['gcd'] = dist
 
