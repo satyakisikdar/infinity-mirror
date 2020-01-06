@@ -52,7 +52,7 @@ class BaseGraphModel:
         Update the model to (a) update the input graph, (b) fit the parameters
         :return:
         """
-        CP.print_blue('Updating graph')
+        CP.print_none('Updating graph')
 
         self.input_graph = new_input_graph
         self._fit()  # re-fit the parameters

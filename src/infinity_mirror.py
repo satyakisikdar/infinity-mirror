@@ -7,6 +7,7 @@ import seaborn as sns
 import networkx as nx
 import pickle
 import numpy as np
+import tqdm
 from matplotlib import gridspec
 
 # from src.Graph import CustomGraph
@@ -38,10 +39,10 @@ class InfinityMirror:
         self.initial_graph: nx.Graph = initial_graph  # the initial starting point H_0
         self.num_generations: int = num_generations  # number of generations
         self.model: BaseGraphModel = model_obj(input_graph=self.initial_graph)  # initialize and fit the model
-        self.initial_graph_stats = GraphStats(graph=self.initial_graph)  # initialize graph_stats object for the initial_graph which is the same across generations
-        self.root = TreeNode('root', graph=self.initial_graph, stats={})  # root of the tree with the initial graph and empty stats dictionary
-        self._metrics = ['gcd', 'deltacon0', 'lambda_dist', 'pagerank_cvm', 'degree_cvm']  # list of metrics
-        self.root_pickle_path = f'./output/pickles/{self.initial_graph.name}_{self.model.model_name}_{self.num_generations}.pkl.gz'
+        self.initial_graph_stats: GraphStats = GraphStats(graph=self.initial_graph)  # initialize graph_stats object for the initial_graph which is the same across generations
+        self.root: TreeNode = TreeNode('root', graph=self.initial_graph, stats={})  # root of the tree with the initial graph and empty stats dictionary
+        self._metrics: List[str] = ['gcd', 'deltacon0', 'lambda_dist', 'pagerank_cvm', 'degree_cvm']  # list of metrics
+        self.root_pickle_path: str = f'./output/pickles/{self.initial_graph.name}_{self.model.model_name}_{self.num_generations}.pkl.gz'
         return
 
     def __str__(self) -> str:
@@ -63,6 +64,12 @@ class InfinityMirror:
 
         stack: List[TreeNode] = [self.root]
 
+        max_num_nodes = (3 ** (self.num_generations+1) - 1) / 2  # total number of nodes in the tree
+
+        tqdm.tqdm.write(f'Running Infinity Mirror on "{self.initial_graph.name}" {self.initial_graph.order(), self.initial_graph.size()} "{self.model.model_name}" {self.num_generations} generations')
+        pbar = tqdm.tqdm(total=max_num_nodes, bar_format='{l_bar}{bar}|[{elapsed}<{remaining}]', ncols=50)
+        pbar.update(1)
+
         while len(stack) != 0:
             tnode = stack.pop()
             if tnode.depth >= self.num_generations:  # do not further expand the tree
@@ -80,7 +87,9 @@ class InfinityMirror:
 
             assert len(tnode.children) == 3, f'tree node {tnode} does not have 3 children'
             stack.extend(tnode.children)  # add the children to the end of the queue
+            pbar.update(3)
 
+        pbar.close()
         ## pickle the root
         CP.print_green(f'Root object is pickled at "{self.root_pickle_path}"')
         pickle.dump(self.root, open(self.root_pickle_path, 'wb'))
