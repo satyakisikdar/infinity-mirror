@@ -100,7 +100,7 @@ class GraphStats:
         Returns the eigenvalues of the Adjacency matrix
         :return:
         """
-        CP.print_blue('Calculating eigenvalues of Adjacency Matrix')
+        CP.print_none('Calculating eigenvalues of Adjacency Matrix')
         
         adj_eigenvalues = nx.adjacency_spectrum(self.graph)
         self.stats['adj_eigenvalues'] = adj_eigenvalues
@@ -112,7 +112,7 @@ class GraphStats:
         Returns the assortativity of the network
         :return:
         """
-        CP.print_blue('Calculating Degree Assortativity')
+        CP.print_none('Calculating Degree Assortativity')
 
         assortativity = nx.degree_assortativity_coefficient(self.graph)
         self.stats['assortativity'] = assortativity
@@ -139,7 +139,7 @@ class GraphStats:
         """
         Closeness centrality
         """
-        CP.print_blue('Calculating Closeness Centrality')
+        CP.print_none('Calculating Closeness Centrality')
 
         closeness = nx.closeness_centrality(self.graph)
         self.stats['closeness_centrality'] = closeness
@@ -151,7 +151,7 @@ class GraphStats:
         Returns the average clustering coefficient by degree
         :return:
         """
-        CP.print_blue('Calculating Clustering Coefficients and CC by degree')
+        CP.print_none('Calculating Clustering Coefficients and CC by degree')
 
         clustering_coeffs = nx.clustering(self.graph)
         self.stats['clustering_coeffs'] = clustering_coeffs
@@ -178,7 +178,7 @@ class GraphStats:
         Returns the distribution of component sizes and fraction of nodes in each component, largest first
         :return:
         """
-        CP.print_blue('Calculating Component Size Distribution')
+        CP.print_none('Calculating Component Size Distribution')
 
         component_size_ratio_list = [(len(c), len(c) / self.graph.order()) for c in
                                      sorted(nx.connected_components(self.graph),
@@ -191,7 +191,7 @@ class GraphStats:
         """
         Degree centrality
         """
-        CP.print_blue('Calculating Degree Centrality')
+        CP.print_none('Calculating Degree Centrality')
 
         degree_centrality = nx.degree_centrality(self.graph)
         self.stats['degree_centrality'] = degree_centrality
@@ -203,7 +203,7 @@ class GraphStats:
         Returns the degrees counter - keys: degrees, values: #nodes with that degree
         :return:
         """
-        CP.print_blue('Calculating Degree Distribution')
+        CP.print_none('Calculating Degree Distribution')
 
         degree_seq = sorted(deg for _, deg in self.graph.degree())
         self.stats['degree_seq'] = degree_seq
@@ -218,7 +218,7 @@ class GraphStats:
         return dict(degree_counts)
 
     def diameter(self) -> float:
-        CP.print_blue('Calculating Diameter')
+        CP.print_none('Calculating Diameter')
 
         diam = nx.diameter(self.graph)
         self.stats['diameter'] = diam
@@ -242,7 +242,7 @@ class GraphStats:
         Then convert to a cumulative distribution
         :return:
         """
-        CP.print_blue('Calculating hop-plot')
+        CP.print_none('Calculating hop-plot')
 
         overall_k_hop_dict = Counter()
 
@@ -287,7 +287,7 @@ class GraphStats:
         Returns eigenvalues of the Laplacian
         :return:
         """
-        CP.print_blue('Calculating Laplacian Eigenvalues')
+        CP.print_none('Calculating Laplacian Eigenvalues')
 
         laplacian_eigs = nx.laplacian_spectrum(self.graph)
         self.stats['laplacian_eigenvalues'] = laplacian_eigs
@@ -298,7 +298,7 @@ class GraphStats:
         """
         PageRank centrality
         """
-        CP.print_blue('Calculating PageRank')
+        CP.print_none('Calculating PageRank')
 
         pagerank = nx.pagerank_scipy(self.graph)
         self.stats['pagerank'] = pagerank
@@ -310,5 +310,5 @@ class GraphStats:
         Return the dictionary of graphlets and their counts - based on Neville's PGD
         :return:
         """
-        CP.print_blue('Calculating the graphlet counts by PGD')
+        CP.print_none('Calculating the graphlet counts by PGD')
         raise NotImplementedError('PGD does not work yet')
