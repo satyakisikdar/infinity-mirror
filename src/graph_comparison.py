@@ -49,7 +49,6 @@ class GraphPairCompare:
 
     def gcd(self) -> float:
         # dist = GCD(self.graph1, self.graph2)
-        tqdm.write('Note: GCD is disabled')
         dist = -1
         self.stats['gcd'] = dist
 
