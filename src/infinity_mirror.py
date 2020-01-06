@@ -8,6 +8,7 @@ import networkx as nx
 import pickle
 import numpy as np
 import tqdm
+from joblib import Parallel, delayed
 from matplotlib import gridspec
 
 # from src.Graph import CustomGraph
@@ -139,13 +140,19 @@ class InfinityMirror:
 
         scores: Dict[str, List[Stats]] = {metric: [] for metric in self._metrics}
 
-        ## TODO: add tqdm status bar for progress
+        graph_comps_list = Parallel(prefer="threads")(
+            delayed(GraphPairCompare)(gstats1=self.initial_graph_stats, gstats2=GraphStats(gen_graph))
+            for i, gen_graph in enumerate(generated_graphs)
+        )
 
-        for i, gen_graph in enumerate(generated_graphs):
-            gen_gstats = GraphStats(gen_graph)
-            graph_comp = GraphPairCompare(gstats1=self.initial_graph_stats, gstats2=gen_gstats)
+        assert isinstance(graph_comps_list, list), 'Graph comp pairs is not a list'
+        assert isinstance(graph_comps_list[0], GraphPairCompare), 'Improper object in Graph comp list'
+
+        for i, graph_comp in enumerate(graph_comps_list):
+            # graph_comp = GraphPairCompare(gstats1=self.initial_graph_stats, gstats2=GraphStats(gen_graph))
+            graph_comp: GraphPairCompare
             for metric in self._metrics:
-                stat = Stats(id=i+1, graph=gen_graph, score=graph_comp[metric], name=metric)
+                stat = Stats(id=i+1, graph=graph_comp.graph2, score=graph_comp[metric], name=metric)
                 scores[metric].append(stat)
 
         sorted_scores = {key: sorted(val, key=lambda item: item.score) for key, val in scores.items()}
