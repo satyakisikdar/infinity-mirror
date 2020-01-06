@@ -67,10 +67,7 @@ class BaseGraphModel:
         :param gen_id: generation id
         :return:
         """
-        generated_graphs = []
-
-        ## TODO: parallelize this for loop
-        generated_graphs =  Parallel(n_jobs=2, prefer="threads")(
+        generated_graphs =  Parallel(prefer="threads")(
             delayed(self._gen)(gen_id=gen_id, gname=f'{self.gname}_{gen_id}_{i+1}')
             for i in range(num_graphs)
         )
