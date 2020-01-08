@@ -294,7 +294,7 @@ class CNRG(BaseGraphModel):
         nx.write_edgelist(self.input_graph, f'./src/cnrg/src/tmp/{self.gname}.g', data=False)
 
         completed_process = subprocess.run(f'cd src/cnrg; python3 runner.py -g {self.gname} -n {num_graphs}',
-                                           shell=True)
+                                           shell=True, stderr=subprocess.DEVNULL)
         assert completed_process.returncode == 0, 'Error in CNRG'
         output_pickle_path = f'./src/cnrg/output/{self.gname}_cnrg.pkl'
         assert check_file_exists(output_pickle_path)
