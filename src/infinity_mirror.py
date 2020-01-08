@@ -43,7 +43,7 @@ class InfinityMirror:
         self.initial_graph_stats: GraphStats = GraphStats(graph=self.initial_graph)  # initialize graph_stats object for the initial_graph which is the same across generations
         self.root: TreeNode = TreeNode('root', graph=self.initial_graph, stats={})  # root of the tree with the initial graph and empty stats dictionary
         self._metrics: List[str] = ['gcd', 'deltacon0', 'lambda_dist', 'pagerank_cvm', 'degree_cvm']  # list of metrics
-        self.root_pickle_path: str = f'./output/pickles/{self.initial_graph.name}_{self.model.model_name}_{self.num_generations}.pkl.gz'
+        self.root_pickle_path: str = f'./output/pickles/{self.initial_graph.name}/{self.model.model_name}_{self.num_generations}.pkl.gz'
         return
 
     def __str__(self) -> str:

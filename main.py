@@ -66,12 +66,12 @@ def process_args(args):
     return g, model_obj, int(args.num_gens[0]), args.use_pickle
 
 
-def make_dirs():
+def make_dirs(gname):
     """
     Makes input and output directories if they do not exist already
     :return:
     """
-    for dirname in ('input', 'output', 'analysis', 'src/scratch', 'output/pickles'):
+    for dirname in ('input', 'output', 'analysis', 'src/scratch', 'output/pickles', f'output/pickles/{gname}'):
         if not os.path.exists(f'./{dirname}'):
             os.makedirs(f'./{dirname}')
 
@@ -136,6 +136,8 @@ def test_graph_stats(g: nx.Graph):
 def main():
     args = parse_args()
     g, model, num_gens, use_pickle = process_args(args)
+    make_dirs(g.name)
+
     print('GCD is disabled')
     inf = InfinityMirror(initial_graph=g, num_generations=num_gens, model_obj=model)
     inf.run(use_pickle=use_pickle)
