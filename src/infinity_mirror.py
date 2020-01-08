@@ -7,7 +7,7 @@ import seaborn as sns
 import networkx as nx
 import pickle
 import numpy as np
-import tqdm
+from tqdm import tqdm
 from joblib import Parallel, delayed
 from matplotlib import gridspec
 
@@ -43,7 +43,7 @@ class InfinityMirror:
         self.initial_graph_stats: GraphStats = GraphStats(graph=self.initial_graph)  # initialize graph_stats object for the initial_graph which is the same across generations
         self.root: TreeNode = TreeNode('root', graph=self.initial_graph, stats={})  # root of the tree with the initial graph and empty stats dictionary
         self._metrics: List[str] = ['gcd', 'deltacon0', 'lambda_dist', 'pagerank_cvm', 'degree_cvm']  # list of metrics
-        self.root_pickle_path: str = f'./output/pickles/{self.initial_graph.name}_{self.model.model_name}_{self.num_generations}.pkl.gz'
+        self.root_pickle_path: str = f'./output/pickles/{self.initial_graph.name}/{self.model.model_name}_{self.num_generations}.pkl.gz'
         return
 
     def __str__(self) -> str:
@@ -67,8 +67,8 @@ class InfinityMirror:
 
         max_num_nodes = (3 ** (self.num_generations+1) - 1) / 2  # total number of nodes in the tree
 
-        tqdm.tqdm.write(f'Running Infinity Mirror on "{self.initial_graph.name}" {self.initial_graph.order(), self.initial_graph.size()} "{self.model.model_name}" {self.num_generations} generations')
-        pbar = tqdm.tqdm(total=max_num_nodes, bar_format='{l_bar}{bar}|[{elapsed}<{remaining}]', ncols=50)
+        tqdm.write(f'Running Infinity Mirror on "{self.initial_graph.name}" {self.initial_graph.order(), self.initial_graph.size()} "{self.model.model_name}" {self.num_generations} generations')
+        pbar = tqdm(total=max_num_nodes, bar_format='{l_bar}{bar}|[{elapsed}<{remaining}]', ncols=50)
         pbar.update(1)
 
         while len(stack) != 0:
@@ -140,7 +140,7 @@ class InfinityMirror:
 
         scores: Dict[str, List[Stats]] = {metric: [] for metric in self._metrics}
 
-        graph_comps_list = Parallel(prefer="threads")(
+        graph_comps_list = Parallel()(
             delayed(GraphPairCompare)(gstats1=self.initial_graph_stats, gstats2=GraphStats(gen_graph))
             for i, gen_graph in enumerate(generated_graphs)
         )

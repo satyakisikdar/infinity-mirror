@@ -67,7 +67,7 @@ class BaseGraphModel:
         :param gen_id: generation id
         :return:
         """
-        generated_graphs =  Parallel(prefer="threads")(
+        generated_graphs =  Parallel()(
             delayed(self._gen)(gen_id=gen_id, gname=f'{self.gname}_{gen_id}_{i+1}')
             for i in range(num_graphs)
         )

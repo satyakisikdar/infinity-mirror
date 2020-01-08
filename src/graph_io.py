@@ -85,7 +85,7 @@ class GraphReader:
 
             CP.print_green(f'Taking the largest component out of {len(component_sizes)} components: {component_sizes}')
 
-            graph_lcc = self.graph.subgraph(max(nx.connected_components(self.graph), key=len))
+            graph_lcc = nx.Graph(self.graph.subgraph(max(nx.connected_components(self.graph), key=len)))
 
             perc_nodes = graph_lcc.order() / self.graph.order() * 100
             perc_edges = graph_lcc.size() / self.graph.size() * 100
@@ -93,14 +93,17 @@ class GraphReader:
 
             self.graph = graph_lcc
 
+        selfloop_edges = list(nx.selfloop_edges(self.graph))
+        if len(selfloop_edges) > 0:
+            CP.print_green(f'Removing {len(selfloop_edges)} self-loops')
+            self.graph.remove_edges_from(selfloop_edges)  # remove self-loops
+
         if reindex_nodes:
             # re-index nodes, stores the old label in old_label
             self.graph = nx.convert_node_labels_to_integers(self.graph, first_label=first_label,
                                                             label_attribute='old_label')
             CP.print_green(f'Re-indexing nodes to start from {first_label}, old labels are stored in node attr "old_label"')
 
-        CP.print_green(f'Removing multi-edges and self-loops')
-        self.graph.remove_edges_from(nx.selfloop_edges(self.graph))  # remove self-loops
 
         CP.print_blue(f'Pre-processed graph "{self.gname}" n:{self.graph.order():,} m:{self.graph.size():,}')
         return
@@ -118,12 +121,16 @@ class SyntheticGraph:
     """
     __slots__ = ['kind', 'args', 'g']
 
-    implemented_methods = {'chain': {'n'}, 'tree': {'r', 'h'}, 'ladder': {'n'}, 'circular_ladder': {'n'}, 'ring': {'n'},
-                           'ring_of_cliques': {'n', 'k'}, 'grid': {'m', 'n'}, 'erdos_renyi': {'n', 'p', 'seed'}}
+    implemented_methods = {'chain': ('n',), 'tree': ('r', 'h'), 'ladder': ('n',), 'circular_ladder': ('n',),
+                           'ring': ('n',), 'clique_ring': ('n', 'k'), 'grid': ('m', 'n'), 'erdos_renyi': ('n', 'p', 'seed')}
+
     def __init__(self, kind, **kwargs):
         self.kind = kind
         assert kind in SyntheticGraph.implemented_methods, f'Generator {kind} not implemented. Implemented methods: {self.implemented_methods.keys()}'
         self.args = kwargs
+
+        if 'seed' in SyntheticGraph.implemented_methods[kind] and 'seed' not in self.args:  # if seed is not specified, set it to None
+            self.args['seed'] = None
         self.g = self._make_graph()
 
     def _make_graph(self) -> nx.Graph:
@@ -131,7 +138,7 @@ class SyntheticGraph:
         Makes the graph
         :return:
         """
-        assert self.implemented_methods[self.kind].issubset(self.args), f'Improper args {self.args.keys()}, need: {self.implemented_methods[self.kind]}'
+        assert set(self.implemented_methods[self.kind]).issubset(set(self.args)), f'Improper args {self.args.keys()}, need: {self.implemented_methods[self.kind]}'
 
         if self.kind == 'chain':
             g = nx.path_graph(self.args['n'])
@@ -145,7 +152,7 @@ class SyntheticGraph:
         elif self.kind == 'circular_ladder':
             g = nx.circular_ladder_graph(self.args['n'])
             name = f'circular_ladder_graph_{g.order()}'
-        elif self.kind == 'ring_of_cliques':
+        elif self.kind == 'clique_ring':
             g = nx.ring_of_cliques(self.args['n'], self.args['k'])
             name = f"clique_ring_{self.args['n']}_{self.args['k']}"
         elif self.kind == 'grid':
@@ -155,7 +162,6 @@ class SyntheticGraph:
             g = nx.erdos_renyi_graph(n=self.args['n'], p=self.args['p'], seed=self.args['seed'])
             name = f"erdos_renyi_{self.args['n']}_{g.size()}"
         else:
-            name = ''
             raise NotImplementedError(f'Improper kind: {self.kind}')
         g.name = name
         return g
