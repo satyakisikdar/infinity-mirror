@@ -7,7 +7,7 @@ import seaborn as sns
 import networkx as nx
 import pickle
 import numpy as np
-import tqdm
+from tqdm import tqdm
 from joblib import Parallel, delayed
 from matplotlib import gridspec
 
@@ -67,8 +67,8 @@ class InfinityMirror:
 
         max_num_nodes = (3 ** (self.num_generations+1) - 1) / 2  # total number of nodes in the tree
 
-        tqdm.tqdm.write(f'Running Infinity Mirror on "{self.initial_graph.name}" {self.initial_graph.order(), self.initial_graph.size()} "{self.model.model_name}" {self.num_generations} generations')
-        pbar = tqdm.tqdm(total=max_num_nodes, bar_format='{l_bar}{bar}|[{elapsed}<{remaining}]', ncols=50)
+        tqdm.write(f'Running Infinity Mirror on "{self.initial_graph.name}" {self.initial_graph.order(), self.initial_graph.size()} "{self.model.model_name}" {self.num_generations} generations')
+        pbar = tqdm(total=max_num_nodes, bar_format='{l_bar}{bar}|[{elapsed}<{remaining}]', ncols=50)
         pbar.update(1)
 
         while len(stack) != 0:
