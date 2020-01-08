@@ -148,7 +148,7 @@ class SyntheticGraph:
             name = f"tree_{self.args['r']}_{self.args['h']}"
         elif self.kind == 'ladder':
             g = nx.ladder_graph(self.args['n'])
-            name = f'ladder_graph_{g.order()}'
+            name = f'ladder_graph_{g.order()//2}'
         elif self.kind == 'circular_ladder':
             g = nx.circular_ladder_graph(self.args['n'])
             name = f'circular_ladder_graph_{g.order()}'
