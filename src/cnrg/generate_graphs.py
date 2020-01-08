@@ -1,19 +1,18 @@
-import networkx as nx
+import logging
+import math
 import os
 import pickle
-from time import time
-import math
-import logging
-from joblib import Parallel, delayed
-import csv
 import sys
+from time import time
 from typing import *
 
+import networkx as nx
+import src.partitions as partitions
+from joblib import Parallel, delayed
+from src.LightMultiGraph import LightMultiGraph
 from src.VRG import VRG
 from src.generate import generate_graph
-import src.partitions as partitions
-from src.LightMultiGraph import LightMultiGraph
-from src.MDL import graph_dl
+
 
 def get_graph(filename='sample') -> LightMultiGraph:
     start_time = time()

@@ -75,7 +75,7 @@ def get_clustering(g, outdir, clustering):
     #     print('Using existing pickle for {} clustering\n'.format(clustering))
     #     list_of_list_clusters = pickle.load(open(list_of_list_pickle, 'rb'))
     # else:
-    tqdm.write('Running {} clustering...'.format(clustering))
+    # tqdm.write('Running {} clustering...'.format(clustering))
     if clustering == 'random':
         list_of_list_clusters = partitions.get_random_partition(g)
     elif clustering == 'leiden':
@@ -195,7 +195,7 @@ def generate_graphs(grammar, n):
     """
     Generate n graphs from grammar
     """
-    print(f'Generating {n} graphs')
+    # print(f'Generating {n} graphs')
     graphs = []
     rule_dict = grammar.rule_dict
 
