@@ -52,7 +52,7 @@ def get_graph(filename='sample') -> LightMultiGraph:
     g_new.add_edges_from(g.edges())
 
     end_time = time() - start_time
-    print(f'Graph: {filename}, n = {g.order():_d}, m = {g.size():_d} read in {round(end_time, 3):_g}s.')
+    # print(f'Graph: {filename}, n = {g.order():_d}, m = {g.size():_d} read in {round(end_time, 3):_g}s.')
 
     return g_new
 
