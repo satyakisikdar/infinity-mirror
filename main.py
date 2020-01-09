@@ -3,6 +3,7 @@ import ast
 import glob
 import importlib
 import os
+from typing import Any
 
 import networkx as nx
 
@@ -31,10 +32,12 @@ def parse_args():
     parser.add_argument('-o', '--outdir', help='Name of the output directory', default='output', metavar='')
 
     parser.add_argument('-p', '--use_pickle', help='Use pickle?', action='store_true')
+
+    parser.add_argument('-g', '--num_graphs', help='Number of graphs per generation', default=10, nargs=1, metavar='', type=int)
     return parser.parse_args()
 
 
-def process_args(args):
+def process_args(args) -> Any:
     """
     Validates args
     :param args:
@@ -63,7 +66,7 @@ def process_args(args):
     module = importlib.import_module(f'src.graph_models')
     model_obj = getattr(module, model_name)
 
-    return g, model_obj, int(args.num_gens[0]), args.use_pickle
+    return g, model_obj, int(args.num_gens[0]), args.use_pickle, args.num_graphs
 
 
 def make_dirs(gname):
@@ -135,11 +138,11 @@ def test_graph_stats(g: nx.Graph):
 
 def main():
     args = parse_args()
-    g, model, num_gens, use_pickle = process_args(args)
+    g, model, num_gens, use_pickle, num_graphs = process_args(args)
     make_dirs(g.name)
 
     print('GCD is disabled')
-    inf = InfinityMirror(initial_graph=g, num_generations=num_gens, model_obj=model)
+    inf = InfinityMirror(initial_graph=g, num_generations=num_gens, model_obj=model, num_graphs=num_graphs)
     inf.run(use_pickle=use_pickle)
     print(inf)
 
