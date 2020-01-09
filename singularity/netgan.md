@@ -45,11 +45,15 @@
     - `learning_rate=0.0003`
 
 ##  training the model
-### without GPU
-    - approximately 4.5 hours to run 2000 iterations of training without GPU
-    - for some reason, doesn't seem to be able to finish
 - demo parameters for `netgan.train()` on cell 12 of the notebook:
     - `eval_every = 2000`
     - `plot_every = 2000`
     - `max_patience = 20`
     - `max_iters = 200000`
+
+### with GPU
+- approximately 3 hours to run 6000 iterations and finish training with early stopping
+                                                                                          
+### without GPU
+- approximately 4.5 hours to run 2000 iterations of training without GPU
+- for some reason, doesn't seem to be able to finish
