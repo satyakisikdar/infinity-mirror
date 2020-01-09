@@ -7,12 +7,9 @@
 ##  requirements
 ### conda
 - `python 3.6`
-```singularity
-    bootstrap: docker
-    from: continuumio/miniconda3:4.4.10
-```
+    - version `4.4.10` of `Miniconda`
 - `tensorflow-gpu version 1.4.1`
-    - must use `Miniconda 4.4.10`; most current version of Anaconda/Miniconda doesn't work
+    - works with `Miniconda 4.4.10`; most current version of Anaconda/Miniconda doesn't work
     - must install `tensorflow-gpu=1.4.1` and NOT `tensorflow=1.4.1`
 - `numpy version 1.16.1`
     - must use older version because `allow_pickle=False` throws an exception with `np.load(...)`
@@ -51,7 +48,7 @@
 ### without GPU
     - approximately 4.5 hours to run 2000 iterations of training without GPU
     - for some reason, doesn't seem to be able to finish
-- demo parameters for netgan.train() on cell 12 of the notebook:
+- demo parameters for `netgan.train()` on cell 12 of the notebook:
     - `eval_every = 2000`
     - `plot_every = 2000`
     - `max_patience = 20`
