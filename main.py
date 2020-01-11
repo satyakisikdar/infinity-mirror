@@ -27,13 +27,17 @@ def parse_args():
 
     parser.add_argument('-m', '--model', help='Model to use', metavar='', choices=model_names, nargs=1, required=True)
 
-    parser.add_argument('-n', '--num_gens', help='Number of generations', default=5, nargs=1, metavar='', type=int)
+    parser.add_argument('-n', '--num_gens', help='Number of generations', default=[5], nargs=1, metavar='', type=int)
 
-    parser.add_argument('-o', '--outdir', help='Name of the output directory', default='output', metavar='')
+    parser.add_argument('-s', '--selection', help='Selection policy', choices=('best', 'worst', 'median'), nargs=1,
+                        metavar='', required=True)
+
+    parser.add_argument('-o', '--outdir', help='Name of the output directory', nargs=1, default='output', metavar='')
 
     parser.add_argument('-p', '--use_pickle', help='Use pickle?', action='store_true')
 
-    parser.add_argument('-g', '--num_graphs', help='Number of graphs per generation', default=10, nargs=1, metavar='', type=int)
+    parser.add_argument('-g', '--num_graphs', help='Number of graphs per generation', default=[10], nargs=1, metavar='',
+                        type=int)
     return parser.parse_args()
 
 
@@ -66,7 +70,7 @@ def process_args(args) -> Any:
     module = importlib.import_module(f'src.graph_models')
     model_obj = getattr(module, model_name)
 
-    return g, model_obj, int(args.num_gens[0]), args.use_pickle, args.num_graphs
+    return args.selection[0], g, model_obj, int(args.num_gens[0]), args.use_pickle, int(args.num_graphs[0])
 
 
 def make_dirs(gname):
@@ -135,14 +139,14 @@ def test_graph_stats(g: nx.Graph):
     #           ylabel='Avg clustering coefficient', kind='scatter')
     # print(deg_dist)
 
-
+@timer
 def main():
     args = parse_args()
-    g, model, num_gens, use_pickle, num_graphs = process_args(args)
+    selection, g, model, num_gens, use_pickle, num_graphs = process_args(args)
     make_dirs(g.name)
 
     print('GCD is disabled')
-    inf = InfinityMirror(initial_graph=g, num_generations=num_gens, model_obj=model, num_graphs=num_graphs)
+    inf = InfinityMirror(selection=selection, initial_graph=g, num_generations=num_gens, model_obj=model, num_graphs=num_graphs)
     inf.run(use_pickle=use_pickle)
     print(inf)
 
@@ -150,5 +154,4 @@ def main():
 
 
 if __name__ == '__main__':
-
     main()
