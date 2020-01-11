@@ -142,25 +142,28 @@ class SyntheticGraph:
 
         if self.kind == 'chain':
             g = nx.path_graph(self.args['n'])
-            name = f'chain_{g.order()}'
+            name = f'chain-{g.order()}'
         elif self.kind == 'tree':
             g = nx.balanced_tree(self.args['r'], self.args['h'])
-            name = f"tree_{self.args['r']}_{self.args['h']}"
+            name = f"tree-{self.args['r']}-{self.args['h']}"
         elif self.kind == 'ladder':
             g = nx.ladder_graph(self.args['n'])
-            name = f'ladder_graph_{g.order()//2}'
+            name = f'ladder-{g.order()//2}'
         elif self.kind == 'circular_ladder':
             g = nx.circular_ladder_graph(self.args['n'])
-            name = f'circular_ladder_graph_{g.order()}'
+            name = f'circular-ladder-{g.order()}'
         elif self.kind == 'clique_ring':
             g = nx.ring_of_cliques(self.args['n'], self.args['k'])
-            name = f"clique_ring_{self.args['n']}_{self.args['k']}"
+            name = f"clique-ring-{self.args['n']}-{self.args['k']}"
         elif self.kind == 'grid':
             g = nx.grid_2d_graph(self.args['m'], self.args['n'])
-            name = f"grid_{self.args['m']}_{self.args['n']}"
+            name = f"grid-{self.args['m']}-{self.args['n']}"
         elif self.kind == 'erdos_renyi':
-            g = nx.erdos_renyi_graph(n=self.args['n'], p=self.args['p'], seed=self.args['seed'])
-            name = f"erdos_renyi_{self.args['n']}_{g.size()}"
+            seed = self.args['seed']
+            g = nx.erdos_renyi_graph(n=self.args['n'], p=self.args['p'], seed=seed)
+            name = f"erdos-renyi-{self.args['n']}-{g.size()}"
+            if seed is not None:
+                name += f'-{seed}'  # add the seed to the name
         else:
             raise NotImplementedError(f'Improper kind: {self.kind}')
         g.name = name
