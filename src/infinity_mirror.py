@@ -11,7 +11,6 @@ from tqdm import tqdm
 from joblib import Parallel, delayed
 from matplotlib import gridspec
 
-# from src.Graph import CustomGraph
 from src.graph_comparison import GraphPairCompare
 from src.graph_models import *
 from src.graph_stats import GraphStats
@@ -34,84 +33,26 @@ class InfinityMirror:
         use ranked choice voting for deciding the winner from 10 graphs <- borda list
         store the three graphs into a tree
     """
-    __slots__ = ('initial_graph', 'num_generations', 'model', 'initial_graph_stats', 'root', '_metrics', 'root_pickle_path')
+    __slots__ = ('initial_graph', 'num_generations', 'num_graphs', 'model', 'initial_graph_stats', 'root',
+                 '_metrics', 'root_pickle_path', 'selection')
 
-    def __init__(self, initial_graph: nx.Graph, model_obj: Any, num_generations: int) -> None:
+    def __init__(self, selection: str, initial_graph: nx.Graph, model_obj: Any, num_generations: int, num_graphs: int) -> None:
+        self.selection = selection  # kind of selection stategy
         self.initial_graph: nx.Graph = initial_graph  # the initial starting point H_0
+        self.num_graphs: int = num_graphs  # number of graphs per generation
         self.num_generations: int = num_generations  # number of generations
         self.model: BaseGraphModel = model_obj(input_graph=self.initial_graph)  # initialize and fit the model
         self.initial_graph_stats: GraphStats = GraphStats(graph=self.initial_graph)  # initialize graph_stats object for the initial_graph which is the same across generations
         self.root: TreeNode = TreeNode('root', graph=self.initial_graph, stats={})  # root of the tree with the initial graph and empty stats dictionary
         self._metrics: List[str] = ['gcd', 'deltacon0', 'lambda_dist', 'pagerank_cvm', 'degree_cvm']  # list of metrics
-        self.root_pickle_path: str = f'./output/pickles/{self.initial_graph.name}/{self.model.model_name}_{self.num_generations}.pkl.gz'
+        self.root_pickle_path: str = f'./output/pickles/{self.initial_graph.name}/{self.selection}_{self.model.model_name}_{self.num_generations}.pkl.gz'
         return
 
     def __str__(self) -> str:
-        return f'model: "{self.model.model_name}"  initial graph: "{self.initial_graph.name}"  #gens: {self.num_generations}'
+        return f'({self.selection}) model: "{self.model.model_name}"  initial graph: "{self.initial_graph.name}"  #gens: {self.num_generations}'
 
     def __repr__(self) -> str:
         return str(self)
-
-    def run(self, use_pickle: bool, num_graphs: int=10):
-        """
-        Do a BFS starting with the root
-        :return:
-        """
-
-        if use_pickle and check_file_exists(self.root_pickle_path):
-            CP.print_green(f'Using pickle at "{self.root_pickle_path}"')
-            self.root = load_pickle(self.root_pickle_path)
-            return
-
-        stack: List[TreeNode] = [self.root]
-
-        max_num_nodes = (3 ** (self.num_generations+1) - 1) / 2  # total number of nodes in the tree
-
-        tqdm.write(f'Running Infinity Mirror on "{self.initial_graph.name}" {self.initial_graph.order(), self.initial_graph.size()} "{self.model.model_name}" {self.num_generations} generations')
-        pbar = tqdm(total=max_num_nodes, bar_format='{l_bar}{bar}|[{elapsed}<{remaining}]', ncols=50)
-        pbar.update(1)
-
-        while len(stack) != 0:
-            tnode = stack.pop()
-            if tnode.depth >= self.num_generations:  # do not further expand the tree
-                continue
-
-            graph_stat_triple: GraphStatTriple = self._get_next_generation(input_graph=tnode.graph, num_graphs=num_graphs, gen_id=tnode.depth+1)
-            best_graph_stat_double: GraphStatDouble = graph_stat_triple.best
-            median_graph_stat_double: GraphStatDouble = graph_stat_triple.median
-            worst_graph_stat_double: GraphStatDouble = graph_stat_triple.worst
-
-            ## creating the three nodes and attaching it to the tree
-            TreeNode(name=f'{tnode}-best', graph=best_graph_stat_double.graph, stats=best_graph_stat_double.stats, parent=tnode)
-            TreeNode(name=f'{tnode}-med', graph=median_graph_stat_double.graph, stats=median_graph_stat_double.stats, parent=tnode)
-            TreeNode(name=f'{tnode}-worst', graph=worst_graph_stat_double.graph, stats=worst_graph_stat_double.stats, parent=tnode)
-
-            assert len(tnode.children) == 3, f'tree node {tnode} does not have 3 children'
-            stack.extend(tnode.children)  # add the children to the end of the queue
-            pbar.update(3)
-
-        pbar.close()
-        ## pickle the root
-        CP.print_green(f'Root object is pickled at "{self.root_pickle_path}"')
-        pickle.dump(self.root, open(self.root_pickle_path, 'wb'))
-
-        return
-
-    def _get_next_generation(self, input_graph: nx.Graph, num_graphs: int, gen_id: int) -> GraphStatTriple:
-        """
-        step 1: get input graph
-        step 2: fit model
-        step 3: generate output graphs - best and worst?
-        step 4: fit output graph as input
-        :param input_graph:
-        :param num_graphs: number of graphs to generate
-        :return:
-        """
-        # raise NotImplementedError('dont use current gen, keep update, generate; fix graphs_by_gen; fix filter graphs; ')
-
-        self.model.update(new_input_graph=input_graph)
-        generated_graphs = self.model.generate(num_graphs=num_graphs, gen_id=gen_id)
-        return self._filter_graphs(generated_graphs)
 
     def _make_graph_stat_double(self, graph, scores, idx) -> GraphStatDouble:
         """
@@ -123,37 +64,27 @@ class InfinityMirror:
         stats = {metric: scores[metric][idx].score for metric in self._metrics}
         return GraphStatDouble(graph=graph, stats=stats)
 
-    def _filter_graphs(self, generated_graphs: List[nx.Graph]) -> GraphStatTriple:
+    def _get_representative_graph_stat(self, generated_graphs: List[nx.Graph]) -> GraphStatDouble:
         """
-        Filter the graphs per generation to store the 3 chosen graphs - best, worst, and 50^th percentile
-
-        Populates the filtered_graphs_by_generation
-        :return: None
+        returns the representative graph and its stats
+        :param kind: str: best, median, worst
+        :param generated_graphs: list of generated graphs
+        :return: GraphStatDouble object
         """
         assert len(generated_graphs) != 0, f'generated graphs empty'
-
-        ## For each graph in the generation
-        #### compute graph distance with the original input graph and the generated graph
-        #### create a ranked list based on the scores
-        ## combine the ranked lists to create an overall ranking
-        ## pick the best, worst, and the median - use named tuple?
-
         scores: Dict[str, List[Stats]] = {metric: [] for metric in self._metrics}
 
         graph_comps_list = Parallel()(
             delayed(GraphPairCompare)(gstats1=self.initial_graph_stats, gstats2=GraphStats(gen_graph))
-            for i, gen_graph in enumerate(generated_graphs)
-        )
+            for i, gen_graph in enumerate(generated_graphs))
 
         assert isinstance(graph_comps_list, list), 'Graph comp pairs is not a list'
         assert isinstance(graph_comps_list[0], GraphPairCompare), 'Improper object in Graph comp list'
 
         for i, graph_comp in enumerate(graph_comps_list):
-            # graph_comp = GraphPairCompare(gstats1=self.initial_graph_stats, gstats2=GraphStats(gen_graph))
             graph_comp: GraphPairCompare
             for metric in self._metrics:
-                stat = Stats(id=i+1, graph=graph_comp.graph2, score=graph_comp[metric], name=metric)
-                scores[metric].append(stat)
+                scores[metric].append(Stats(id=i + 1, graph=graph_comp.graph2, score=graph_comp[metric], name=metric))
 
         sorted_scores = {key: sorted(val, key=lambda item: item.score) for key, val in scores.items()}
 
@@ -163,15 +94,46 @@ class InfinityMirror:
 
         overall_ranking = borda_sort(rankings.values())  # compute the overall ranking
 
-        best_idx = overall_ranking[0] - 1   # all indexing is 1 based
-        median_idx = overall_ranking[len(overall_ranking)//2 - 1] - 1
-        worst_idx = overall_ranking[-1] - 1
+        if self.selection == 'best':
+            idx = overall_ranking[0] - 1  # all indexing is 1 based
+        elif self.selection == 'worst':
+            idx = overall_ranking[-1] - 1
+        else:
+            assert self.selection == 'median', f'invalid selection: {self.selection}'
+            idx = overall_ranking[len(overall_ranking) // 2 - 1] - 1
 
-        best_graph_stat_double = self._make_graph_stat_double(graph=generated_graphs[best_idx], idx=best_idx, scores=scores)
-        median_graph_stat_double = self._make_graph_stat_double(graph=generated_graphs[median_idx], idx=median_idx, scores=scores)
-        worst_graph_stat_double = self._make_graph_stat_double(graph=generated_graphs[worst_idx], idx=worst_idx, scores=scores)
+        return self._make_graph_stat_double(graph=generated_graphs[idx], idx=idx, scores=scores)
 
-        return GraphStatTriple(best=best_graph_stat_double, median=median_graph_stat_double, worst=worst_graph_stat_double)
+    def run(self, use_pickle: bool) -> None:
+        """
+        New runner - don't expand into three - grow three separate branches
+        :param use_pickle:
+        :return:
+        """
+        if use_pickle and check_file_exists(self.root_pickle_path):
+            CP.print_green(f'Using pickle at "{self.root_pickle_path}"')
+            self.root = load_pickle(self.root_pickle_path)
+            return
+
+        tqdm.write(f'Running Infinity Mirror on "{self.initial_graph.name}" {self.initial_graph.order(), self.initial_graph.size()} "{self.model.model_name}" {self.num_generations} generations')
+        pbar = tqdm(total=self.num_generations, bar_format='{l_bar}{bar}|[{elapsed}<{remaining}]', ncols=50)
+
+        for i in range(self.num_generations):
+            if i == 0:
+                tnode = self.root  # start with the root
+                curr_graph = self.initial_graph  # current graph is the initial graph
+
+            level = i + 1
+            self.model.update(new_input_graph=curr_graph)  # update the model
+            generated_graphs = self.model.generate(num_graphs=self.num_graphs, gen_id=level)  # generate a new set of graphs
+            curr_graph, stats = self._get_representative_graph_stat(generated_graphs=generated_graphs)
+            tnode = TreeNode(name=f'{self.selection}_{level}', graph=curr_graph, stats=stats, parent=tnode)
+            pbar.update(1)
+
+        pbar.close()
+        CP.print_green(f'Root object is pickled at "{self.root_pickle_path}"')
+        pickle.dump(self.root, open(self.root_pickle_path, 'wb'))
+        return
 
     def _group_by_gen(self, tnode: TreeNode) -> Dict:
         """
