@@ -2,9 +2,10 @@ import functools
 import pickle
 import sys
 import time
-
+from datetime import datetime
 from pathlib import Path
 from typing import Union, Any
+
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -13,17 +14,18 @@ from numpy import linalg as la
 from scipy import sparse as sps
 from scipy.sparse import issparse
 
-
 sns.set()
 sns.set_style("darkgrid")
 
 def timer(func):
     @functools.wraps(func)
     def wrapper_timer(*args, **kwargs):
+        ColorPrint.print_bold(f'Start: {datetime.now().ctime()}')
         tic = time.perf_counter()
         value = func(*args, **kwargs)
         toc = time.perf_counter()
         elapsed_time = toc - tic
+        ColorPrint.print_bold(f'End: {datetime.now().ctime()}')
         ColorPrint.print_bold(f"Elapsed time: {elapsed_time:0.4f} seconds")
         return value
     return wrapper_timer
