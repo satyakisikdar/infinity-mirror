@@ -1,4 +1,5 @@
 import functools
+import os
 import pickle
 import sys
 import time
@@ -59,6 +60,15 @@ def check_file_exists(path: Union[Path, str]) -> bool:
     if isinstance(path, str):
         path = Path(path)
     return path.exists()
+
+def delete_files(*files):
+    '''
+    deletes all the files
+    :param args:
+    :return:
+    '''
+    for file in files:
+        os.remove(file)
 
 
 def print_float(x: float) -> float:

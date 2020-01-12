@@ -6,7 +6,7 @@ import pandas as pd
 import scipy.spatial
 import scipy.stats
 
-from src.utils import check_file_exists
+from src.utils import check_file_exists, delete_files
 
 np.seterr(all='ignore')
 
@@ -40,7 +40,8 @@ def external_orca(g: nx.Graph, gname: str):
     g = nx.convert_node_labels_to_integers(g, first_label=0)
 
     file_dir = 'src/scratch'
-    with open(f'./{file_dir}/{gname}.in', 'w') as f:
+    input_path = f'./{file_dir}/{gname}.in'
+    with open(input_path, 'w') as f:
         f.write(f'{g.order()} {g.size()}\n')
         for u, v in g.edges():
             f.write(f'{u} {v}\n')
@@ -61,6 +62,10 @@ def external_orca(g: nx.Graph, gname: str):
     output_path = f'./{file_dir}/{gname}.out'
     assert check_file_exists(output_path), f'output file @ {output_path} not found in GCD'
     df = pd.read_csv(output_path, sep=' ', header=None)
+
+    # delete both the input and output files
+    delete_files(input_path, output_path)
+
     return df
 
 
