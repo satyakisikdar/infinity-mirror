@@ -466,7 +466,7 @@ class Kronecker(BaseGraphModel):
         nx.write_edgelist(directed_g, f'src/kronecker/{self.gname}.txt', data=False)
 
         bash_code = f'cd src/kronecker; {self.kronem_exec} -i:{self.gname}.txt -o:{self.gname}-fit'
-        completed_process = sub.run(bash_code, shell=True)  # , stdout=sub.PIPE)
+        completed_process = sub.run(bash_code, shell=True, stdout=sub.PIPE)
         assert completed_process.returncode == 0, 'Error in KronEM'
 
         assert check_file_exists(output_file), f'File does not exist {output_file}'
@@ -490,13 +490,13 @@ class Kronecker(BaseGraphModel):
 
         kron_iters = int(math.log2(orig_n))  # floor of log2 gives a bound on kronecker iteration count
         if math.fabs(2 ** kron_iters - orig_n) > math.fabs(2 ** (kron_iters + 1) - orig_n):
-            kron_iters = kron_iters + 1
+            kron_iters += 1
 
         matrix = self.params['initiator_matrix']
-        CP.print_blue(f'Running kronGen with n={kron_iters}, matrix={matrix}')
+        # CP.print_blue(f'Running kronGen with n={kron_iters}, matrix={matrix}')
 
         bash_code = f'cd src/kronecker; ./{self.krongen_exec} -o:{self.gname}_kron.txt -m:"{matrix}" -i:{kron_iters}'
-        completed_process = sub.run(bash_code, shell=True)  # , stdout=sub.PIPE)
+        completed_process = sub.run(bash_code, shell=True, stdout=sub.PIPE)
         assert completed_process.returncode == 0, 'Error in KronGen'
 
         output_file = f'src/kronecker/{self.gname}_kron.txt'
