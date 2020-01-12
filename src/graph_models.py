@@ -3,7 +3,7 @@ Container for different graph models
 """
 import abc
 import platform
-import subprocess
+import subprocess as sub
 import math
 from time import time
 from typing import List, Dict, Any, Union
@@ -14,9 +14,11 @@ from joblib import Parallel, delayed
 
 from src.utils import ColorPrint as CP
 from src.utils import check_file_exists, load_pickle, delete_files
+
 # from src.Graph import CustomGraph
 
 __all__ = ['BaseGraphModel', 'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker']
+
 
 class BaseGraphModel:
     __slots__ = ['input_graph', 'gname', 'model_name', 'params']
@@ -68,8 +70,8 @@ class BaseGraphModel:
         :param gen_id: generation id
         :return:
         """
-        generated_graphs =  Parallel()(
-            delayed(self._gen)(gen_id=gen_id, gname=f'{self.gname}_{gen_id}_{i+1}')
+        generated_graphs = Parallel()(
+            delayed(self._gen)(gen_id=gen_id, gname=f'{self.gname}_{gen_id}_{i + 1}')
             for i in range(num_graphs)
         )
 
@@ -132,6 +134,7 @@ class UniformRandom(BaseGraphModel):
     """
     model, a graph is chosen uniformly at random from the set of all graphs with n nodes and m edges.
     """
+
     def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
         super().__init__(model_name='Uniform-Random', input_graph=input_graph)
         if 'seed' in kwargs:
@@ -188,6 +191,7 @@ class TransitiveChungLu(BaseGraphModel):
     Chung-Lu with transitive closures - Pfeiffer, La Fond, Moreno, Neville - implementation not found
     https://ieeexplore.ieee.org/document/6406280/
     """
+
     def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
         super().__init__(model_name='Transitive-Chung-Lu', input_graph=input_graph)
         return
@@ -204,6 +208,7 @@ class BTER(BaseGraphModel):
     BTER model by Tammy Kolda
     feastpack implementation at https://www.sandia.gov/~tgkolda/feastpack/feastpack_v1.2.zip
     """
+
     def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
         super().__init__(model_name='BTER', input_graph=input_graph)
         return
@@ -217,7 +222,7 @@ class BTER(BaseGraphModel):
         # fix BTER to use the directory..
         CP.print_blue('Starting BTER... Checking for MATLAB.')
 
-        completed_process = subprocess.run('matlab -h', shell=True, stdout=subprocess.DEVNULL)
+        completed_process = sub.run('matlab -h', shell=True, stdout=sub.DEVNULL)
         assert completed_process.returncode != 0, 'MATLAB not found'
 
         graph_filename = f'./src/bter/{g.name}.mat'
@@ -256,14 +261,14 @@ class BTER(BaseGraphModel):
             '',
             'G_bter = full(G_bter);',
             r"dlmwrite('{}_bter.mat', G_bter, ' ');".format(g.name)
-            ]
+        ]
 
         matlab_code_path = f'./src/bter/{g.name}_code.m'
         print('\n'.join(matlab_code), file=open(matlab_code_path, 'w'))
 
         if not check_file_exists(f'./bter/{g.name}_bter.mat'):
             start_time = time()
-            completed_process =  subprocess.run(f'cd src/bter; cat {g.name}_code.m | matlab -nosplash -nodesktop', shell=True)
+            completed_process = sub.run(f'cd src/bter; cat {g.name}_code.m | matlab -nosplash -nodesktop', shell=True)
             print('BTER ran in {} secs'.format(round(time() - start_time, 3)))
 
             if completed_process.returncode != 0:
@@ -284,6 +289,7 @@ class CNRG(BaseGraphModel):
     """
     Satyaki's Clustering-Based Node Replacement Grammars https://github.com/satyakisikdar/cnrg
     """
+
     def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
         super().__init__(model_name='CNRG', input_graph=input_graph)
         self.prep_environment()
@@ -300,26 +306,33 @@ class CNRG(BaseGraphModel):
         Prepare the Python environment
         :return:
         """
-        CP.print_blue('Prepping environment for CNRG')
+        if check_file_exists('./envs/cnrg'):
+            CP.print_blue('Venv "cnrg" already exists')
+            return
+
+        CP.print_blue('Making virtual environment for CNRG')
+        sub.run('python3 -m venv ./envs/cnrg; . ./envs/cnrg/bin/activate; which python3;', shell=True,
+                stdout=sub.DEVNULL)  # create and activate environment
 
         if 'Linux' not in platform.platform():
-            subprocess.run('python3 -m venv ./envs/cnrg; source ./envs/cnrg/bin/activate; which python3;',
-                           shell=True)  # create and activate environment
-            completed_process = subprocess.run('export CC=gcc-9; export CXX=g++-9;source ./envs/cnrg/bin/activate; python3 -m pip install -r ./envs/requirements_cnrg.txt', shell=True)  # install requirements for cnrg
+            completed_process = sub.run(
+                'export CC=gcc-9; export CXX=g++-9;. ./envs/cnrg/bin/activate; python3 -m pip install -r ./envs/requirements_cnrg.txt',
+                shell=True, stdout=sub.DEVNULL)  # install requirements for cnrg
         else:
-            subprocess.run('python3 -m venv ./envs/cnrg; . ./envs/cnrg/bin/activate; which python3;',
-                           shell=True)  # create and activate environment
-            completed_process = subprocess.run('. ./envs/cnrg/bin/activate; python3 -m pip install -r ./envs/requirements_cnrg.txt', shell=True)  # install requirements for cnrg
+            completed_process = sub.run(
+                '. ./envs/cnrg/bin/activate; python3 -m pip install -r ./envs/requirements_cnrg.txt',
+                shell=True)  # install requirements for cnrg
 
         assert completed_process.returncode == 0, 'Error while creating environment for CNRG'
         return
 
-    def generate(self, num_graphs: int, gen_id:int) -> List[nx.Graph]:
+    def generate(self, num_graphs: int, gen_id: int) -> List[nx.Graph]:
         edgelist_path = f'./src/cnrg/src/tmp/{self.gname}.g'
         nx.write_edgelist(self.input_graph, edgelist_path, data=False)
 
-        completed_process = subprocess.run(f'. ./envs/cnrg/bin/activate; cd src/cnrg; python3 runner.py -g {self.gname} -n {num_graphs}',
-                                           shell=True, stderr=subprocess.DEVNULL)
+        completed_process = sub.run(
+            f'. ./envs/cnrg/bin/activate; cd src/cnrg; python3 runner.py -g {self.gname} -n {num_graphs}',
+            shell=True, stderr=sub.DEVNULL)
         assert completed_process.returncode == 0, 'Error in CNRG'
         output_pickle_path = f'./src/cnrg/output/{self.gname}_cnrg.pkl'
         assert check_file_exists(output_pickle_path)
@@ -329,13 +342,13 @@ class CNRG(BaseGraphModel):
         for i, gen_graph in enumerate(load_pickle(output_pickle_path)):
             gen_graph.name = self.input_graph.name
             gen_graph.gen_id = gen_id
-            gen_graph.name += f'_{i+1}'  # append the number of graph generated
+            gen_graph.name += f'_{i + 1}'  # append the number of graph generated
             generated_graphs.append(gen_graph)
 
         assert isinstance(generated_graphs, list) and len(generated_graphs) == num_graphs, \
             'Failed to generate graphs'
 
-        delete_files(output_pickle_path, edgelist_path) # remove the pickle and edgelist
+        delete_files(output_pickle_path, edgelist_path)  # remove the pickle and edgelist
         return generated_graphs
 
 
@@ -343,8 +356,10 @@ class HRG(BaseGraphModel):
     """
     Sal's Hyperedge Replacement Graph Grammars https://github.com/abitofalchemy/hrg-nm
     """
+
     def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
         super().__init__(model_name='HRG', input_graph=input_graph)
+        self.prep_environment()
         return
 
     def _fit(self) -> None:
@@ -367,12 +382,39 @@ class HRG(BaseGraphModel):
                 custom_g.add_edge(u, v)
         return custom_g
 
+    def prep_environment(self) -> None:
+        """
+        Prepare the Python environment
+        :return:
+        """
+        if check_file_exists('./envs/hrg'):
+            CP.print_blue('Venv "hrg" already exists')
+            return
+
+        CP.print_blue('Making virtual environment for HRG')
+        sub.run('python2 -m pip install virtualenv; python2 -m virtualenv -p python2 ./envs/hrg; . '
+                './envs/hrg/bin/activate; which python2;', shell=True, stdout=sub.DEVNULL)  # create and activate environment
+
+        if 'Linux' not in platform.platform():
+            completed_process = sub.run(
+                'export CC=gcc-9; export CXX=g++-9;. ./envs/hrg/bin/activate; python2 -m pip install -r '
+                './envs/requirements_hrg.txt',
+                shell=True)#, stdout=sub.DEVNULL)  # install requirements for cnrg
+        else:
+            completed_process = sub.run(
+                '. ./envs/hrg/bin/activate; python2 -m pip install -r ./envs/requirements_hrg.txt',
+                shell=True)  # install requirements for cnrg
+
+        assert completed_process.returncode == 0, 'Error while creating environment for CNRG'
+        return
+
     def generate(self, num_graphs: int, gen_id: int) -> List[nx.Graph]:
         edgelist_path = f'./src/hrg/{self.gname}.g'
         nx.write_edgelist(self.input_graph, edgelist_path, data=False)
 
-        completed_process = subprocess.run(f'cd src/hrg; python2 -m pip install --user networkx==1.11; python2 exact_phrg.py --orig {self.gname}.g --trials {num_graphs}',
-                                           shell=True)
+        completed_process = sub.run(
+            f'. ./envs/hrg/bin/activate; cd src/hrg; python2 exact_phrg.py --orig {self.gname}.g --trials {num_graphs}',
+            shell=True)#, stderr=sub.DEVNULL)
 
         assert completed_process.returncode == 0, 'Error in HRG'
 
@@ -380,7 +422,6 @@ class HRG(BaseGraphModel):
 
         generated_graphs = []
         for i, gen_graph in enumerate(load_pickle(output_pickle_path)):
-
             gen_graph = self._make_graph(gen_graph)
             gen_graph.name = f'{self.input_graph.name}_{i + 1}'  # adding the number of graph
             gen_graph.gen_id = gen_id
@@ -399,6 +440,7 @@ class Kronecker(BaseGraphModel):
     """
     Kronecker Graph Model from SNAP
     """
+
     def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
         super().__init__(model_name='Kronecker', input_graph=input_graph)
         return
@@ -418,7 +460,7 @@ class Kronecker(BaseGraphModel):
             nx.write_edgelist(directed_g, f'src/snap/examples/graphs/{self.gname}.txt', data=False)
 
             bash_code = f'cd src/snap/examples/kronem; make; ./kronem -i:../graphs/{self.gname}.txt -o:../graphs/{self.gname}-fit'
-            completed_process = subprocess.run(bash_code, shell=True)#, stdout=subprocess.PIPE)
+            completed_process = sub.run(bash_code, shell=True)  # , stdout=sub.PIPE)
             assert completed_process.returncode == 0, 'Error in KronEM'
 
         assert check_file_exists(output_file), f'File does not exist {output_file}'
@@ -426,7 +468,7 @@ class Kronecker(BaseGraphModel):
         with open(output_file) as f:
             last_line = f.readlines()[-1]
             last_line = last_line.replace(']', '')
-            matrix = last_line[last_line.find('[') + 1: ]
+            matrix = last_line[last_line.find('[') + 1:]
             CP.print_blue('Initiator matrix:', matrix)
             self.params['initiator_matrix'] = matrix
 
@@ -441,14 +483,14 @@ class Kronecker(BaseGraphModel):
         orig_n = self.input_graph.order()
 
         kron_iters = int(math.log2(orig_n))  # floor of log2 gives a bound on kronecker iteration count
-        if math.fabs(2**kron_iters - orig_n) > math.fabs(2**(kron_iters+1) - orig_n):
+        if math.fabs(2 ** kron_iters - orig_n) > math.fabs(2 ** (kron_iters + 1) - orig_n):
             kron_iters = kron_iters + 1
 
         matrix = self.params['initiator_matrix']
         CP.print_blue(f'Running kronGen with n={kron_iters}, matrix={matrix}')
 
         bash_code = f'cd src/snap/examples/krongen; make; ./krongen -o:../graphs/{self.gname}_kron.txt -m:"{matrix}" -i:{kron_iters}'
-        completed_process = subprocess.run(bash_code, shell=True)  # , stdout=subprocess.PIPE)
+        completed_process = sub.run(bash_code, shell=True)  # , stdout=sub.PIPE)
         assert completed_process.returncode == 0, 'Error in KronGen'
 
         output_file = f'src/snap/examples/graphs/{self.gname}_kron.txt'
@@ -497,4 +539,3 @@ class GraphNeuralNet(BaseGraphModel):
     """
     Graph Neural Network Based Models
     """
-
