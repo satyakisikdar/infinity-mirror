@@ -49,11 +49,11 @@ def external_orca(g: nx.Graph, gname: str):
     args = ['', '4', f'./{file_dir}/{gname}.in', f'./{file_dir}/{gname}.out']
 
     if 'Windows' in platform.platform():
-        args[0] = './src/orca.exe'
+        args[0] = './src/orca/orca.exe'
     elif 'Linux' in platform.platform():
-        args[0] = './src/orca_linux'
+        args[0] = './src/orca/orca_linux'
     else:
-        args[0] = './src/orca_mac'
+        args[0] = './src/orca/orca_mac'
 
     process = subprocess.run(' '.join(args), shell=True, stdout=subprocess.DEVNULL)
     if process.returncode != 0:
