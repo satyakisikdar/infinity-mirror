@@ -11,6 +11,7 @@ from typing import List, Dict, Any, Union
 import networkx as nx
 import numpy as np
 from joblib import Parallel, delayed
+from tqdm import tqdm
 
 from src.utils import ColorPrint as CP
 from src.utils import check_file_exists, load_pickle, delete_files
@@ -458,7 +459,7 @@ class Kronecker(BaseGraphModel):
         call KronEM
         """
         output_file = f'./src/kronecker/{self.gname}-fit'
-        CP.print_green(f'Running KronEM for {self.gname}')
+        tqdm.write(f'Running KronEM for {self.gname}')
 
         # write edgelist to the path, but graph needs to start from 1
         g = nx.convert_node_labels_to_integers(self.input_graph, first_label=1, label_attribute='old_label')
@@ -475,7 +476,7 @@ class Kronecker(BaseGraphModel):
             last_line = f.readlines()[-1]
             last_line = last_line.replace(']', '')
             matrix = last_line[last_line.find('[') + 1:]
-            CP.print_blue('Initiator matrix:', matrix)
+            # CP.print_blue('Initiator matrix:', matrix)
             self.params['initiator_matrix'] = matrix
 
         return
