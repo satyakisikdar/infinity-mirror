@@ -331,7 +331,7 @@ class CNRG(BaseGraphModel):
         nx.write_edgelist(self.input_graph, edgelist_path, data=False)
 
         completed_process = sub.run(
-            f'. ./envs/cnrg/bin/activate; cd src/cnrg; python3 runner.py -g {self.gname} -n {num_graphs}',
+            f'. ./envs/cnrg/bin/activate; cd src/cnrg; python3 runner.py -g {self.gname} -n {num_graphs}; deactivate;',
             shell=True, stdout=sub.DEVNULL, stderr=sub.DEVNULL)
         assert completed_process.returncode == 0, 'Error in CNRG'
         output_pickle_path = f'./src/cnrg/output/{self.gname}_cnrg.pkl'
@@ -412,7 +412,7 @@ class HRG(BaseGraphModel):
         nx.write_edgelist(self.input_graph, edgelist_path, data=False)
 
         completed_process = sub.run(
-            f'. ./envs/hrg/bin/activate; cd src/hrg; python2 exact_phrg.py --orig {self.gname}.g --trials {num_graphs}',
+            f'. ./envs/hrg/bin/activate; cd src/hrg; python2 exact_phrg.py --orig {self.gname}.g --trials {num_graphs}; deactivate;',
             shell=True, stdout=sub.DEVNULL)
 
         assert completed_process.returncode == 0, 'Error in HRG'
