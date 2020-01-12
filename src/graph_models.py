@@ -321,7 +321,7 @@ class CNRG(BaseGraphModel):
         else:
             completed_process = sub.run(
                 '. ./envs/cnrg/bin/activate; python3 -m pip install -r ./envs/requirements_cnrg.txt',
-                shell=True)  # install requirements for cnrg
+                shell=True, stdout=sub.DEVNULL)  # install requirements for cnrg
 
         assert completed_process.returncode == 0, 'Error while creating environment for CNRG'
         return
@@ -332,7 +332,7 @@ class CNRG(BaseGraphModel):
 
         completed_process = sub.run(
             f'. ./envs/cnrg/bin/activate; cd src/cnrg; python3 runner.py -g {self.gname} -n {num_graphs}',
-            shell=True, stderr=sub.DEVNULL)
+            shell=True, stdout=sub.DEVNULL, stderr=sub.DEVNULL)
         assert completed_process.returncode == 0, 'Error in CNRG'
         output_pickle_path = f'./src/cnrg/output/{self.gname}_cnrg.pkl'
         assert check_file_exists(output_pickle_path)
@@ -399,11 +399,11 @@ class HRG(BaseGraphModel):
             completed_process = sub.run(
                 'export CC=gcc-9; export CXX=g++-9;. ./envs/hrg/bin/activate; python2 -m pip install -r '
                 './envs/requirements_hrg.txt',
-                shell=True)#, stdout=sub.DEVNULL)  # install requirements for cnrg
+                shell=True, stdout=sub.DEVNULL)  # install requirements for cnrg
         else:
             completed_process = sub.run(
                 '. ./envs/hrg/bin/activate; python2 -m pip install -r ./envs/requirements_hrg.txt',
-                shell=True)  # install requirements for cnrg
+                shell=True, stdout=sub.DEVNULL)  # install requirements for cnrg
 
         assert completed_process.returncode == 0, 'Error while creating environment for CNRG'
         return
@@ -414,7 +414,7 @@ class HRG(BaseGraphModel):
 
         completed_process = sub.run(
             f'. ./envs/hrg/bin/activate; cd src/hrg; python2 exact_phrg.py --orig {self.gname}.g --trials {num_graphs}',
-            shell=True)#, stderr=sub.DEVNULL)
+            shell=True, stdout=sub.DEVNULL)
 
         assert completed_process.returncode == 0, 'Error in HRG'
 
