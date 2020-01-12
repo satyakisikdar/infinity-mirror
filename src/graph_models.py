@@ -2,6 +2,7 @@
 Container for different graph models
 """
 import abc
+import platform
 import subprocess
 import math
 from time import time
@@ -300,15 +301,21 @@ class CNRG(BaseGraphModel):
         :return:
         """
         CP.print_blue('Prepping environment for CNRG')
-        subprocess.run('python3 -m venv ./envs/cnrg; source ./envs/cnrg/bin/activate;', shell=True)  # create and activate environment
-        subprocess.run('python -m pip install -r envs/requirements_cnrg.txt')  # install requirements for cnrg
+        subprocess.run('python3 -m venv ./envs/cnrg; source ./envs/cnrg/bin/activate; which python3;', shell=True)  # create and activate environment
+
+        if 'Linux' not in platform.platform():
+            completed_process = subprocess.run('export CC=gcc-9; export CXX=g++-9; source ./envs/cnrg/bin/activate; python3 -m pip install -r ./envs/requirements_cnrg.txt', shell=True)  # install requirements for cnrg
+        else:
+            completed_process = subprocess.run('source ./envs/cnrg/bin/activate; python3 -m pip install -r ./envs/requirements_cnrg.txt', shell=True)  # install requirements for cnrg
+
+        assert completed_process.returncode == 0, 'Error while creating environment for CNRG'
         return
 
     def generate(self, num_graphs: int, gen_id:int) -> List[nx.Graph]:
         edgelist_path = f'./src/cnrg/src/tmp/{self.gname}.g'
         nx.write_edgelist(self.input_graph, edgelist_path, data=False)
 
-        completed_process = subprocess.run(f'source ./envs/cnrg/bin/activate; cd src/cnrg; python3 -m pip install requirements.txt; python3 runner.py -g {self.gname} -n {num_graphs}',
+        completed_process = subprocess.run(f'source ./envs/cnrg/bin/activate; cd src/cnrg; python3 runner.py -g {self.gname} -n {num_graphs}',
                                            shell=True)#, stderr=subprocess.DEVNULL)
         assert completed_process.returncode == 0, 'Error in CNRG'
         output_pickle_path = f'./src/cnrg/output/{self.gname}_cnrg.pkl'
