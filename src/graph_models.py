@@ -31,7 +31,7 @@ class BaseGraphModel:
         self.model_name: str = model_name  # name of the model
         self.params: Dict[Any] = {}  # dictionary of model parameters
 
-        self._fit()  # fit the parameters initially
+        # self._fit()  # fit the parameters initially
 
         return
 
@@ -445,24 +445,29 @@ class Kronecker(BaseGraphModel):
 
     def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
         super().__init__(model_name='Kronecker', input_graph=input_graph)
+        if 'Linux' in platform.platform():
+            self.kronem_exec = './kronem_linux'
+            self.krongen_exec = './krongen_linux'
+        else:
+            self.kronem_exec = './kronem_mac'
+            self.krongen_exec = './krongen_mac'
         return
 
     def _fit(self) -> None:
         """
         call KronEM
         """
-        output_file = f'./src/snap/examples/graphs/{self.gname}-fit'
-        if not check_file_exists(output_file):  # run kronem only if file does not exist
-            CP.print_green(f'Running KronEM for {self.gname}')
+        output_file = f'./src/kronecker/{self.gname}-fit'
+        CP.print_green(f'Running KronEM for {self.gname}')
 
-            # write edgelist to the path, but graph needs to start from 1
-            g = nx.convert_node_labels_to_integers(self.input_graph, first_label=1, label_attribute='old_label')
-            directed_g = g.to_directed()  # kronecker expects a directed graph
-            nx.write_edgelist(directed_g, f'src/snap/examples/graphs/{self.gname}.txt', data=False)
+        # write edgelist to the path, but graph needs to start from 1
+        g = nx.convert_node_labels_to_integers(self.input_graph, first_label=1, label_attribute='old_label')
+        directed_g = g.to_directed()  # kronecker expects a directed graph
+        nx.write_edgelist(directed_g, f'src/kronecker/{self.gname}.txt', data=False)
 
-            bash_code = f'cd src/snap/examples/kronem; make; ./kronem -i:../graphs/{self.gname}.txt -o:../graphs/{self.gname}-fit'
-            completed_process = sub.run(bash_code, shell=True)  # , stdout=sub.PIPE)
-            assert completed_process.returncode == 0, 'Error in KronEM'
+        bash_code = f'cd src/kronecker; {self.kronem_exec} -i:{self.gname}.txt -o:{self.gname}-fit'
+        completed_process = sub.run(bash_code, shell=True)  # , stdout=sub.PIPE)
+        assert completed_process.returncode == 0, 'Error in KronEM'
 
         assert check_file_exists(output_file), f'File does not exist {output_file}'
 
@@ -490,11 +495,11 @@ class Kronecker(BaseGraphModel):
         matrix = self.params['initiator_matrix']
         CP.print_blue(f'Running kronGen with n={kron_iters}, matrix={matrix}')
 
-        bash_code = f'cd src/snap/examples/krongen; make; ./krongen -o:../graphs/{self.gname}_kron.txt -m:"{matrix}" -i:{kron_iters}'
+        bash_code = f'cd src/kronecker; ./{self.krongen_exec} -o:{self.gname}_kron.txt -m:"{matrix}" -i:{kron_iters}'
         completed_process = sub.run(bash_code, shell=True)  # , stdout=sub.PIPE)
         assert completed_process.returncode == 0, 'Error in KronGen'
 
-        output_file = f'src/snap/examples/graphs/{self.gname}_kron.txt'
+        output_file = f'src/kronecker/{self.gname}_kron.txt'
         assert check_file_exists(output_file), f'Output file does not exist {output_file}'
 
         graph = nx.read_edgelist(output_file, nodetype=int, create_using=nx.Graph())
