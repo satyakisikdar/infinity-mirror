@@ -226,8 +226,7 @@ class BTER(BaseGraphModel):
         assert completed_process.returncode != 0, 'MATLAB not found'
 
         graph_filename = f'./src/bter/{g.name}.mat'
-        if not check_file_exists(graph_filename):
-            np.savetxt(graph_filename, nx.to_numpy_matrix(g), fmt='%d')
+        np.savetxt(graph_filename, nx.to_numpy_matrix(g), fmt='%d')
 
         matlab_code = [
             "mex -largeArrayDims tricnt_mex.c",
@@ -275,12 +274,16 @@ class BTER(BaseGraphModel):
                 print('error in matlab')
                 return None
 
-        assert check_file_exists(f'./src/bter/{g.name}_bter.mat'), 'MATLAB did not write a graph'
-        bter_mat = np.loadtxt(f'./src/bter/{g.name}_bter.mat', dtype=int)
+        output_path = f'./src/bter/{g.name}_bter.mat'
+        assert check_file_exists(output_path), 'MATLAB did not write a graph'
+
+        bter_mat = np.loadtxt(output_path, dtype=int)
 
         g_bter = nx.from_numpy_matrix(bter_mat, create_using=nx.Graph())
         g_bter.name = gname
-        gen_id = gen_id
+        g_bter.gen_id = gen_id
+
+        delete_files(matlab_code_path, graph_filename, output_path)
 
         return g_bter
 
@@ -448,7 +451,6 @@ class Kronecker(BaseGraphModel):
         """
         call KronEM
         """
-        # raise NotImplementedError('Check if KronEM can write in the right place')
         output_file = f'./src/snap/examples/graphs/{self.gname}-fit'
         if not check_file_exists(output_file):  # run kronem only if file does not exist
             CP.print_green(f'Running KronEM for {self.gname}')
@@ -502,18 +504,6 @@ class Kronecker(BaseGraphModel):
         delete_files(output_file)
 
         return graph
-
-
-class ForestFire(BaseGraphModel):
-    """
-    Forest fire model from SNAP
-    """
-
-
-class AGM(BaseGraphModel):
-    """
-    Affiliation Graph Model from SNAP
-    """
 
 
 class StochasticBlockModel(BaseGraphModel):
