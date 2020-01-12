@@ -12,7 +12,7 @@ import numpy as np
 from joblib import Parallel, delayed
 
 from src.utils import ColorPrint as CP
-from src.utils import check_file_exists, load_pickle
+from src.utils import check_file_exists, load_pickle, delete_files
 # from src.Graph import CustomGraph
 
 __all__ = ['BaseGraphModel', 'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker']
@@ -219,7 +219,9 @@ class BTER(BaseGraphModel):
         completed_process = subprocess.run('matlab -h', shell=True, stdout=subprocess.DEVNULL)
         assert completed_process.returncode != 0, 'MATLAB not found'
 
-        np.savetxt('./src/bter/{}.mat'.format(g.name), nx.to_numpy_matrix(g), fmt='%d')
+        graph_filename = f'./src/bter/{g.name}.mat'
+        if not check_file_exists(graph_filename):
+            np.savetxt(graph_filename, nx.to_numpy_matrix(g), fmt='%d')
 
         matlab_code = [
             "mex -largeArrayDims tricnt_mex.c",
@@ -255,11 +257,12 @@ class BTER(BaseGraphModel):
             r"dlmwrite('{}_bter.mat', G_bter, ' ');".format(g.name)
             ]
 
-        print('\n'.join(matlab_code), file=open('./src/bter/{}_code.m'.format(g.name), 'w'))
+        matlab_code_path = f'./src/bter/{g.name}_code.m'
+        print('\n'.join(matlab_code), file=open(matlab_code_path, 'w'))
 
         if not check_file_exists(f'./bter/{g.name}_bter.mat'):
             start_time = time()
-            completed_process =  subprocess.run('cd src/bter; cat {}_code.m | matlab -nosplash -nodesktop'.format(g.name), shell=True)
+            completed_process =  subprocess.run(f'cd src/bter; cat {g.name}_code.m | matlab -nosplash -nodesktop', shell=True)
             print('BTER ran in {} secs'.format(round(time() - start_time, 3)))
 
             if completed_process.returncode != 0:
@@ -282,6 +285,7 @@ class CNRG(BaseGraphModel):
     """
     def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
         super().__init__(model_name='CNRG', input_graph=input_graph)
+        self.prep_environment()
         return
 
     def _fit(self) -> None:
@@ -290,11 +294,22 @@ class CNRG(BaseGraphModel):
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
         pass  # HRGs can generate multiple graphs at once
 
-    def generate(self, num_graphs: int, gen_id:int) -> List[nx.Graph]:
-        nx.write_edgelist(self.input_graph, f'./src/cnrg/src/tmp/{self.gname}.g', data=False)
+    def prep_environment(self) -> None:
+        """
+        Prepare the Python environment
+        :return:
+        """
+        CP.print_blue('Prepping environment for CNRG')
+        subprocess.run('python3 -m venv ./envs/cnrg; source ./envs/cnrg/bin/activate;', shell=True)  # create and activate environment
+        subprocess.run('python -m pip install -r envs/requirements_cnrg.txt')  # install requirements for cnrg
+        return
 
-        completed_process = subprocess.run(f'cd src/cnrg; python3 runner.py -g {self.gname} -n {num_graphs}',
-                                           shell=True, stderr=subprocess.DEVNULL)
+    def generate(self, num_graphs: int, gen_id:int) -> List[nx.Graph]:
+        edgelist_path = f'./src/cnrg/src/tmp/{self.gname}.g'
+        nx.write_edgelist(self.input_graph, edgelist_path, data=False)
+
+        completed_process = subprocess.run(f'source ./envs/cnrg/bin/activate; cd src/cnrg; python3 -m pip install requirements.txt; python3 runner.py -g {self.gname} -n {num_graphs}',
+                                           shell=True)#, stderr=subprocess.DEVNULL)
         assert completed_process.returncode == 0, 'Error in CNRG'
         output_pickle_path = f'./src/cnrg/output/{self.gname}_cnrg.pkl'
         assert check_file_exists(output_pickle_path)
@@ -309,6 +324,8 @@ class CNRG(BaseGraphModel):
 
         assert isinstance(generated_graphs, list) and len(generated_graphs) == num_graphs, \
             'Failed to generate graphs'
+
+        delete_files(output_pickle_path, edgelist_path) # remove the pickle and edgelist
         return generated_graphs
 
 
@@ -341,9 +358,10 @@ class HRG(BaseGraphModel):
         return custom_g
 
     def generate(self, num_graphs: int, gen_id: int) -> List[nx.Graph]:
-        nx.write_edgelist(self.input_graph, f'./src/hrg/{self.gname}.g', data=False)
+        edgelist_path = f'./src/hrg/{self.gname}.g'
+        nx.write_edgelist(self.input_graph, edgelist_path, data=False)
 
-        completed_process = subprocess.run(f'cd src/hrg; python2 -m pip install networkx==1.11; python2 exact_phrg.py --orig {self.gname}.g --trials {num_graphs}',
+        completed_process = subprocess.run(f'cd src/hrg; python2 -m pip install --user networkx==1.11; python2 exact_phrg.py --orig {self.gname}.g --trials {num_graphs}',
                                            shell=True)
 
         assert completed_process.returncode == 0, 'Error in HRG'
@@ -361,6 +379,8 @@ class HRG(BaseGraphModel):
 
         assert isinstance(generated_graphs, list) and len(generated_graphs) == num_graphs, \
             'Failed to generate graphs'
+
+        delete_files(edgelist_path, output_pickle_path)
 
         return generated_graphs
 
@@ -427,6 +447,8 @@ class Kronecker(BaseGraphModel):
         graph = nx.read_edgelist(output_file, nodetype=int, create_using=nx.Graph())
         graph.name = gname
         graph.gen_id = gen_id
+
+        delete_files(output_file)
 
         return graph
 
