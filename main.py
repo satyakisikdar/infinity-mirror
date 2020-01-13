@@ -3,9 +3,11 @@ import ast
 import glob
 import importlib
 import os
+import time
 from typing import Any
 
 import networkx as nx
+from joblib import Parallel, delayed
 
 from src.graph_io import GraphReader, SyntheticGraph
 from src.graph_models import *
@@ -117,6 +119,20 @@ def test_graph_stats(g: nx.Graph):
     print(g_stats)
 
 
+def run_infinity_mirror(selection, initial_graph, num_generations, model_obj, num_graphs, run_id):
+    """
+    Creates and runs infinity mirror
+    :return:
+    """
+    inf = InfinityMirror(selection=selection, initial_graph=initial_graph, num_generations=num_generations, model_obj=model_obj,
+                         num_graphs=num_graphs, run_id=run_id)
+    tic = time.perf_counter()
+    inf.run(use_pickle=False)
+    toc = time.perf_counter()
+
+    inf.write_timing_stats(round(toc - tic, 3))
+    print(run_id, inf)
+
 @timer
 def main():
     args = parse_args()
@@ -127,12 +143,13 @@ def main():
     model_obj = model(input_graph=empty_g)  # this is a roundabout way to ensure the name of GraphModel object is correct
 
     make_dirs(g.name, model=model_obj.model_name)
-
     print('GCD is disabled')
-    inf = InfinityMirror(selection=selection, initial_graph=g, num_generations=num_gens, model_obj=model,
-                         num_graphs=num_graphs)
-    inf.run(use_pickle=use_pickle)
-    print(inf)
+
+    Parallel()(
+        delayed(run_infinity_mirror)(selection=selection, initial_graph=g, num_generations=num_gens, model_obj=model,
+                         num_graphs=num_graphs, run_id=i+1)
+        for i in range(10)
+    )
 
     return
 

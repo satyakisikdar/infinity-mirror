@@ -34,10 +34,10 @@ class InfinityMirror:
         store the three graphs into a tree
     """
     __slots__ = ('initial_graph', 'num_generations', 'num_graphs', 'model', 'initial_graph_stats', 'root',
-                 '_metrics', 'root_pickle_path', 'selection')
+                 '_metrics', 'root_pickle_path', 'selection', 'run_id')
 
     def __init__(self, selection: str, initial_graph: nx.Graph, model_obj: Any, num_generations: int,
-                 num_graphs: int) -> None:
+                 num_graphs: int, run_id: int) -> None:
         self.selection = selection  # kind of selection stategy
         self.initial_graph: nx.Graph = initial_graph  # the initial starting point H_0
         self.num_graphs: int = num_graphs  # number of graphs per generation
@@ -48,7 +48,8 @@ class InfinityMirror:
         self.root: TreeNode = TreeNode('root', graph=self.initial_graph,
                                        stats={})  # root of the tree with the initial graph and empty stats dictionary
         self._metrics: List[str] = ['gcd', 'deltacon0', 'lambda_dist', 'pagerank_cvm', 'degree_cvm']  # list of metrics
-        self.root_pickle_path: str = f'./output/pickles/{self.initial_graph.name}/{self.model.model_name}/{self.selection}_{self.num_generations}.pkl.gz'
+        self.run_id = run_id
+        self.root_pickle_path: str = f'./output/pickles/{self.initial_graph.name}/{self.model.model_name}/{self.selection}_{self.num_generations}_{self.run_id}.pkl.gz'
         return
 
     def __str__(self) -> str:
@@ -149,7 +150,8 @@ class InfinityMirror:
         stats_file = './output/timing_stats.csv'
 
         with open(stats_file, 'a') as fp:
-           fp.write(f'{self.initial_graph.name},{self.model.model_name},{self.selection},{self.num_generations},{time_taken}s\n')
+           fp.write(f'run_id:{self.run_id},gname:{self.initial_graph.name},model:{self.model.model_name},'
+                    f'sel:{self.selection},gens:{self.num_generations},time:{time_taken}s\n')
 
         return
 
