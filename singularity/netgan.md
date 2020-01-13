@@ -8,10 +8,10 @@
 ### conda
 - `python 3.6`
     - version `4.4.10` of `Miniconda`
-- `tensorflow-gpu version 1.4.1`
+- `tensorflow-gpu 1.4.1`
     - works with `Miniconda 4.4.10`; most current version of Anaconda/Miniconda doesn't work
     - must install `tensorflow-gpu=1.4.1` and NOT `tensorflow=1.4.1`
-- `numpy version 1.16.1`
+- `numpy 1.16.1`
     - must use older version because `allow_pickle=False` throws an exception with `np.load(...)`
     - alternatively, use `np.load(..., allow_pickle=True)` instead of `np.load(...)`
 - `scipy`
@@ -24,13 +24,13 @@
 - `powerlaw`
 - `notebook`
 
-## required code modifications
+##  required code modifications
 - in file `netgan.py` in directory `netgan`:
     - line 621: 
         - `- y_hard = tf.cast(tf.equal(y, tf.reduce_max(y, 1, keepdims=True)), y.dtype)`
         + `+ y_hard = tf.cast(tf.equal(y, tf.reduce_max(y, 1, keep_dims=True)), y.dtype)`
 
-## constructing the model
+##  constructing the model
 - demo parameters for the `NetGAN(...)` model
     - `gpu_id=0`
     - `use_gumbel=True`
@@ -53,7 +53,7 @@
 
 ### with GPU
 - approximately 3 hours to run 6000 iterations and finish training with early stopping
-                                                                                          
+
 ### without GPU
 - approximately 4.5 hours to run 2000 iterations of training without GPU
 - for some reason, doesn't seem to be able to finish
