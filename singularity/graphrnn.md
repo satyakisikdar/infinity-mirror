@@ -34,7 +34,5 @@
         - `- loss.data[0]`
         + `+ loss.item()`
 
-##  constructing the model
-
 ##  training the model
 - run `python main.py`
