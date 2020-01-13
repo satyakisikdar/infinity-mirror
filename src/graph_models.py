@@ -2,11 +2,11 @@
 Container for different graph models
 """
 import abc
+import math
 import platform
 import subprocess as sub
-import math
 from time import time
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Any
 
 import networkx as nx
 import numpy as np
@@ -15,8 +15,6 @@ from tqdm import tqdm
 
 from src.utils import ColorPrint as CP
 from src.utils import check_file_exists, load_pickle, delete_files
-
-# from src.Graph import CustomGraph
 
 __all__ = ['BaseGraphModel', 'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker']
 
@@ -31,8 +29,6 @@ class BaseGraphModel:
         self.gname = self.input_graph.name  # name of the graph
         self.model_name: str = model_name  # name of the model
         self.params: Dict[Any] = {}  # dictionary of model parameters
-
-        # self._fit()  # fit the parameters initially
 
         return
 
@@ -397,7 +393,8 @@ class HRG(BaseGraphModel):
 
         CP.print_blue('Making virtual environment for HRG')
         sub.run('python2 -m pip install --user virtualenv; python2 -m virtualenv -p python2 ./envs/hrg; . '
-                './envs/hrg/bin/activate; which python2;', shell=True , stdout=sub.DEVNULL)  # create and activate environment
+                './envs/hrg/bin/activate; which python2;', shell=True,
+                stdout=sub.DEVNULL)  # create and activate environment
         if 'Linux' not in platform.platform():
             completed_process = sub.run(
                 'export CC=gcc-9; export CXX=g++-9;. ./envs/hrg/bin/activate; python2 -m pip install -r '

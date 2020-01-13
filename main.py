@@ -15,6 +15,7 @@ from src.utils import timer
 
 
 # TODO: parallelize stuff - even more?
+# TODO: write a stats dump file - write the config and the times in a csv
 
 def parse_args():
     model_names = {'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker'}
@@ -73,23 +74,15 @@ def process_args(args) -> Any:
     return args.selection[0], g, model_obj, int(args.num_gens[0]), args.use_pickle, int(args.num_graphs[0])
 
 
-def make_dirs(gname):
+def make_dirs(gname, model):
     """
     Makes input and output directories if they do not exist already
     :return:
     """
-    for dirname in ('input', 'output', 'analysis', 'src/scratch', 'output/pickles', f'output/pickles/{gname}'):
+    for dirname in ('input', 'output', 'analysis', 'src/scratch', 'output/pickles', f'output/pickles/{gname}',
+                    f'output/pickles/{gname}/{model}'):
         if not os.path.exists(f'./{dirname}'):
             os.makedirs(f'./{dirname}')
-
-
-@timer
-def test_infinity_mirror(g: nx.Graph):
-    inf = InfinityMirror(initial_graph=g, num_generations=3, model_obj=ChungLu)  # CNRG seems to create rings
-    inf.run(use_pickle=False)
-    print('Note: GCD is disabled')
-    inf.plot()
-    print(inf)
 
 
 def test_generators(g: nx.Graph):
@@ -122,31 +115,22 @@ def test_graph_stats(g: nx.Graph):
     g_stats = GraphStats(graph=g)
     g_stats._calculate_all_stats()
     print(g_stats)
-    # g_stats['diameter']
-    # print('blah')
-    # g_stats['diameter']
 
-    # k_hop = g_stats.k_hop_reach()
-    # deg_dist = g_stats.degree_dist(normalized=True)
-    # cc_by_deg = g_stats.clustering_coefficients_by_degree()
-    #
-    #
-    # make_plot(y=k_hop, title=f'Hop-Plot for {g.name}', xlabel='Hops', ylabel='Avg. fraction of reachable nodes')
-    # make_plot(y=deg_dist, title=f'Degree-Dist for {g.name}', xlabel='Degree $k$', ylabel='Count of nodes',
-    #           kind='scatter')
-
-    # make_plot(y=cc_by_deg, title=f'Avg Clustering-Coeff by Degree (k)', xlabel='Degree $k$',
-    #           ylabel='Avg clustering coefficient', kind='scatter')
-    # print(deg_dist)
 
 @timer
 def main():
     args = parse_args()
     selection, g, model, num_gens, use_pickle, num_graphs = process_args(args)
-    make_dirs(g.name)
+
+    # process args returns the Class and not an object
+    empty_g = nx.empty_graph(1); empty_g.name = 'empty'  # create an empty graph as a placeholder
+    model_obj = model(input_graph=empty_g)  # this is a roundabout way to ensure the name of GraphModel object is correct
+
+    make_dirs(g.name, model=model_obj.model_name)
 
     print('GCD is disabled')
-    inf = InfinityMirror(selection=selection, initial_graph=g, num_generations=num_gens, model_obj=model, num_graphs=num_graphs)
+    inf = InfinityMirror(selection=selection, initial_graph=g, num_generations=num_gens, model_obj=model,
+                         num_graphs=num_graphs)
     inf.run(use_pickle=use_pickle)
     print(inf)
 

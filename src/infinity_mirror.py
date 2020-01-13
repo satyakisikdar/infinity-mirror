@@ -1,27 +1,27 @@
-import math
-from collections import defaultdict, namedtuple
+import pickle
+from collections import namedtuple
 from typing import Any, List, Dict
 
 import matplotlib.pyplot as plt
-import seaborn as sns
 import networkx as nx
-import pickle
 import numpy as np
-from tqdm import tqdm
+import seaborn as sns
 from joblib import Parallel, delayed
 from matplotlib import gridspec
+from tqdm import tqdm
 
+from src.Tree import TreeNode
 from src.graph_comparison import GraphPairCompare
 from src.graph_models import *
 from src.graph_stats import GraphStats
 from src.utils import borda_sort, mean_confidence_interval, ColorPrint as CP, load_pickle, check_file_exists
-from src.Tree import TreeNode
 
-# mpl.rcParams['figure.dpi'] = 600
-
-Stats = namedtuple('Stats', 'name id graph score')  # stores the different stats for each graph. name: name of metric, id: graph_id
-GraphStatDouble = namedtuple('GraphStatDouble', 'graph stats')   # graph: NetworkX object, stat: dictionary of comparison stats with the input
-GraphStatTriple = namedtuple('GraphStatTriple', 'best worst median')  # stores the best, worst, and median graphs and their stats (GraphStat double)
+Stats = namedtuple('Stats',
+                   'name id graph score')  # stores the different stats for each graph. name: name of metric, id: graph_id
+GraphStatDouble = namedtuple('GraphStatDouble',
+                             'graph stats')  # graph: NetworkX object, stat: dictionary of comparison stats with the input
+GraphStatTriple = namedtuple('GraphStatTriple',
+                             'best worst median')  # stores the best, worst, and median graphs and their stats (GraphStat double)
 
 
 # TODO: write new plotting method to plot the confidence intervals across generations
@@ -36,16 +36,19 @@ class InfinityMirror:
     __slots__ = ('initial_graph', 'num_generations', 'num_graphs', 'model', 'initial_graph_stats', 'root',
                  '_metrics', 'root_pickle_path', 'selection')
 
-    def __init__(self, selection: str, initial_graph: nx.Graph, model_obj: Any, num_generations: int, num_graphs: int) -> None:
+    def __init__(self, selection: str, initial_graph: nx.Graph, model_obj: Any, num_generations: int,
+                 num_graphs: int) -> None:
         self.selection = selection  # kind of selection stategy
         self.initial_graph: nx.Graph = initial_graph  # the initial starting point H_0
         self.num_graphs: int = num_graphs  # number of graphs per generation
         self.num_generations: int = num_generations  # number of generations
         self.model: BaseGraphModel = model_obj(input_graph=self.initial_graph)  # initialize and fit the model
-        self.initial_graph_stats: GraphStats = GraphStats(graph=self.initial_graph)  # initialize graph_stats object for the initial_graph which is the same across generations
-        self.root: TreeNode = TreeNode('root', graph=self.initial_graph, stats={})  # root of the tree with the initial graph and empty stats dictionary
+        self.initial_graph_stats: GraphStats = GraphStats(
+            graph=self.initial_graph)  # initialize graph_stats object for the initial_graph which is the same across generations
+        self.root: TreeNode = TreeNode('root', graph=self.initial_graph,
+                                       stats={})  # root of the tree with the initial graph and empty stats dictionary
         self._metrics: List[str] = ['gcd', 'deltacon0', 'lambda_dist', 'pagerank_cvm', 'degree_cvm']  # list of metrics
-        self.root_pickle_path: str = f'./output/pickles/{self.initial_graph.name}/{self.selection}_{self.model.model_name}_{self.num_generations}.pkl.gz'
+        self.root_pickle_path: str = f'./output/pickles/{self.initial_graph.name}/{self.model.model_name}/{self.selection}_{self.num_generations}.pkl.gz'
         return
 
     def __str__(self) -> str:
@@ -115,7 +118,8 @@ class InfinityMirror:
             self.root = load_pickle(self.root_pickle_path)
             return
 
-        tqdm.write(f'Running Infinity Mirror on "{self.initial_graph.name}" {self.initial_graph.order(), self.initial_graph.size()} "{self.model.model_name}" {self.num_generations} generations')
+        tqdm.write(
+            f'Running Infinity Mirror on "{self.initial_graph.name}" {self.initial_graph.order(), self.initial_graph.size()} "{self.model.model_name}" {self.num_generations} generations')
         pbar = tqdm(total=self.num_generations, bar_format='{l_bar}{bar}|[{elapsed}<{remaining}]', ncols=50)
 
         for i in range(self.num_generations):
@@ -125,7 +129,8 @@ class InfinityMirror:
 
             level = i + 1
             self.model.update(new_input_graph=curr_graph)  # update the model
-            generated_graphs = self.model.generate(num_graphs=self.num_graphs, gen_id=level)  # generate a new set of graphs
+            generated_graphs = self.model.generate(num_graphs=self.num_graphs,
+                                                   gen_id=level)  # generate a new set of graphs
             curr_graph, stats = self._get_representative_graph_stat(generated_graphs=generated_graphs)
             tnode = TreeNode(name=f'{self.selection}_{level}', graph=curr_graph, stats=stats, parent=tnode)
             pbar.update(1)
@@ -133,6 +138,19 @@ class InfinityMirror:
         pbar.close()
         CP.print_green(f'Root object is pickled at "{self.root_pickle_path}"')
         pickle.dump(self.root, open(self.root_pickle_path, 'wb'))
+        return
+
+    def write_timing_stats(self, time_taken):
+        """
+        Write timing stats into a csv
+        Write model info and timing info
+        :return:
+        """
+        stats_file = './output/timing_stats.csv'
+
+        with open(stats_file, 'a') as fp:
+           fp.write(f'{self.initial_graph.name},{self.model.model_name},{self.selection},{self.num_generations},{time_taken}s\n')
+
         return
 
     def _group_by_gen(self, tnode: TreeNode) -> Dict:
@@ -147,7 +165,7 @@ class InfinityMirror:
         for metric in self._metrics:
             stats = tnode.stats
             agg_stats_by_gen[metric] = {1: [stats[metric]]}  # populate this for the tnode -> gen 1
-            for gen in range(2, self.num_generations+1):
+            for gen in range(2, self.num_generations + 1):
                 agg_stats_by_gen[metric][gen] = []
 
         for desc in tnode.descendants:
@@ -165,7 +183,7 @@ class InfinityMirror:
         """
         root_best, root_med, root_worst = self.root.children
         aggregated_stats = {'best': self._group_by_gen(root_best), 'median': self._group_by_gen(root_med),
-                           'worst': self._group_by_gen(root_worst)}
+                            'worst': self._group_by_gen(root_worst)}
 
         return aggregated_stats
 
@@ -179,7 +197,7 @@ class InfinityMirror:
         compressed_stats_mean = {}  # with the mean
         compressed_stats_intervals = {}  # with the confidence intervals
 
-        self._metrics = self._metrics[-2: ]  # use only the first two metrics
+        self._metrics = self._metrics[-2:]  # use only the first two metrics
 
         for kind in ('best', 'median', 'worst'):
             compressed_stats_mean[kind] = {}
@@ -188,9 +206,9 @@ class InfinityMirror:
                 compressed_stats_mean[kind][metric] = list(map(lambda l: np.mean(l),
                                                                aggregated_stats[kind][metric].values()))
                 compressed_stats_intervals[kind][metric] = list(map(lambda l: mean_confidence_interval(l),
-                                                               aggregated_stats[kind][metric].values()))
+                                                                    aggregated_stats[kind][metric].values()))
 
-        x = list(range(1, self.num_generations+1))
+        x = list(range(1, self.num_generations + 1))
 
         rows = len(self._metrics)  # for each of the metrics
         cols = 1
@@ -212,4 +230,3 @@ class InfinityMirror:
 
         plt.suptitle(f'Metrics across generations for {self.model.model_name}')
         plt.show()
-
