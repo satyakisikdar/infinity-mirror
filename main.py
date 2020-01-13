@@ -119,12 +119,24 @@ def test_graph_stats(g: nx.Graph):
     print(g_stats)
 
 
-def run_infinity_mirror(selection, initial_graph, num_generations, model_obj, num_graphs, run_id):
+def run_infinity_mirror(run_id):
     """
     Creates and runs infinity mirror
     :return:
     """
-    inf = InfinityMirror(selection=selection, initial_graph=initial_graph, num_generations=num_generations, model_obj=model_obj,
+    args = parse_args()
+    selection, g, model, num_gens, use_pickle, num_graphs = process_args(args)
+
+    # process args returns the Class and not an object
+    empty_g = nx.empty_graph(1);
+    empty_g.name = 'empty'  # create an empty graph as a placeholder
+    model_obj = model(
+        input_graph=empty_g)  # this is a roundabout way to ensure the name of GraphModel object is correct
+
+    make_dirs(g.name, model=model_obj.model_name)
+    print('GCD is disabled')
+
+    inf = InfinityMirror(selection=selection, initial_graph=g, num_generations=num_gens, model_obj=model,
                          num_graphs=num_graphs, run_id=run_id)
     tic = time.perf_counter()
     inf.run(use_pickle=False)
@@ -135,19 +147,22 @@ def run_infinity_mirror(selection, initial_graph, num_generations, model_obj, nu
 
 @timer
 def main():
-    args = parse_args()
-    selection, g, model, num_gens, use_pickle, num_graphs = process_args(args)
-
-    # process args returns the Class and not an object
-    empty_g = nx.empty_graph(1); empty_g.name = 'empty'  # create an empty graph as a placeholder
-    model_obj = model(input_graph=empty_g)  # this is a roundabout way to ensure the name of GraphModel object is correct
-
-    make_dirs(g.name, model=model_obj.model_name)
+    # args = parse_args()
+    # selection, g, model, num_gens, use_pickle, num_graphs = process_args(args)
+    #
+    # # process args returns the Class and not an object
+    # empty_g = nx.empty_graph(1);
+    # empty_g.name = 'empty'  # create an empty graph as a placeholder
+    # model_obj = model(
+    #     input_graph=empty_g)  # this is a roundabout way to ensure the name of GraphModel object is correct
+    #
+    # make_dirs(g.name, model=model_obj.model_name)
     print('GCD is disabled')
 
     Parallel(n_jobs=10)(
-        delayed(run_infinity_mirror)(selection=selection, initial_graph=g, num_generations=num_gens, model_obj=model,
-                         num_graphs=num_graphs, run_id=i+1)
+        # delayed(run_infinity_mirror)(selection=selection, initial_graph=g, num_generations=num_gens, model_obj=model,
+        #                  num_graphs=num_graphs, run_id=i+1)
+        delayed(run_infinity_mirror)(run_id=i+1)
         for i in range(10)
     )
 
