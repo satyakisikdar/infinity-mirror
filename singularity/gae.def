@@ -1,0 +1,29 @@
+bootstrap: docker
+from: nvidia/cuda:10.1-cudnn7-devel-ubuntu18.04
+
+%post
+    apt-get -y update
+    apt-get -y install gcc git make vim wget
+    apt-get -y install python python-pip
+    apt-get -y install \
+        libgl1-mesa-glx \
+        libegl1-mesa \
+        libxrandr2 \
+        libxrandr2 \
+        libxss1 \
+        libxcursor1 \
+        libxcomposite1 \
+        libasound2 \
+        libxi6 \
+        libxtst6 \
+        libncurses5-dev \
+        zlib1g-dev
+    pip install --upgrade pip setuptools
+    git clone https://github.com/daniel-gonzalez-cedre/gae.git
+    python2 gae/setup.py build
+    python2 gae/setup.py install
+
+%environment
+    export PATH="/opt/conda/bin:/usr/local/bin:/usr/bin:/bin:"
+    unset CONDA_DEFAULT_ENV
+    export ANACONDA_HOME=/opt/conda
