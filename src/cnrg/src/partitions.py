@@ -19,7 +19,6 @@ from scipy.cluster.hierarchy import linkage, to_tree, cophenet
 from scipy.spatial.distance import pdist
 from sklearn.cluster import KMeans
 
-import src.node2vec as n2v
 from src.LightMultiGraph import LightMultiGraph
 
 def leiden_one_level_old(g):
@@ -253,69 +252,4 @@ def spectral_kmeans(g: LightMultiGraph, K):
             tree.append(spectral_kmeans(sg, K - 1))
 
     return tree
-
-
-def get_dendrogram(embeddings, method='best', metric='euclidean'):
-    """
-    Generate dendrogram for graph.
-    :param embeddings: node representations
-    :param method: agglomoration measurement
-    :param metric: distance metric
-    :return: dendrogram of the graph nodes
-    """
-    methods = ('single', 'complete', 'average', 'weighted', 'centroid', 'median', 'ward')
-    # metrics = ('euclidean', 'cityblock', 'cosine', 'correlation', 'jaccard')
-    # centroid, median, ward only work with Euclidean
-
-    if method not in methods and method != 'best':
-        print('Invalid method {}. Choosing an alternative model instead.')
-        method = 'best'
-
-    if method == 'best':
-        best_method = None
-        best_score = 0
-
-        for method in methods:
-            z = linkage(embeddings[:, 1:], method)
-            c, _ = cophenet(z, pdist(embeddings[:, 1:], metric))
-            # print(method, metric, c)
-            if c > best_score:
-                best_score = c
-                best_method = method
-        print('Using "{}, {}" for clustering'.format(best_method, metric))
-        z = linkage(embeddings[:, 1:], best_method)
-    else:
-        z = linkage(embeddings[:, 1:], method)
-
-    root = to_tree(z)
-    labels = list(map(int, embeddings[:, 0]))
-
-    def print_tree(node):
-        if node.is_leaf():  # single leaf
-            return [labels[node.id]]
-
-        if node.left.is_leaf() and node.right.is_leaf():  # combine two leaves into one
-            return [[labels[node.left.id]], [labels[node.right.id]]]
-
-        left_list = print_tree(node.left)
-        right_list = print_tree(node.right)
-        return [left_list, right_list]
-
-    return [print_tree(root)]
-
-
-def get_node2vec(g):
-    """
-    Partitions the graph using hierarchical clustering on node2vec embeddings
-    :param g: graph
-    :return: tree of partitions
-    """
-    nx_g = nx.Graph(g)
-    nx.set_edge_attributes(nx_g, 'weight', 1)
-    g = n2v.Graph(nx_g, False, 1, 1)
-    g.preprocess_transition_probs()
-    walks = g.simulate_walks(num_walks=10, walk_length=80)
-    n2v.learn_embeddings(walks)
-    embeddings = n2v.get_embeddings()
-    return get_dendrogram(embeddings)
 
