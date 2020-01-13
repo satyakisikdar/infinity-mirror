@@ -145,7 +145,7 @@ def main():
     make_dirs(g.name, model=model_obj.model_name)
     print('GCD is disabled')
 
-    Parallel()(
+    Parallel(n_jobs=10)(
         delayed(run_infinity_mirror)(selection=selection, initial_graph=g, num_generations=num_gens, model_obj=model,
                          num_graphs=num_graphs, run_id=i+1)
         for i in range(10)
