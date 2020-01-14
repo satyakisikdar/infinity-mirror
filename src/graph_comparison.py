@@ -41,7 +41,7 @@ class GraphPairCompare:
 
     def calculate(self) -> None:
         self.lambda_dist(k=10)
-        self.gcd()
+        # self.gcd()
         self.deltacon0()
         self.cvm_degree()
         self.cvm_pagerank()
@@ -52,8 +52,7 @@ class GraphPairCompare:
         return 
     
     def gcd(self) -> float:
-        # dist = GCD(self.graph1, self.graph2)
-        dist = float('inf')
+        dist = GCD(self.graph1, self.graph2)
         self.stats['gcd'] = dist
 
         return round(dist, 3)
