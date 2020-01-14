@@ -45,11 +45,15 @@ class GraphPairCompare:
         self.deltacon0()
         self.cvm_degree()
         self.cvm_pagerank()
-        return
 
+        if self.graph2.order() == 1 or 'blank' in self.graph2.name:  # empty graph
+            for key in self.stats:
+                self.stats[key] = float('inf')  # set the distances to infinity
+        return 
+    
     def gcd(self) -> float:
         # dist = GCD(self.graph1, self.graph2)
-        dist = -1
+        dist = float('inf')
         self.stats['gcd'] = dist
 
         return round(dist, 3)
