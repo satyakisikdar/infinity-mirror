@@ -13,14 +13,13 @@ from src.graph_io import GraphReader, SyntheticGraph
 from src.graph_models import *
 from src.graph_stats import GraphStats
 from src.infinity_mirror import InfinityMirror
-from src.utils import timer
-
+from src.utils import timer, ColorPrint as CP
 
 # TODO: parallelize stuff - even more?
 # TODO: write a stats dump file - write the config and the times in a csv
 
 def parse_args():
-    model_names = {'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker'}
+    model_names = {'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker', 'UniformRandom'}
 
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)  # formatter class shows defaults in help
@@ -128,10 +127,10 @@ def run_infinity_mirror(run_id):
     selection, g, model, num_gens, use_pickle, num_graphs = process_args(args)
 
     # process args returns the Class and not an object
-    empty_g = nx.empty_graph(1);
+    empty_g = nx.empty_graph(1)
     empty_g.name = 'empty'  # create an empty graph as a placeholder
     model_obj = model(
-        input_graph=empty_g)  # this is a roundabout way to ensure the name of GraphModel object is correct
+        input_graph=empty_g, run_id=run_id)  # this is a roundabout way to ensure the name of GraphModel object is correct
 
     make_dirs(g.name, model=model_obj.model_name)
     print('GCD is disabled')
@@ -147,21 +146,9 @@ def run_infinity_mirror(run_id):
 
 @timer
 def main():
-    # args = parse_args()
-    # selection, g, model, num_gens, use_pickle, num_graphs = process_args(args)
-    #
-    # # process args returns the Class and not an object
-    # empty_g = nx.empty_graph(1);
-    # empty_g.name = 'empty'  # create an empty graph as a placeholder
-    # model_obj = model(
-    #     input_graph=empty_g)  # this is a roundabout way to ensure the name of GraphModel object is correct
-    #
-    # make_dirs(g.name, model=model_obj.model_name)
-    print('GCD is disabled')
+    CP.print_orange('GCD is disabled')
 
-    Parallel(n_jobs=10, backend="multiprocessing")(
-        # delayed(run_infinity_mirror)(selection=selection, initial_graph=g, num_generations=num_gens, model_obj=model,
-        #                  num_graphs=num_graphs, run_id=i+1)
+    Parallel(n_jobs=10, backend="loky")(
         delayed(run_infinity_mirror)(run_id=i+1)
         for i in range(10)
     )
