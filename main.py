@@ -133,8 +133,6 @@ def run_infinity_mirror(run_id):
         input_graph=empty_g, run_id=run_id)  # this is a roundabout way to ensure the name of GraphModel object is correct
 
     make_dirs(g.name, model=model_obj.model_name)
-    print('GCD is disabled')
-
     inf = InfinityMirror(selection=selection, initial_graph=g, num_generations=num_gens, model_obj=model,
                          num_graphs=num_graphs, run_id=run_id)
     tic = time.perf_counter()
