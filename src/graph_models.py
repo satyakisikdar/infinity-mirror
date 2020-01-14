@@ -16,18 +16,21 @@ from tqdm import tqdm
 from src.utils import ColorPrint as CP
 from src.utils import check_file_exists, load_pickle, delete_files
 
-__all__ = ['BaseGraphModel', 'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker']
+__all__ = ['BaseGraphModel', 'ErdosRenyi', 'UniformRandom', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker']
 
+
+# TODO: replace KronEM with KronFit
 
 class BaseGraphModel:
-    __slots__ = ['input_graph', 'gname', 'model_name', 'params']
+    __slots__ = ['input_graph', 'gname', 'model_name', 'params', 'run_id']
 
-    def __init__(self, model_name: str, input_graph: nx.Graph, **kwargs) -> None:
+    def __init__(self, model_name: str, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
         self.input_graph: nx.Graph = input_graph  # networkX graph to be fitted
         assert self.input_graph.name != '', 'Input graph does not have a name'
 
         self.gname = self.input_graph.name  # name of the graph
         self.model_name: str = model_name  # name of the model
+        self.run_id = run_id  # run id prevents files from getting clobbered
         self.params: Dict[Any] = {}  # dictionary of model parameters
 
         return
@@ -65,17 +68,16 @@ class BaseGraphModel:
         maybe use a generator
         :param num_graphs:
         :param gen_id: generation id
+        :param run_id: run_id keeps things separate when run in parallel
         :return:
         """
         generated_graphs = Parallel()(
-            delayed(self._gen)(gen_id=gen_id, gname=f'{self.gname}_{gen_id}_{i + 1}')
+            delayed(self._gen)(gen_id=gen_id, gname=f'{self.gname}_{gen_id}_{self.run_id}_{i + 1}')
+            # added run_id to keep things from getting clobbered
             for i in range(num_graphs)
         )
 
-        assert isinstance(generated_graphs, list) and len(generated_graphs) == 10, 'Parallel generation didnt work'
-        # for i in range(num_graphs):
-        #     g = self._gen(gen_id=gen_id, gname=f'{self.gname}_{gen_id}_{i+1}')
-        #     generated_graphs.append(g)
+        assert isinstance(generated_graphs, list), 'Parallel generation didnt work'
 
         return generated_graphs
 
@@ -90,8 +92,8 @@ class BaseGraphModel:
 
 
 class ErdosRenyi(BaseGraphModel):
-    def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
-        super().__init__(model_name='Erdos-Renyi', input_graph=input_graph)
+    def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
+        super().__init__(model_name='Erdos-Renyi', input_graph=input_graph, run_id=run_id)
         if 'seed' in kwargs:
             seed = kwargs['seed']
         else:
@@ -117,7 +119,7 @@ class ErdosRenyi(BaseGraphModel):
 
         return
 
-    def _gen(self, gname: str, gen_id: int) -> nx.Graph:
+    def _gen(self, gname: str, gen_id: int, ) -> nx.Graph:
         assert 'n' in self.params and 'p' in self.params, 'Improper parameters for Erdos-Renyi'
 
         g = nx.fast_gnp_random_graph(n=self.params['n'], p=self.params['p'], seed=self.params['seed'])
@@ -132,8 +134,8 @@ class UniformRandom(BaseGraphModel):
     model, a graph is chosen uniformly at random from the set of all graphs with n nodes and m edges.
     """
 
-    def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
-        super().__init__(model_name='Uniform-Random', input_graph=input_graph)
+    def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
+        super().__init__(model_name='Uniform-Random', input_graph=input_graph, run_id=run_id)
         if 'seed' in kwargs:
             seed = kwargs['seed']
         else:
@@ -161,8 +163,8 @@ class UniformRandom(BaseGraphModel):
 
 
 class ChungLu(BaseGraphModel):
-    def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
-        super().__init__(model_name='Chung-Lu', input_graph=input_graph)
+    def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
+        super().__init__(model_name='Chung-Lu', input_graph=input_graph, run_id=run_id)
         return
 
     def _fit(self) -> None:
@@ -183,54 +185,45 @@ class ChungLu(BaseGraphModel):
         return g
 
 
-class TransitiveChungLu(BaseGraphModel):
-    """
-    Chung-Lu with transitive closures - Pfeiffer, La Fond, Moreno, Neville - implementation not found
-    https://ieeexplore.ieee.org/document/6406280/
-    """
-
-    def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
-        super().__init__(model_name='Transitive-Chung-Lu', input_graph=input_graph)
-        return
-
-    def _fit(self) -> None:
-        raise NotImplementedError('Transitive Chung-Lu is not implemented yet')
-
-    def _gen(self, gname: str, gen_id: int) -> nx.Graph:
-        raise NotImplementedError('Transitive Chung-Lu is not implemented yet')
-
-
 class BTER(BaseGraphModel):
     """
     BTER model by Tammy Kolda
     feastpack implementation at https://www.sandia.gov/~tgkolda/feastpack/feastpack_v1.2.zip
     """
 
-    def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
-        super().__init__(model_name='BTER', input_graph=input_graph)
+    def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
+        super().__init__(model_name='BTER', input_graph=input_graph, run_id=run_id)
+        self.prep_environment()
         return
 
     def _fit(self) -> None:
         pass  # the matlab code does the fitting
 
+    def prep_environment(self) -> None:
+        """
+        Prepare environment - check for MATLAB
+        :return:
+        """
+        completed_process = sub.run('matlab -h', shell=True, stdout=sub.DEVNULL)
+        assert completed_process.returncode != 0, 'MATLAB not found'
+
+        matlab_code = ' '.join(["mex -largeArrayDims tricnt_mex.c;", "mex -largeArrayDims ccperdegest_mex.c;", 'quit;'])
+        sub.run(f'cd src/bter; matlab -nosplash -nodesktop -r "{matlab_code}"', shell=True, stdout=sub.DEVNULL)
+        return
+
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
         g = self.input_graph
 
         # fix BTER to use the directory..
-        CP.print_blue('Starting BTER... Checking for MATLAB.')
+        CP.print_blue('Starting BTER...')
 
-        completed_process = sub.run('matlab -h', shell=True, stdout=sub.DEVNULL)
-        assert completed_process.returncode != 0, 'MATLAB not found'
-
-        graph_filename = f'./src/bter/{g.name}.mat'
+        graph_filename = f'./src/bter/{g.name}_{self.run_id}.mat'
         np.savetxt(graph_filename, nx.to_numpy_matrix(g), fmt='%d')
 
         matlab_code = [
-            "mex -largeArrayDims tricnt_mex.c",
-            "mex -largeArrayDims ccperdegest_mex.c",
-            f"G = dlmread('{g.name}.mat');",
+            f"G = dlmread('{g.name}_{self.run_id}.mat');",
             'G = sparse(G);',
-            f"graphname = '{g.name}';",
+            f"graphname = '{g.name}_{self.run_id}';",
             '',
             'nnodes = size(G, 1);',
             'nedges = nnz(G) / 2;',
@@ -256,31 +249,33 @@ class BTER(BaseGraphModel):
             r"fprintf('Number of edges in dedup''d graph: %d\n', nnz(G)/2);",
             '',
             'G_bter = full(G_bter);',
-            r"dlmwrite('{}_bter.mat', G_bter, ' ');".format(g.name)
+            r"dlmwrite('{}_{}_bter.mat', G_bter, ' ');".format(g.name, self.run_id),
+            'quit;'
         ]
 
-        matlab_code_path = f'./src/bter/{g.name}_code.m'
+        matlab_code_path = f'{g.name}_{self.run_id}_code.m'
         print('\n'.join(matlab_code), file=open(matlab_code_path, 'w'))
 
-        if not check_file_exists(f'./bter/{g.name}_bter.mat'):
-            start_time = time()
-            completed_process = sub.run(f'cd src/bter; cat {g.name}_code.m | matlab -nosplash -nodesktop', shell=True)
-            print('BTER ran in {} secs'.format(round(time() - start_time, 3)))
+        output_path = f'./src/bter/{g.name}_{self.run_id}_bter.mat'
 
-            if completed_process.returncode != 0:
-                print('error in matlab')
-                return None
+        # if not check_file_exists(output_path):
+        start_time = time()
+        completed_process = sub.run(f'cd src/bter; cat {matlab_code_path} | matlab -nosplash -nodesktop', shell=True,
+                                    stdout=sub.DEVNULL, stderr=sub.DEVNULL)
+        CP.print_blue(f'BTER ran in {round(time() - start_time, 3)} secs')
 
-        output_path = f'./src/bter/{g.name}_bter.mat'
-        assert check_file_exists(output_path), 'MATLAB did not write a graph'
+        if completed_process.returncode != 0 or not check_file_exists(output_path):
+            CP.print_blue('BTER failed!')
+            blank_graph = nx.empty_graph(n=1)
+            blank_graph.name = f'blank_{self.run_id}'
+            return blank_graph
 
         bter_mat = np.loadtxt(output_path, dtype=int)
-
         g_bter = nx.from_numpy_matrix(bter_mat, create_using=nx.Graph())
         g_bter.name = gname
         g_bter.gen_id = gen_id
 
-        delete_files(matlab_code_path, graph_filename, output_path)
+        delete_files(graph_filename, output_path, matlab_code_path)
 
         return g_bter
 
@@ -290,8 +285,8 @@ class CNRG(BaseGraphModel):
     Satyaki's Clustering-Based Node Replacement Grammars https://github.com/satyakisikdar/cnrg
     """
 
-    def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
-        super().__init__(model_name='CNRG', input_graph=input_graph)
+    def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
+        super().__init__(model_name='CNRG', input_graph=input_graph, run_id=run_id)
         self.prep_environment()
         return
 
@@ -327,14 +322,15 @@ class CNRG(BaseGraphModel):
         return
 
     def generate(self, num_graphs: int, gen_id: int) -> List[nx.Graph]:
-        edgelist_path = f'./src/cnrg/src/tmp/{self.gname}.g'
+        edgelist_path = f'./src/cnrg/src/tmp/{self.gname}_{self.run_id}.g'
         nx.write_edgelist(self.input_graph, edgelist_path, data=False)
 
         completed_process = sub.run(
-            f'. ./envs/cnrg/bin/activate; cd src/cnrg; python3 runner.py -g {self.gname} -n {num_graphs}; deactivate;',
+            f'. ./envs/cnrg/bin/activate; cd src/cnrg; python3 runner.py -g {self.gname}_{self.run_id} -n {num_graphs}; deactivate;',
             shell=True, stdout=sub.DEVNULL, stderr=sub.DEVNULL)
         assert completed_process.returncode == 0, 'Error in CNRG'
-        output_pickle_path = f'./src/cnrg/output/{self.gname}_cnrg.pkl'
+
+        output_pickle_path = f'./src/cnrg/output/{self.gname}_{self.run_id}_cnrg.pkl'
         assert check_file_exists(output_pickle_path)
 
         generated_graphs = []  # reset generated graphs
@@ -342,7 +338,7 @@ class CNRG(BaseGraphModel):
         for i, gen_graph in enumerate(load_pickle(output_pickle_path)):
             gen_graph.name = self.input_graph.name
             gen_graph.gen_id = gen_id
-            gen_graph.name += f'_{i + 1}'  # append the number of graph generated
+            gen_graph.name += f'{self.run_id}_{i + 1}'  # append run id and number of graph generated
             generated_graphs.append(gen_graph)
 
         assert isinstance(generated_graphs, list) and len(generated_graphs) == num_graphs, \
@@ -357,8 +353,8 @@ class HRG(BaseGraphModel):
     Sal's Hyperedge Replacement Graph Grammars https://github.com/abitofalchemy/hrg-nm
     """
 
-    def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
-        super().__init__(model_name='HRG', input_graph=input_graph)
+    def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
+        super().__init__(model_name='HRG', input_graph=input_graph, run_id=run_id)
         self.prep_environment()
         return
 
@@ -409,21 +405,21 @@ class HRG(BaseGraphModel):
         return
 
     def generate(self, num_graphs: int, gen_id: int) -> List[nx.Graph]:
-        edgelist_path = f'./src/hrg/{self.gname}.g'
+        edgelist_path = f'./src/hrg/{self.gname}_{self.run_id}.g'
         nx.write_edgelist(self.input_graph, edgelist_path, data=False)
 
         completed_process = sub.run(
-            f'. ./envs/hrg/bin/activate; cd src/hrg; python2 exact_phrg.py --orig {self.gname}.g --trials {num_graphs}; deactivate;',
+            f'. ./envs/hrg/bin/activate; cd src/hrg; python2 exact_phrg.py --orig {self.gname}_{self.run_id}.g --trials {num_graphs}; deactivate;',
             shell=True, stdout=sub.DEVNULL)
 
         assert completed_process.returncode == 0, 'Error in HRG'
 
-        output_pickle_path = f'./src/hrg/Results/{self.gname}_hstars.pickle'
+        output_pickle_path = f'./src/hrg/Results/{self.gname}_{self.run_id}_hstars.pickle'
 
         generated_graphs = []
         for i, gen_graph in enumerate(load_pickle(output_pickle_path)):
             gen_graph = self._make_graph(gen_graph)
-            gen_graph.name = f'{self.input_graph.name}_{i + 1}'  # adding the number of graph
+            gen_graph.name = f'{self.input_graph.name}_{self.run_id}_{i + 1}'  # adding the number of graph
             gen_graph.gen_id = gen_id
 
             generated_graphs.append(gen_graph)
@@ -441,29 +437,31 @@ class Kronecker(BaseGraphModel):
     Kronecker Graph Model from SNAP
     """
 
-    def __init__(self, input_graph: nx.Graph, **kwargs) -> None:
-        super().__init__(model_name='Kronecker', input_graph=input_graph)
+    def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
+        super().__init__(model_name='Kronecker', input_graph=input_graph, run_id=run_id)
         if 'Linux' in platform.platform():
-            self.kronem_exec = './kronem_linux'
+            self.kronfit_exec = './kronfit_linux'
             self.krongen_exec = './krongen_linux'
         else:
-            self.kronem_exec = './kronem_mac'
+            self.kronfit_exec = './kronfit_mac'
             self.krongen_exec = './krongen_mac'
         return
 
     def _fit(self) -> None:
         """
-        call KronEM
+        call KronFit
         """
-        output_file = f'./src/kronecker/{self.gname}-fit'
-        tqdm.write(f'Running KronEM for {self.gname}')
+        output_file = f'./src/kronecker/{self.gname}_{self.run_id}-fit'
+        tqdm.write(f'Running KronEM for {self.gname}_{self.run_id}')
 
         # write edgelist to the path, but graph needs to start from 1
         g = nx.convert_node_labels_to_integers(self.input_graph, first_label=1, label_attribute='old_label')
         directed_g = g.to_directed()  # kronecker expects a directed graph
-        nx.write_edgelist(directed_g, f'src/kronecker/{self.gname}.txt', data=False)
 
-        bash_code = f'cd src/kronecker; {self.kronem_exec} -i:{self.gname}.txt -o:{self.gname}-fit'
+        edgelist_path = f'src/kronecker/{self.gname}_{self.run_id}.txt'
+        nx.write_edgelist(directed_g, edgelist_path, data=False)
+
+        bash_code = f'cd src/kronecker; {self.kronfit_exec} -i:{self.gname}_{self.run_id}.txt -o:{self.gname}_{self.run_id}-fit'
         completed_process = sub.run(bash_code, shell=True, stdout=sub.PIPE)
         assert completed_process.returncode == 0, 'Error in KronEM'
 
@@ -493,11 +491,11 @@ class Kronecker(BaseGraphModel):
         matrix = self.params['initiator_matrix']
         # CP.print_blue(f'Running kronGen with n={kron_iters}, matrix={matrix}')
 
-        bash_code = f'cd src/kronecker; ./{self.krongen_exec} -o:{self.gname}_kron.txt -m:"{matrix}" -i:{kron_iters}'
+        bash_code = f'cd src/kronecker; ./{self.krongen_exec} -o:{self.gname}_{self.run_id}_kron.txt -m:"{matrix}" -i:{kron_iters}'
         completed_process = sub.run(bash_code, shell=True, stdout=sub.PIPE)
         assert completed_process.returncode == 0, 'Error in KronGen'
 
-        output_file = f'src/kronecker/{self.gname}_kron.txt'
+        output_file = f'src/kronecker/{self.gname}_{self.run_id}_kron.txt'
         assert check_file_exists(output_file), f'Output file does not exist {output_file}'
 
         graph = nx.read_edgelist(output_file, nodetype=int, create_using=nx.Graph())
