@@ -148,7 +148,7 @@ def run_infinity_mirror(run_id):
 def main():
     CP.print_orange('GCD is disabled')
 
-    Parallel(n_jobs=10, backend="loky")(
+    Parallel(n_jobs=10, backend="multiprocessing")(
         delayed(run_infinity_mirror)(run_id=i+1)
         for i in range(10)
     )
