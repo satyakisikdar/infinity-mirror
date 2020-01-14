@@ -206,9 +206,9 @@ class BTER(BaseGraphModel):
         """
         completed_process = sub.run('matlab -h', shell=True, stdout=sub.DEVNULL)
         assert completed_process.returncode != 0, 'MATLAB not found'
-
-        matlab_code = ' '.join(["mex -largeArrayDims tricnt_mex.c;", "mex -largeArrayDims ccperdegest_mex.c;", 'quit;'])
-        sub.run(f'cd src/bter; matlab -nosplash -nodesktop -r "{matlab_code}"', shell=True, stdout=sub.DEVNULL)
+        CP.print_blue('Prepping environment for BTER')
+        # matlab_code = ' '.join(["mex -largeArrayDims tricnt_mex.c;", "mex -largeArrayDims ccperdegest_mex.c;", 'quit;'])
+        sub.run(f'cd src/bter; mex -largeArrayDims tricnt_mex.c; mex -largeArrayDims ccperdegest_mex.c;', shell=True, stdout=sub.DEVNULL)
         return
 
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
