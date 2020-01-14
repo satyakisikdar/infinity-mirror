@@ -1,6 +1,6 @@
 import pickle
 from collections import namedtuple
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Union
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -42,7 +42,7 @@ class InfinityMirror:
         self.initial_graph: nx.Graph = initial_graph  # the initial starting point H_0
         self.num_graphs: int = num_graphs  # number of graphs per generation
         self.num_generations: int = num_generations  # number of generations
-        self.model: BaseGraphModel = model_obj(input_graph=self.initial_graph)  # initialize and fit the model
+        self.model: BaseGraphModel = model_obj(input_graph=self.initial_graph, run_id=run_id)  # initialize and fit the model
         self.initial_graph_stats: GraphStats = GraphStats(
             graph=self.initial_graph)  # initialize graph_stats object for the initial_graph which is the same across generations
         self.root: TreeNode = TreeNode('root', graph=self.initial_graph,
@@ -68,7 +68,7 @@ class InfinityMirror:
         stats = {metric: scores[metric][idx].score for metric in self._metrics}
         return GraphStatDouble(graph=graph, stats=stats)
 
-    def _get_representative_graph_stat(self, generated_graphs: List[nx.Graph]) -> GraphStatDouble:
+    def _get_representative_graph_stat(self, generated_graphs: List[nx.Graph]) -> Union[GraphStatDouble, None]:
         """
         returns the representative graph and its stats
         :param kind: str: best, median, worst
@@ -88,14 +88,18 @@ class InfinityMirror:
         for i, graph_comp in enumerate(graph_comps_list):
             graph_comp: GraphPairCompare
             for metric in self._metrics:
+                score = graph_comp[metric]
+                if score == float('inf'):
+                    continue
                 scores[metric].append(Stats(id=i + 1, graph=graph_comp.graph2, score=graph_comp[metric], name=metric))
 
         sorted_scores = {key: sorted(val, key=lambda item: item.score) for key, val in scores.items()}
-
         rankings: Dict[str, List[int]] = {}  # stores the id of the graphs sorted by score
         for metric, stats in sorted_scores.items():
             rankings[metric] = list(map(lambda item: item.id, stats))
 
+        if sum(len(lst) for lst in rankings.values()) == 0:  # empty ranking
+            return None
         overall_ranking = borda_sort(rankings.values())  # compute the overall ranking
 
         if self.selection == 'best':
@@ -132,7 +136,13 @@ class InfinityMirror:
             self.model.update(new_input_graph=curr_graph)  # update the model
             generated_graphs = self.model.generate(num_graphs=self.num_graphs,
                                                    gen_id=level)  # generate a new set of graphs
-            curr_graph, stats = self._get_representative_graph_stat(generated_graphs=generated_graphs)
+            graph_stats = self._get_representative_graph_stat(generated_graphs=generated_graphs)
+
+            if graph_stats is None:
+                CP.print_blue('Infinity mirror failed')
+                break
+
+            curr_graph, stats = graph_stats
             tnode = TreeNode(name=f'{self.selection}_{level}', graph=curr_graph, stats=stats, parent=tnode)
             pbar.update(1)
 
