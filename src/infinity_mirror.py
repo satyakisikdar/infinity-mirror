@@ -2,19 +2,15 @@ import pickle
 from collections import namedtuple
 from typing import Any, List, Dict, Union
 
-import matplotlib.pyplot as plt
 import networkx as nx
-import numpy as np
-import seaborn as sns
 from joblib import Parallel, delayed
-from matplotlib import gridspec
 from tqdm import tqdm
 
 from src.Tree import TreeNode
 from src.graph_comparison import GraphPairCompare
 from src.graph_models import *
 from src.graph_stats import GraphStats
-from src.utils import borda_sort, mean_confidence_interval, ColorPrint as CP, load_pickle, check_file_exists
+from src.utils import borda_sort, ColorPrint as CP, load_pickle, check_file_exists
 
 Stats = namedtuple('Stats',
                    'name id graph score')  # stores the different stats for each graph. name: name of metric, id: graph_id
@@ -23,8 +19,6 @@ GraphStatDouble = namedtuple('GraphStatDouble',
 GraphStatTriple = namedtuple('GraphStatTriple',
                              'best worst median')  # stores the best, worst, and median graphs and their stats (GraphStat double)
 
-
-# TODO: write new plotting method to plot the confidence intervals across generations
 
 class InfinityMirror:
     """
@@ -42,14 +36,16 @@ class InfinityMirror:
         self.initial_graph: nx.Graph = initial_graph  # the initial starting point H_0
         self.num_graphs: int = num_graphs  # number of graphs per generation
         self.num_generations: int = num_generations  # number of generations
-        self.model: BaseGraphModel = model_obj(input_graph=self.initial_graph, run_id=run_id)  # initialize and fit the model
+        self.model: BaseGraphModel = model_obj(input_graph=self.initial_graph,
+                                               run_id=run_id)  # initialize and fit the model
         self.initial_graph_stats: GraphStats = GraphStats(
             graph=self.initial_graph)  # initialize graph_stats object for the initial_graph which is the same across generations
         self.root: TreeNode = TreeNode('root', graph=self.initial_graph,
                                        stats={})  # root of the tree with the initial graph and empty stats dictionary
-        self._metrics: List[str] = ['deltacon0', 'lambda_dist', 'pagerank_cvm', 'degree_cvm']  # list of metrics  ## GCD is removed
+        self._metrics: List[str] = ['deltacon0', 'lambda_dist', 'pagerank_cvm',
+                                    'degree_cvm']  # list of metrics  ## GCD is removed
         self.run_id = run_id
-        self.root_pickle_path: str = f'./output/pickles/{self.initial_graph.name}/{self.model.model_name}/{self.selection}_{self.num_generations}_{self.run_id}.pkl.gz'
+        self.root_pickle_path: str = f'./output/pickles/{self.initial_graph.name}/{self.model.model_name}/{self.selection}_{self.num_generations}_{self.run_id}'  # .pkl.gz'
         return
 
     def __str__(self) -> str:
@@ -118,9 +114,10 @@ class InfinityMirror:
         :param use_pickle:
         :return:
         """
-        if use_pickle and check_file_exists(self.root_pickle_path):
-            CP.print_green(f'Using pickle at "{self.root_pickle_path}"')
-            self.root = load_pickle(self.root_pickle_path)
+        pickle_ext = '.pkl.gz'
+        if use_pickle and check_file_exists(self.root_pickle_path + pickle_ext):
+            CP.print_green(f'Using pickle at "{self.root_pickle_path + pickle_ext}"')
+            self.root = load_pickle(self.root_pickle_path + pickle_ext)
             return
 
         tqdm.write(
@@ -140,6 +137,7 @@ class InfinityMirror:
 
             if graph_stats is None:
                 CP.print_blue('Infinity mirror failed')
+                self.root_pickle_path += '_failed'  # append the failed to filename
                 break
 
             curr_graph, stats = graph_stats
@@ -147,8 +145,8 @@ class InfinityMirror:
             pbar.update(1)
 
         pbar.close()
-        CP.print_green(f'Root object is pickled at "{self.root_pickle_path}"')
-        pickle.dump(self.root, open(self.root_pickle_path, 'wb'))
+        CP.print_green(f'Root object is pickled at "{self.root_pickle_path + pickle_ext}"')
+        pickle.dump(self.root, open(self.root_pickle_path + pickle_ext, 'wb'))
         return
 
     def write_timing_stats(self, time_taken):
@@ -160,85 +158,7 @@ class InfinityMirror:
         stats_file = './output/timing_stats.csv'
 
         with open(stats_file, 'a') as fp:
-           fp.write(f'run_id:{self.run_id},gname:{self.initial_graph.name},model:{self.model.model_name},'
-                    f'sel:{self.selection},gens:{self.num_generations},time:{time_taken}s\n')
+            fp.write(f'run_id:{self.run_id},gname:{self.initial_graph.name},model:{self.model.model_name},'
+                     f'sel:{self.selection},gens:{self.num_generations},time:{time_taken}s\n')
 
         return
-
-    def _group_by_gen(self, tnode: TreeNode) -> Dict:
-        """
-        Group the stats by descendants of tnode into best, median, and worst
-        :param tnode:
-        :param kind:
-        :return:
-        """
-        agg_stats_by_gen = {}
-
-        for metric in self._metrics:
-            stats = tnode.stats
-            agg_stats_by_gen[metric] = {1: [stats[metric]]}  # populate this for the tnode -> gen 1
-            for gen in range(2, self.num_generations + 1):
-                agg_stats_by_gen[metric][gen] = []
-
-        for desc in tnode.descendants:
-            desc: TreeNode
-            gen = desc.depth
-            for metric in self._metrics:
-                agg_stats_by_gen[metric][gen].append(desc.stats[metric])
-
-        return agg_stats_by_gen
-
-    def aggregate_stats(self) -> Dict:
-        """
-        group the descendants of root-best, root-median, root-worst
-        :return:
-        """
-        root_best, root_med, root_worst = self.root.children
-        aggregated_stats = {'best': self._group_by_gen(root_best), 'median': self._group_by_gen(root_med),
-                            'worst': self._group_by_gen(root_worst)}
-
-        return aggregated_stats
-
-    def plot(self):
-        """
-        Plot the progression of the infinity mirror - for different metrics across generations
-        from the aggregated stats, find mean and plot it then add 95% conf intervals
-        :return:
-        """
-        aggregated_stats = self.aggregate_stats()
-        compressed_stats_mean = {}  # with the mean
-        compressed_stats_intervals = {}  # with the confidence intervals
-
-        self._metrics = self._metrics[-2:]  # use only the first two metrics
-
-        for kind in ('best', 'median', 'worst'):
-            compressed_stats_mean[kind] = {}
-            compressed_stats_intervals[kind] = {}
-            for metric in self._metrics:
-                compressed_stats_mean[kind][metric] = list(map(lambda l: np.mean(l),
-                                                               aggregated_stats[kind][metric].values()))
-                compressed_stats_intervals[kind][metric] = list(map(lambda l: mean_confidence_interval(l),
-                                                                    aggregated_stats[kind][metric].values()))
-
-        x = list(range(1, self.num_generations + 1))
-
-        rows = len(self._metrics)  # for each of the metrics
-        cols = 1
-
-        gs = gridspec.GridSpec(rows, cols)
-        fig = plt.figure()
-
-        for i, grid in enumerate(gs):
-            ax = fig.add_subplot(grid)
-            for kind in ('best', 'median', 'worst'):
-                metric = self._metrics[i]
-                ax1 = sns.lineplot(x, compressed_stats_mean[kind][metric], marker='o', alpha=0.75, label=kind, ax=ax)
-                ax1.lines[-1].set_linestyle('--')
-                if i != 0:  # disable legend on all the plots except the first
-                    ax.get_legend().set_visible(False)
-
-                plt.ylabel(f'{metric}')
-                plt.xticks(x, x)
-
-        plt.suptitle(f'Metrics across generations for {self.model.model_name}')
-        plt.show()
