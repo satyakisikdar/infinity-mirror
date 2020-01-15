@@ -7,7 +7,6 @@ import networkx as nx
 import numpy as np
 
 from src.utils import ColorPrint as CP, check_file_exists, print_float
-# from src.Graph import CustomGraph
 
 
 class GraphReader:
@@ -19,7 +18,8 @@ class GraphReader:
     """
     __slots__ = ['possible_extensions', 'filename', 'path', 'gname', 'graph']
 
-    def __init__(self, filename: str, gname: str='', reindex_nodes: bool=False, first_label: int=0, take_lcc: bool=True) -> None:
+    def __init__(self, filename: str, gname: str = '', reindex_nodes: bool = False, first_label: int = 0,
+                 take_lcc: bool = True) -> None:
         """
         :param filename: path to input file
         :param gname: name of the graph
@@ -65,19 +65,19 @@ class GraphReader:
             mat = np.loadtxt(fname=str_path, dtype=bool)
             graph: nx.Graph = nx.from_numpy_array(mat)
         else:
-            raise(NotImplementedError, f'{extension} not supported')
+            raise (NotImplementedError, f'{extension} not supported')
 
         graph.name = self.gname
         return graph
 
-    def _preprocess(self, reindex_nodes: bool, first_label: int=0, take_lcc: bool=True) -> None:
+    def _preprocess(self, reindex_nodes: bool, first_label: int = 0, take_lcc: bool = True) -> None:
         """
         Preprocess the graph - taking the largest connected components, re-index nodes if needed
         :return:
         """
         CP.print_green('Pre-processing graph....')
         CP.print_blue(f'Original graph "{self.gname}" n:{self.graph.order():,} '
-                        f'm:{self.graph.size():,} #components: {nx.number_connected_components(self.graph)}')
+                      f'm:{self.graph.size():,} #components: {nx.number_connected_components(self.graph)}')
 
         if take_lcc and nx.number_connected_components(self.graph) > 1:
             ## Take the LCC
@@ -89,7 +89,8 @@ class GraphReader:
 
             perc_nodes = graph_lcc.order() / self.graph.order() * 100
             perc_edges = graph_lcc.size() / self.graph.size() * 100
-            CP.print_orange(f'LCC has {print_float(perc_nodes)}% of nodes and {print_float(perc_edges)}% edges in the original graph')
+            CP.print_orange(
+                f'LCC has {print_float(perc_nodes)}% of nodes and {print_float(perc_edges)}% edges in the original graph')
 
             self.graph = graph_lcc
 
@@ -102,8 +103,8 @@ class GraphReader:
             # re-index nodes, stores the old label in old_label
             self.graph = nx.convert_node_labels_to_integers(self.graph, first_label=first_label,
                                                             label_attribute='old_label')
-            CP.print_green(f'Re-indexing nodes to start from {first_label}, old labels are stored in node attr "old_label"')
-
+            CP.print_green(
+                f'Re-indexing nodes to start from {first_label}, old labels are stored in node attr "old_label"')
 
         CP.print_blue(f'Pre-processed graph "{self.gname}" n:{self.graph.order():,} m:{self.graph.size():,}')
         return
@@ -122,14 +123,17 @@ class SyntheticGraph:
     __slots__ = ['kind', 'args', 'g']
 
     implemented_methods = {'chain': ('n',), 'tree': ('r', 'h'), 'ladder': ('n',), 'circular_ladder': ('n',),
-                           'ring': ('n',), 'clique_ring': ('n', 'k'), 'grid': ('m', 'n'), 'erdos_renyi': ('n', 'p', 'seed')}
+                           'ring': ('n',), 'clique_ring': ('n', 'k'), 'grid': ('m', 'n'),
+                           'erdos_renyi': ('n', 'p', 'seed'),
+                           'cycle': ('n',)}
 
     def __init__(self, kind, **kwargs):
         self.kind = kind
         assert kind in SyntheticGraph.implemented_methods, f'Generator {kind} not implemented. Implemented methods: {self.implemented_methods.keys()}'
         self.args = kwargs
 
-        if 'seed' in SyntheticGraph.implemented_methods[kind] and 'seed' not in self.args:  # if seed is not specified, set it to None
+        if 'seed' in SyntheticGraph.implemented_methods[
+            kind] and 'seed' not in self.args:  # if seed is not specified, set it to None
             self.args['seed'] = None
         self.g = self._make_graph()
 
@@ -138,17 +142,21 @@ class SyntheticGraph:
         Makes the graph
         :return:
         """
-        assert set(self.implemented_methods[self.kind]).issubset(set(self.args)), f'Improper args {self.args.keys()}, need: {self.implemented_methods[self.kind]}'
+        assert set(self.implemented_methods[self.kind]).issubset(
+            set(self.args)), f'Improper args {self.args.keys()}, need: {self.implemented_methods[self.kind]}'
 
         if self.kind == 'chain':
             g = nx.path_graph(self.args['n'])
             name = f'chain-{g.order()}'
+        elif self.kind in ('ring', 'cycle'):
+            g = nx.cycle_graph(self.args['n'])
+            name = f'ring-{g.order()}'
         elif self.kind == 'tree':
             g = nx.balanced_tree(self.args['r'], self.args['h'])
             name = f"tree-{self.args['r']}-{self.args['h']}"
         elif self.kind == 'ladder':
             g = nx.ladder_graph(self.args['n'])
-            name = f'ladder-{g.order()//2}'
+            name = f'ladder-{g.order() // 2}'
         elif self.kind == 'circular_ladder':
             g = nx.circular_ladder_graph(self.args['n'])
             name = f'circular-ladder-{g.order()}'
@@ -176,7 +184,7 @@ class GraphWriter:
     """
     __slots__ = ['graph', 'path', 'fmt']
 
-    def __init__(self, graph: nx.Graph, path: str, fmt: str='', gname: str=''):
+    def __init__(self, graph: nx.Graph, path: str, fmt: str = '', gname: str = ''):
         self.graph: nx.Graph = graph
 
         if self.graph == '':
@@ -232,6 +240,7 @@ try:
 except ImportError as e:
     print(e)
 
+
 def networkx_to_graphtool(nx_G: nx.Graph):
     return pig.nx2gt(nx_G, labelname='node_label')
 
@@ -249,4 +258,3 @@ def networkx_to_igraph(nx_G: nx.Graph):
 def igraph_to_networkx(ig_G):
     graph = pig.InterGraph.from_igraph(ig_G)
     return graph.to_networkX()
-
