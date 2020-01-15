@@ -206,9 +206,6 @@ class BTER(BaseGraphModel):
         """
         completed_process = sub.run('matlab -h', shell=True, stdout=sub.DEVNULL)
         assert completed_process.returncode != 0, 'MATLAB not found'
-        CP.print_blue('Prepping environment for BTER')
-        # matlab_code = ' '.join(["", 'quit;'])
-        # sub.run(f'cd src/bter; mex -largeArrayDims tricnt_mex.c; mex -largeArrayDims ccperdegest_mex.c;', shell=True, stdout=sub.DEVNULL)
         return
 
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
@@ -264,8 +261,8 @@ class BTER(BaseGraphModel):
 
         # if not check_file_exists(output_path):
         start_time = time()
-        completed_process = sub.run(f'cd src/bter; cat {matlab_code_filename} | matlab -nosplash -nodesktop', shell=True) #,
-                                    # stdout=sub.DEVNULL, stderr=sub.DEVNULL)
+        completed_process = sub.run(f'cd src/bter; cat {matlab_code_filename} | matlab -nosplash -nodesktop', shell=True,
+                                    stdout=sub.DEVNULL, stderr=sub.DEVNULL)
         CP.print_blue(f'BTER ran in {round(time() - start_time, 3)} secs')
 
         if completed_process.returncode != 0 or not check_file_exists(output_path):
