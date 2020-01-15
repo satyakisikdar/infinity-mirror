@@ -193,7 +193,7 @@ class BTER(BaseGraphModel):
 
     def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
         super().__init__(model_name='BTER', input_graph=input_graph, run_id=run_id)
-        self.prep_environment()
+        # self.prep_environment()
         return
 
     def _fit(self) -> None:
@@ -207,8 +207,8 @@ class BTER(BaseGraphModel):
         completed_process = sub.run('matlab -h', shell=True, stdout=sub.DEVNULL)
         assert completed_process.returncode != 0, 'MATLAB not found'
         CP.print_blue('Prepping environment for BTER')
-        # matlab_code = ' '.join(["mex -largeArrayDims tricnt_mex.c;", "mex -largeArrayDims ccperdegest_mex.c;", 'quit;'])
-        sub.run(f'cd src/bter; mex -largeArrayDims tricnt_mex.c; mex -largeArrayDims ccperdegest_mex.c;', shell=True, stdout=sub.DEVNULL)
+        # matlab_code = ' '.join(["", 'quit;'])
+        # sub.run(f'cd src/bter; mex -largeArrayDims tricnt_mex.c; mex -largeArrayDims ccperdegest_mex.c;', shell=True, stdout=sub.DEVNULL)
         return
 
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
@@ -221,6 +221,8 @@ class BTER(BaseGraphModel):
         np.savetxt(graph_filename, nx.to_numpy_matrix(g), fmt='%d')
 
         matlab_code = [
+            'mex -largeArrayDims tricnt_mex.c;',
+            'mex -largeArrayDims ccperdegest_mex.c;',
             f"G = dlmread('{g.name}_{self.run_id}.mat');",
             'G = sparse(G);',
             f"graphname = '{g.name}_{self.run_id}';",
