@@ -303,7 +303,6 @@ class CNRG(BaseGraphModel):
         :return:
         """
         if check_file_exists('./envs/cnrg'):
-            CP.print_blue('Venv "cnrg" already exists')
             return
 
         CP.print_blue('Making virtual environment for CNRG')
@@ -385,7 +384,6 @@ class HRG(BaseGraphModel):
         :return:
         """
         if check_file_exists('./envs/hrg'):
-            CP.print_blue('Venv "hrg" already exists')
             return
 
         CP.print_blue('Making virtual environment for HRG')
