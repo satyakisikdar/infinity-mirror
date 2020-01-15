@@ -8,6 +8,7 @@ from typing import Any
 
 import networkx as nx
 from joblib import Parallel, delayed
+from pathlib import Path
 
 from src.graph_io import GraphReader, SyntheticGraph
 from src.infinity_mirror import InfinityMirror
@@ -81,7 +82,7 @@ def make_dirs(gname, model):
     """
     for dirname in ('input', 'output', 'analysis', 'src/scratch', 'output/pickles', f'output/pickles/{gname}',
                     f'output/pickles/{gname}/{model}'):
-        if not os.path.exists(f'./{dirname}'):
+        if not Path(f'./{dirname}').exists():
             os.makedirs(f'./{dirname}')
 
 
