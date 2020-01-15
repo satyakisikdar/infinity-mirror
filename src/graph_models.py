@@ -264,7 +264,7 @@ class BTER(BaseGraphModel):
 
         # if not check_file_exists(output_path):
         start_time = time()
-        completed_process = sub.run(f'cd src/bter; cat {matlab_code_path} | matlab -nosplash -nodesktop', shell=True) #,
+        completed_process = sub.run(f'cd src/bter; cat {matlab_code_filename} | matlab -nosplash -nodesktop', shell=True) #,
                                     # stdout=sub.DEVNULL, stderr=sub.DEVNULL)
         CP.print_blue(f'BTER ran in {round(time() - start_time, 3)} secs')
 
