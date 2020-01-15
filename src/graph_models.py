@@ -217,8 +217,8 @@ class BTER(BaseGraphModel):
         # fix BTER to use the directory..
         CP.print_blue('Starting BTER...')
 
-        graph_filename = f'./src/bter/{g.name}_{self.run_id}.mat'
-        np.savetxt(graph_filename, nx.to_numpy_matrix(g), fmt='%d')
+        graph_path = f'./src/bter/{g.name}_{self.run_id}.mat'
+        np.savetxt(graph_path, nx.to_numpy_matrix(g), fmt='%d')
 
         matlab_code = [
             'mex -largeArrayDims tricnt_mex.c;',
@@ -279,7 +279,7 @@ class BTER(BaseGraphModel):
         g_bter.name = gname
         g_bter.gen_id = gen_id
 
-        delete_files(graph_filename, output_path, matlab_code_filename)
+        delete_files(graph_path, output_path, matlab_code_path)
 
         return g_bter
 
