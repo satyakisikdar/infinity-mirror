@@ -71,7 +71,7 @@ def process_args(args) -> Any:
     module = importlib.import_module(f'src.graph_models')
     model_obj = getattr(module, model_name)
 
-    return args.selection[0], g, model_obj, int(args.gens[0]), args.pickle, int(args.num_graphs[0])
+    return args.sel[0], g, model_obj, int(args.gens[0]), args.pickle, int(args.num_graphs[0])
 
 
 def make_dirs(gname, model):
