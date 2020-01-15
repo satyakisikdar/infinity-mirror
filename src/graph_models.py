@@ -255,15 +255,17 @@ class BTER(BaseGraphModel):
             'quit;'
         ]
 
-        matlab_code_path = f'{g.name}_{self.run_id}_code.m'
+        matlab_code_filename = f'{g.name}_{self.run_id}_code.m'
+        matlab_code_path = f'./src/bter/{matlab_code_filename}'
+
         print('\n'.join(matlab_code), file=open(matlab_code_path, 'w'))
 
         output_path = f'./src/bter/{g.name}_{self.run_id}_bter.mat'
 
         # if not check_file_exists(output_path):
         start_time = time()
-        completed_process = sub.run(f'cd src/bter; cat {matlab_code_path} | matlab -nosplash -nodesktop', shell=True,
-                                    stdout=sub.DEVNULL, stderr=sub.DEVNULL)
+        completed_process = sub.run(f'cd src/bter; cat {matlab_code_path} | matlab -nosplash -nodesktop', shell=True) #,
+                                    # stdout=sub.DEVNULL, stderr=sub.DEVNULL)
         CP.print_blue(f'BTER ran in {round(time() - start_time, 3)} secs')
 
         if completed_process.returncode != 0 or not check_file_exists(output_path):
@@ -277,7 +279,7 @@ class BTER(BaseGraphModel):
         g_bter.name = gname
         g_bter.gen_id = gen_id
 
-        delete_files(graph_filename, output_path, matlab_code_path)
+        delete_files(graph_filename, output_path, matlab_code_filename)
 
         return g_bter
 
