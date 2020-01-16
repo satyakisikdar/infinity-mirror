@@ -324,12 +324,13 @@ class GraphStats:
         counts_filename = f'{self.graph.name}.counts'
         counts_path = f'{pgd_path}/{counts_filename}'
 
-        nx.write_edgelist(self.graph, graph_path, data=False)
+        if not check_file_exists(counts_path):
+            nx.write_edgelist(self.graph, graph_path, data=False)
 
-        completed_process = sub.run(f'cd src/PGD; ./pgd_linux -f {graph_filename} --counts {counts_filename}', shell=True,
-                                    stdout=sub.PIPE)
-        assert completed_process.returncode == 0, 'Problem in PGD'
-        assert check_file_exists(counts_path), f'Counts not found in {counts_path}'
+            completed_process = sub.run(f'cd src/PGD; ./pgd_linux -f {graph_filename} --counts {counts_filename}', shell=True,
+                                        stdout=sub.PIPE)
+            assert completed_process.returncode == 0, 'Problem in PGD'
+            assert check_file_exists(counts_path), f'Counts not found in {counts_path}'
 
         graphlet_counts: Dict[str, int] = {}
 
