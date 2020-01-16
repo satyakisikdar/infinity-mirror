@@ -326,7 +326,7 @@ class GraphStats:
 
         nx.write_edgelist(self.graph, graph_path, data=False)
 
-        completed_process = sub.run(f'cd src/PGD; ./pgd_linux {graph_filename} --counts {counts_filename}', shell=True,
+        completed_process = sub.run(f'cd src/PGD; ./pgd_linux -f {graph_filename} --counts {counts_filename}', shell=True,
                                     stdout=sub.PIPE)
         assert completed_process.returncode == 0, 'Problem in PGD'
         assert check_file_exists(counts_path), f'Counts not found in {counts_path}'
@@ -339,7 +339,6 @@ class GraphStats:
                 graphlet_counts[graphlet_name] = int(count)
 
         self.stats['pgd_graphlet_counts'] = graphlet_counts
-
         delete_files(graph_path, counts_path)
 
         return graphlet_counts
