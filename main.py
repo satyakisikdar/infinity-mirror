@@ -4,17 +4,15 @@ import glob
 import importlib
 import os
 import time
+from pathlib import Path
 from typing import Any
 
 import networkx as nx
 from joblib import Parallel, delayed
-from pathlib import Path
 
 from src.graph_io import GraphReader, SyntheticGraph
-from src.graph_stats import GraphStats
 from src.infinity_mirror import InfinityMirror
 from src.utils import timer, ColorPrint as CP
-from src.graph_comparison import GraphPairCompare
 
 
 def parse_args():
@@ -85,7 +83,7 @@ def make_dirs(gname, model):
     for dirname in ('input', 'output', 'analysis', 'src/scratch', 'output/pickles', f'output/pickles/{gname}',
                     f'output/pickles/{gname}/{model}'):
         if not Path(f'./{dirname}').exists():
-            os.makedirs(f'./{dirname}')
+            os.makedirs(f'./{dirname}', exist_ok=True)
 
 
 def run_infinity_mirror(args, run_id):
