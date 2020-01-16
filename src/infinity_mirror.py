@@ -43,8 +43,8 @@ class InfinityMirror:
             graph=self.initial_graph)  # initialize graph_stats object for the initial_graph which is the same across generations
         self.root: TreeNode = TreeNode('root', graph=self.initial_graph,
                                        stats={})  # root of the tree with the initial graph and empty stats dictionary
-        self._metrics: List[str] = ['deltacon0', 'lambda_dist', 'pagerank_cvm', 'node_diff', 'edge_diff',
-                                    'degree_cvm']  # list of metrics  ## GCD is removed
+        self._metrics: List[str] = ['deltacon0', 'lambda_dist', 'pagerank_cvm', 'node_diff', 'edge_diff', 'pgd_pearson',
+                                    'pgd_spearman', 'degree_cvm']  # list of metrics  ## GCD is removed
 
         self.root_pickle_path: str = f'./output/pickles/{self.initial_graph.name}/{self.model.model_name}/{self.selection}_{self.num_generations}_{self.run_id}'  # .pkl.gz'
         return
@@ -62,7 +62,13 @@ class InfinityMirror:
         :param idx:
         :return:
         """
-        stats = {metric: scores[metric][idx].score for metric in self._metrics}
+        stats = {}
+        for metric in self._metrics:
+            if len(scores[metric]) == 0:  # this is for useless metrics
+                stats[metric] = float('inf')
+            else:
+                stats[metric] = scores[metric][idx].score
+
         return GraphStatDouble(graph=graph, stats=stats)
 
     def _get_representative_graph_stat(self, generated_graphs: List[nx.Graph]) -> Union[GraphStatDouble, None]:
@@ -91,7 +97,6 @@ class InfinityMirror:
                 scores[metric].append(Stats(id=i + 1, graph=graph_comp.graph2, score=graph_comp[metric], name=metric))
 
         sorted_scores = {key: sorted(val, key=lambda item: item.score) for key, val in scores.items()}
-
 
         rankings: Dict[str, List[int]] = {}  # stores the id of the graphs sorted by score
 
