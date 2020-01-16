@@ -14,6 +14,7 @@ from src.graph_io import GraphReader, SyntheticGraph
 from src.graph_stats import GraphStats
 from src.infinity_mirror import InfinityMirror
 from src.utils import timer, ColorPrint as CP
+from src.graph_comparison import GraphPairCompare
 
 
 def parse_args():
@@ -136,6 +137,11 @@ def main():
 
 if __name__ == '__main__':
     # main()
-    g = nx.karate_club_graph()
-    g.name = 'karate'
-    test_pgd(g)
+    g1 = SyntheticGraph(kind='erdos_renyi', n=20, p=0.5, seed=1).g
+    g2 = SyntheticGraph(kind='erdos_renyi', n=20, p=0.5, seed=2).g
+
+    gstats1 = GraphStats(g1)
+    gstats2 = GraphStats(g2)
+
+    g_comp = GraphPairCompare(gstats1, gstats2)
+    print(g_comp.stats)
