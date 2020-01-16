@@ -451,7 +451,7 @@ class Kronecker(BaseGraphModel):
         call KronFit
         """
         output_file = f'./src/kronecker/{self.gname}_{self.run_id}-fit'
-        tqdm.write(f'Running KronFit for {self.gname}_{self.run_id}')
+        # tqdm.write(f'Running KronFit for {self.gname}_{self.run_id}')
 
         # write edgelist to the path, but graph needs to start from 1
         g = nx.convert_node_labels_to_integers(self.input_graph, first_label=1, label_attribute='old_label')
