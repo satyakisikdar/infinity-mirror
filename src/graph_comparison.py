@@ -66,7 +66,7 @@ class GraphPairCompare:
             map(lambda item: item[1], graphlet_dict_2.items()))  # graphlet counts sorted by graphlet name
 
         dist = 1 - scipy.stats.spearmanr(sorted_counts_1, sorted_counts_2)[0]
-        self.stats['pgd_pearson'] = dist
+        self.stats['pgd_spearman'] = dist
 
         return round(dist, 3)
 
