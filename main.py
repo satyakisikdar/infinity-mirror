@@ -137,4 +137,5 @@ def main():
 if __name__ == '__main__':
     # main()
     g = nx.karate_club_graph()
+    g.name = 'karate'
     test_pgd(g)
