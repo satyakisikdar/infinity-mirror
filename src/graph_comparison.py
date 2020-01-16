@@ -59,6 +59,11 @@ class GraphPairCompare:
         graphlet_dict_1 = self.gstats1['pgd_graphlet_counts']
         graphlet_dict_2 = self.gstats2['pgd_graphlet_counts']
 
+        if len(graphlet_dict_1) == 0 or len(graphlet_dict_2) == 0:
+            dist = float('inf')
+            self.stats['pgd_spearman'] = dist
+            return dist
+
         sorted_counts_1: List[int] = list(
             map(lambda item: item[1], graphlet_dict_1.items()))  # graphlet counts sorted by graphlet name
 
@@ -74,6 +79,11 @@ class GraphPairCompare:
     def pgd_pearson(self) -> float:
         graphlet_dict_1 = self.gstats1['pgd_graphlet_counts']
         graphlet_dict_2 = self.gstats2['pgd_graphlet_counts']
+
+        if len(graphlet_dict_1) == 0 or len(graphlet_dict_2) == 0:
+            dist = float('inf')
+            self.stats['pgd_pearson'] = dist
+            return dist
 
         sorted_counts_1 = list(
             map(lambda item: item[1], graphlet_dict_1.items()))  # graphlet counts sorted by graphlet name
