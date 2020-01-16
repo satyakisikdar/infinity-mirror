@@ -1,6 +1,7 @@
 """
 Container for different graph stats
 """
+import subprocess as sub
 from collections import Counter, deque
 from typing import Dict, Tuple, List
 
@@ -10,8 +11,7 @@ import networkx as nx
 import numpy as np
 import seaborn as sns
 
-# from src.Graph import CustomGraph
-from src.utils import ColorPrint as CP
+from src.utils import check_file_exists, ColorPrint as CP
 
 sns.set()
 sns.set_style("darkgrid")
@@ -67,10 +67,12 @@ class GraphStats:
         assert best_match_func != '', 'edit distance did not work'
         item = best_match_func
         if best_match_score != 0:
-            CP.print_orange(f'Best matching function found for "{item}": "{best_match_func}()", edit distance: {best_match_score}')
+            CP.print_orange(
+                f'Best matching function found for "{item}": "{best_match_func}()", edit distance: {best_match_score}')
 
         if best_match_func not in self.stats:
-            best_match_func = getattr(self, best_match_func)  # translates best_match_fun from string to a function object
+            best_match_func = getattr(self,
+                                      best_match_func)  # translates best_match_fun from string to a function object
             best_match_func()  # call the best match function
 
         assert item in self.stats, f'stat: {item} is not updated after function call'
@@ -101,7 +103,7 @@ class GraphStats:
         :return:
         """
         CP.print_none('Calculating eigenvalues of Adjacency Matrix')
-        
+
         adj_eigenvalues = nx.adjacency_spectrum(self.graph)
         self.stats['adj_eigenvalues'] = adj_eigenvalues
 
@@ -274,7 +276,7 @@ class GraphStats:
                     hop_counter[nbr] = hop_counter[node] + 1  # update hop distance of neighbor
 
                     if hop_counter[nbr] not in reachability_counter:
-                        reachability_counter[hop_counter[nbr]] = 0 # reachability_counter[hop_counter[node]]
+                        reachability_counter[hop_counter[nbr]] = 0  # reachability_counter[hop_counter[node]]
                     reachability_counter[hop_counter[nbr]] += 1  # keep track of fraction of nodes reachable
 
                     queue.append(nbr)
@@ -305,10 +307,37 @@ class GraphStats:
 
         return pagerank
 
-    def pgd_graphlet_counts(self) -> None:
+    def pgd_graphlet_counts(self) -> Dict:
         """
         Return the dictionary of graphlets and their counts - based on Neville's PGD
         :return:
         """
-        CP.print_none('Calculating the graphlet counts by PGD')
-        raise NotImplementedError('PGD does not work yet')
+        pgd_path = './src/PGD'
+        if not check_file_exists(f'{pgd_path}/pgd_linux'):
+            CP.print_orange('PGD executable does not exist.. Skipping')
+            self.stats['pgd_graphlet_counts'] = {}
+            return {}
+
+        graph_filename = f'{self.graph.name}.g'
+        graph_path = f'{pgd_path}/{graph_filename}'
+
+        counts_filename = f'{self.graph.name}.counts'
+        counts_path = f'{pgd_path}/{counts_filename}'
+
+        nx.write_edgelist(self.graph, graph_path, data=False)
+
+        completed_process = sub.run(f'cd src/PGD; ./pgd_linux {graph_filename} --counts {counts_filename}', shell=True,
+                                    stdout=sub.PIPE)
+        assert completed_process.returncode == 0, 'Problem in PGD'
+        assert check_file_exists(counts_path), f'Counts not found in {counts_path}'
+
+        graphlet_counts: Dict[str, int] = {}
+
+        with open(counts_path) as fp:
+            for line in fp:
+                graphlet_name, count = map(lambda st: st.strip(), line.split('='))
+                graphlet_counts[graphlet_name] = int(count)
+
+        self.stats['pgd_graphlet_counts'] = graphlet_counts
+
+        return graphlet_counts
