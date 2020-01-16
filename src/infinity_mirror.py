@@ -32,19 +32,20 @@ class InfinityMirror:
 
     def __init__(self, selection: str, initial_graph: nx.Graph, model_obj: Any, num_generations: int,
                  num_graphs: int, run_id: int) -> None:
+        self.run_id = run_id
         self.selection = selection  # kind of selection stategy
         self.initial_graph: nx.Graph = initial_graph  # the initial starting point H_0
         self.num_graphs: int = num_graphs  # number of graphs per generation
         self.num_generations: int = num_generations  # number of generations
         self.model: BaseGraphModel = model_obj(input_graph=self.initial_graph,
-                                               run_id=run_id)  # initialize and fit the model
+                                               run_id=self.run_id)  # initialize and fit the model
         self.initial_graph_stats: GraphStats = GraphStats(
             graph=self.initial_graph)  # initialize graph_stats object for the initial_graph which is the same across generations
         self.root: TreeNode = TreeNode('root', graph=self.initial_graph,
                                        stats={})  # root of the tree with the initial graph and empty stats dictionary
-        self._metrics: List[str] = ['deltacon0', 'lambda_dist', 'pagerank_cvm',
+        self._metrics: List[str] = ['deltacon0', 'lambda_dist', 'pagerank_cvm', 'node_diff', 'edge_diff',
                                     'degree_cvm']  # list of metrics  ## GCD is removed
-        self.run_id = run_id
+
         self.root_pickle_path: str = f'./output/pickles/{self.initial_graph.name}/{self.model.model_name}/{self.selection}_{self.num_generations}_{self.run_id}'  # .pkl.gz'
         return
 
@@ -90,9 +91,17 @@ class InfinityMirror:
                 scores[metric].append(Stats(id=i + 1, graph=graph_comp.graph2, score=graph_comp[metric], name=metric))
 
         sorted_scores = {key: sorted(val, key=lambda item: item.score) for key, val in scores.items()}
+
+
         rankings: Dict[str, List[int]] = {}  # stores the id of the graphs sorted by score
+
         for metric, stats in sorted_scores.items():
             rankings[metric] = list(map(lambda item: item.id, stats))
+
+        # if all the scores are the same, do not include that metric in the ranking
+        for metric in self._metrics:
+            if len(set(item.score for item in scores[metric])) == 1:  # all the metrics have the same ranking
+                rankings[metric] = []
 
         if sum(len(lst) for lst in rankings.values()) == 0:  # empty ranking
             return None
