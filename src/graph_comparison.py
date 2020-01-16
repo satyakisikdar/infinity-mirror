@@ -1,16 +1,16 @@
 """
 Graph Comparison Functions
 """
-from typing import Dict
+from math import fabs
+from typing import Dict, List, Any
 
 import networkx as nx
 import numpy as np
+import scipy.stats
 from numpy import linalg as la
 
 from src.utils import fast_bp, _pad, cvm_distance
-# from src.Graph import CustomGraph
 from src.GCD import GCD
-from tqdm import tqdm
 from src.graph_stats import GraphStats
 
 
@@ -42,6 +42,10 @@ class GraphPairCompare:
     def calculate(self) -> None:
         self.lambda_dist(k=10)
         # self.gcd()
+        self.node_diff()
+        self.edge_diff()
+        self.pgd_pearson()
+        self.pgd_spearman()
         self.deltacon0()
         self.cvm_degree()
         self.cvm_pagerank()
@@ -49,9 +53,64 @@ class GraphPairCompare:
         if self.graph2.order() == 1 or 'blank' in self.graph2.name:  # empty graph
             for key in self.stats:
                 self.stats[key] = float('inf')  # set the distances to infinity
-        return 
-    
+        return
+
+    def pgd_spearman(self) -> float:
+        graphlet_dict_1 = self.gstats1['pgd_graphlet_counts']
+        graphlet_dict_2 = self.gstats2['pgd_graphlet_counts']
+
+        sorted_counts_1: List[int] = list(
+            map(lambda item: item[1], graphlet_dict_1.items()))  # graphlet counts sorted by graphlet name
+
+        sorted_counts_2: List[int] = list(
+            map(lambda item: item[1], graphlet_dict_2.items()))  # graphlet counts sorted by graphlet name
+
+        dist = 1 - scipy.stats.spearmanr(sorted_counts_1, sorted_counts_2)[0]
+        self.stats['pgd_pearson'] = dist
+
+        return round(dist, 3)
+
+
+    def pgd_pearson(self) -> float:
+        graphlet_dict_1 = self.gstats1['pgd_graphlet_counts']
+        graphlet_dict_2 = self.gstats2['pgd_graphlet_counts']
+
+        sorted_counts_1 = list(
+            map(lambda item: item[1], graphlet_dict_1.items()))  # graphlet counts sorted by graphlet name
+
+        sorted_counts_2 = list(
+            map(lambda item: item[1], graphlet_dict_2.items()))  # graphlet counts sorted by graphlet name
+
+        dist = 1 - scipy.stats.pearsonr(sorted_counts_1, sorted_counts_2)[0]
+        self.stats['pgd_pearson'] = dist
+
+        return round(dist, 3)
+
+    def node_diff(self) -> float:
+        """
+
+        :return:
+        """
+        dist = fabs(self.graph1.order() - self.graph2.order())
+        self.stats['node_diff'] = dist
+
+        return dist
+
+    def edge_diff(self) -> float:
+        """
+
+        :return:
+        """
+        dist = fabs(self.graph1.size() - self.graph2.size())
+        self.stats['edge_diff'] = dist
+
+        return dist
+
     def gcd(self) -> float:
+        """
+
+        :return:
+        """
         dist = GCD(self.graph1, self.graph2)
         self.stats['gcd'] = dist
 
@@ -116,4 +175,3 @@ class GraphPairCompare:
         self.stats['degree_cvm'] = dist
 
         return round(dist, 3)
-
