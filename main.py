@@ -11,6 +11,7 @@ from joblib import Parallel, delayed
 from pathlib import Path
 
 from src.graph_io import GraphReader, SyntheticGraph
+from src.graph_stats import GraphStats
 from src.infinity_mirror import InfinityMirror
 from src.utils import timer, ColorPrint as CP
 
@@ -111,6 +112,11 @@ def run_infinity_mirror(args, run_id):
     print(run_id, inf)
 
 
+def test_pgd(g):
+    gstats = GraphStats(g)
+    print(gstats['pgd_graphlet_counts'])
+
+
 @timer
 def main():
     CP.print_orange('GCD is disabled')
@@ -129,4 +135,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    g = nx.karate_club_graph()
+    test_pgd(g)
