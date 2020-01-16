@@ -339,6 +339,9 @@ class GraphStats:
                 graphlet_counts[graphlet_name] = int(count)
 
         self.stats['pgd_graphlet_counts'] = graphlet_counts
-        delete_files(graph_path, counts_path)
+        delete_files(graph_path)
+
+        if graph_filename.count('_') > 1:  # don't delete the path for original graphs
+            delete_files(counts_path)
 
         return graphlet_counts
