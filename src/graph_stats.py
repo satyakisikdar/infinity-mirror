@@ -11,7 +11,7 @@ import networkx as nx
 import numpy as np
 import seaborn as sns
 
-from src.utils import check_file_exists, ColorPrint as CP
+from src.utils import check_file_exists, delete_files, ColorPrint as CP
 
 sns.set()
 sns.set_style("darkgrid")
@@ -339,5 +339,7 @@ class GraphStats:
                 graphlet_counts[graphlet_name] = int(count)
 
         self.stats['pgd_graphlet_counts'] = graphlet_counts
+
+        delete_files(graph_path, counts_path)
 
         return graphlet_counts
