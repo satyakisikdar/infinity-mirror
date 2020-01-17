@@ -387,13 +387,13 @@ class HRG(BaseGraphModel):
             return
 
         CP.print_blue('Making virtual environment for HRG')
-        sub.run('python2 -m pip install --user virtualenv; python2 -m virtualenv -p python2 ./envs/hrg; . '
+        sub.run('python2 -m pip install --user virtualenv; python2 -m virtualenv -p python2 ./envs/hrg;'
                 '. ./envs/hrg/bin/activate; which python2;', shell=True,
                 stdout=sub.DEVNULL)  # create and activate environment
         if 'Linux' not in platform.platform():
             completed_process = sub.run(
                 'export CC=gcc-9; export CXX=g++-9;. ./envs/hrg/bin/activate; python2 -m pip install -r '
-                '. ./envs/requirements_hrg.txt',
+                './envs/requirements_hrg.txt',
                 shell=True, stdout=sub.DEVNULL)  # install requirements for cnrg
         else:
             completed_process = sub.run(
