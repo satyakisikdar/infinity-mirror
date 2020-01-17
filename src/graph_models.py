@@ -393,7 +393,7 @@ class HRG(BaseGraphModel):
         if 'Linux' not in platform.platform():
             completed_process = sub.run(
                 'export CC=gcc-9; export CXX=g++-9;. ./envs/hrg/bin/activate; python2 -m pip install -r '
-                './envs/requirements_hrg.txt',
+                '. ./envs/requirements_hrg.txt',
                 shell=True, stdout=sub.DEVNULL)  # install requirements for cnrg
         else:
             completed_process = sub.run(
