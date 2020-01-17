@@ -8,6 +8,7 @@ import numpy as np
 
 from src.utils import ColorPrint as CP, check_file_exists, print_float
 
+# TODO: add LFR benchmark graphs
 
 class GraphReader:
     """
@@ -75,15 +76,15 @@ class GraphReader:
         Preprocess the graph - taking the largest connected components, re-index nodes if needed
         :return:
         """
-        CP.print_green('Pre-processing graph....')
-        CP.print_blue(f'Original graph "{self.gname}" n:{self.graph.order():,} '
+        CP.print_none('Pre-processing graph....')
+        CP.print_none(f'Original graph "{self.gname}" n:{self.graph.order():,} '
                       f'm:{self.graph.size():,} #components: {nx.number_connected_components(self.graph)}')
 
         if take_lcc and nx.number_connected_components(self.graph) > 1:
             ## Take the LCC
             component_sizes = [len(c) for c in sorted(nx.connected_components(self.graph), key=len, reverse=True)]
 
-            CP.print_green(f'Taking the largest component out of {len(component_sizes)} components: {component_sizes}')
+            CP.print_none(f'Taking the largest component out of {len(component_sizes)} components: {component_sizes}')
 
             graph_lcc = nx.Graph(self.graph.subgraph(max(nx.connected_components(self.graph), key=len)))
 
@@ -96,17 +97,17 @@ class GraphReader:
 
         selfloop_edges = list(nx.selfloop_edges(self.graph))
         if len(selfloop_edges) > 0:
-            CP.print_green(f'Removing {len(selfloop_edges)} self-loops')
+            CP.print_none(f'Removing {len(selfloop_edges)} self-loops')
             self.graph.remove_edges_from(selfloop_edges)  # remove self-loops
 
         if reindex_nodes:
             # re-index nodes, stores the old label in old_label
             self.graph = nx.convert_node_labels_to_integers(self.graph, first_label=first_label,
                                                             label_attribute='old_label')
-            CP.print_green(
+            CP.print_none(
                 f'Re-indexing nodes to start from {first_label}, old labels are stored in node attr "old_label"')
 
-        CP.print_blue(f'Pre-processed graph "{self.gname}" n:{self.graph.order():,} m:{self.graph.size():,}')
+        CP.print_none(f'Pre-processed graph "{self.gname}" n:{self.graph.order():,} m:{self.graph.size():,}')
         return
 
     def __str__(self) -> str:
