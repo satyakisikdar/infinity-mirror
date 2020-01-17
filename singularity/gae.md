@@ -25,7 +25,7 @@
 - `matplotlib 2.1.1`
 
 ##  required code modifications
-clone https://github.com/daniel-gonzalez-cedre/gae.git instead of the standard github repo
+clone `https://github.com/daniel-gonzalez-cedre/gae.git` instead of the standard github repo
 
 ##  training the model
 - run `python train.py`

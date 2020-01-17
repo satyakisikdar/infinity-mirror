@@ -74,7 +74,6 @@ class InfinityMirror:
     def _get_representative_graph_stat(self, generated_graphs: List[nx.Graph]) -> Union[GraphStatDouble, None]:
         """
         returns the representative graph and its stats
-        :param kind: str: best, median, worst
         :param generated_graphs: list of generated graphs
         :return: GraphStatDouble object
         """
@@ -110,6 +109,7 @@ class InfinityMirror:
 
         if sum(len(lst) for lst in rankings.values()) == 0:  # empty ranking
             return None
+
         overall_ranking = borda_sort(rankings.values())  # compute the overall ranking
 
         if self.selection == 'best':
@@ -151,7 +151,7 @@ class InfinityMirror:
 
             if graph_stats is None:
                 CP.print_blue('Infinity mirror failed')
-                self.root_pickle_path += '_failed'  # append the failed to filename
+                self.root_pickle_path += f'_failed-{level}'  # append the failed to filename
                 break
 
             curr_graph, stats = graph_stats
