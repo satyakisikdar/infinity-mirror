@@ -6,20 +6,17 @@ import math
 import platform
 import subprocess as sub
 from time import time
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 
 import networkx as nx
 import numpy as np
 from joblib import Parallel, delayed
-from tqdm import tqdm
 
 from src.utils import ColorPrint as CP
-from src.utils import check_file_exists, load_pickle, delete_files
+from src.utils import check_file_exists, load_pickle, delete_files, get_blank_graph
 
 __all__ = ['BaseGraphModel', 'ErdosRenyi', 'UniformRandom', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker']
 
-
-# TODO: replace KronEM with KronFit
 
 class BaseGraphModel:
     __slots__ = ['input_graph', 'gname', 'model_name', 'params', 'run_id']
@@ -71,9 +68,8 @@ class BaseGraphModel:
         :param run_id: run_id keeps things separate when run in parallel
         :return:
         """
-        generated_graphs = Parallel()(
+        generated_graphs = Parallel(n_jobs=3)(
             delayed(self._gen)(gen_id=gen_id, gname=f'{self.gname}_{gen_id}_{self.run_id}_{i + 1}')
-            # added run_id to keep things from getting clobbered
             for i in range(num_graphs)
         )
 
@@ -175,9 +171,14 @@ class ChungLu(BaseGraphModel):
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
         assert 'degree_seq' in self.params, 'imporper parameters for Chung-Lu'
 
-        g = nx.configuration_model(self.params['degree_seq'])  # fit the model to the degree seq
-        g = nx.Graph(g)  # make it into a simple graph
-        g.remove_edges_from(nx.selfloop_edges(g))  # remove self-loops
+        try:
+            g = nx.configuration_model(self.params['degree_seq'])  # fit the model to the degree seq
+            g = nx.Graph(g)  # make it into a simple graph
+            g.remove_edges_from(nx.selfloop_edges(g))  # remove self-loops
+
+        except nx.NetworkXError:  # config model failed
+            g = get_blank_graph(gname)
+            gname = 'blank_' + gname  # add blank to the name
 
         g.name = gname
         g.gen_id = gen_id
@@ -259,23 +260,26 @@ class BTER(BaseGraphModel):
 
         output_path = f'./src/bter/{g.name}_{self.run_id}_bter.mat'
 
-        # if not check_file_exists(output_path):
         start_time = time()
-        completed_process = sub.run(f'cd src/bter; cat {matlab_code_filename} | matlab -nosplash -nodesktop', shell=True,
+        completed_process = sub.run(f'cd src/bter; cat {matlab_code_filename} | matlab -nosplash -nodesktop',
+                                    shell=True,
                                     stdout=sub.DEVNULL, stderr=sub.DEVNULL)
         CP.print_blue(f'BTER ran in {round(time() - start_time, 3)} secs')
 
-        if completed_process.returncode != 0 or not check_file_exists(output_path):
+        if completed_process.returncode != 0:
             CP.print_blue('BTER failed!')
-            blank_graph = nx.empty_graph(n=1)
-            blank_graph.name = f'blank_{self.run_id}'
-            return blank_graph
+            g_bter = get_blank_graph(gname)
 
-        bter_mat = np.loadtxt(output_path, dtype=int)
-        g_bter = nx.from_numpy_matrix(bter_mat, create_using=nx.Graph())
-        g_bter.name = gname
+        elif not check_file_exists(output_path):
+            CP.print_blue('BTER failed!')
+            g_bter = get_blank_graph(gname)
+
+        else:
+            bter_mat = np.loadtxt(output_path, dtype=int)
+            g_bter = nx.from_numpy_matrix(bter_mat, create_using=nx.Graph())
+            g_bter.name = gname
+
         g_bter.gen_id = gen_id
-
         delete_files(graph_path, output_path, matlab_code_path)
 
         return g_bter
@@ -295,7 +299,7 @@ class CNRG(BaseGraphModel):
         pass  # the Python code does the fitting
 
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
-        pass  # HRGs can generate multiple graphs at once
+        pass  # CNRGs can generate multiple graphs at once
 
     def prep_environment(self) -> None:
         """
@@ -313,6 +317,7 @@ class CNRG(BaseGraphModel):
             completed_process = sub.run(
                 'export CC=gcc-9; export CXX=g++-9;. ./envs/cnrg/bin/activate; python3 -m pip install -r ./envs/requirements_cnrg.txt',
                 shell=True, stdout=sub.DEVNULL)  # install requirements for cnrg
+
         else:
             completed_process = sub.run(
                 '. ./envs/cnrg/bin/activate; python3 -m pip install -r ./envs/requirements_cnrg.txt',
@@ -321,28 +326,35 @@ class CNRG(BaseGraphModel):
         assert completed_process.returncode == 0, 'Error while creating environment for CNRG'
         return
 
-    def generate(self, num_graphs: int, gen_id: int) -> List[nx.Graph]:
+    def generate(self, num_graphs: int, gen_id: int) -> Union[List[nx.Graph], Any]:
         edgelist_path = f'./src/cnrg/src/tmp/{self.gname}_{self.run_id}.g'
         nx.write_edgelist(self.input_graph, edgelist_path, data=False)
 
         completed_process = sub.run(
             f'. ./envs/cnrg/bin/activate; cd src/cnrg; python3 runner.py -g {self.gname}_{self.run_id} -n {num_graphs}; deactivate;',
             shell=True, stdout=sub.DEVNULL, stderr=sub.DEVNULL)
-        assert completed_process.returncode == 0, 'Error in CNRG'
 
         output_pickle_path = f'./src/cnrg/output/{self.gname}_{self.run_id}_cnrg.pkl'
-        assert check_file_exists(output_pickle_path)
 
-        generated_graphs = []  # reset generated graphs
+        if completed_process.returncode != 0:
+            CP.print_blue(f'Error in CNRG: "{self.input_graph.name}"')
+            generated_graphs = None
 
-        for i, gen_graph in enumerate(load_pickle(output_pickle_path)):
-            gen_graph.name = self.input_graph.name
-            gen_graph.gen_id = gen_id
-            gen_graph.name += f'{self.run_id}_{i + 1}'  # append run id and number of graph generated
-            generated_graphs.append(gen_graph)
+        elif not check_file_exists(output_pickle_path):
+            CP.print_blue(f'Error in CNRG: "{self.input_graph.name}"')
+            generated_graphs = None
 
-        assert isinstance(generated_graphs, list) and len(generated_graphs) == num_graphs, \
-            'Failed to generate graphs'
+        else:
+            generated_graphs = []  # reset generated graphs
+
+            for i, gen_graph in enumerate(load_pickle(output_pickle_path)):
+                gen_graph.name = self.input_graph.name
+                gen_graph.gen_id = gen_id
+                gen_graph.name += f'{self.run_id}_{i + 1}'  # append run id and number of graph generated
+                generated_graphs.append(gen_graph)
+
+            if not isinstance(generated_graphs, list) or len(generated_graphs) != num_graphs:
+                CP.print_blue('CNRG failed to generate graphs')
 
         delete_files(output_pickle_path, edgelist_path)  # remove the pickle and edgelist
         return generated_graphs
@@ -387,12 +399,15 @@ class HRG(BaseGraphModel):
             return
 
         CP.print_blue('Making virtual environment for HRG')
-        sub.run('python2 -m pip install --user virtualenv; python2 -m virtualenv -p python2 ./envs/hrg;. ./envs/hrg/bin/activate; which python2;', shell=True,
-                stdout=sub.DEVNULL)  # create and activate environment
+        sub.run(
+            'python2 -m pip install --user virtualenv; python2 -m virtualenv -p python2 ./envs/hrg;. ./envs/hrg/bin/activate; which python2;',
+            shell=True,
+            stdout=sub.DEVNULL)  # create and activate environment
         if 'Linux' not in platform.platform():
             completed_process = sub.run(
                 'export CC=gcc-9; export CXX=g++-9;. ./envs/hrg/bin/activate; python2 -m pip install -r ./envs/requirements_hrg.txt',
                 shell=True, stdout=sub.DEVNULL)  # install requirements for cnrg
+
         else:
             completed_process = sub.run(
                 '. ./envs/hrg/bin/activate; python2 -m pip install -r ./envs/requirements_hrg.txt',
@@ -401,31 +416,36 @@ class HRG(BaseGraphModel):
         assert completed_process.returncode == 0, 'Error while creating environment for HRG'
         return
 
-    def generate(self, num_graphs: int, gen_id: int) -> List[nx.Graph]:
+    def generate(self, num_graphs: int, gen_id: int) -> Union[List[nx.Graph], None]:
         edgelist_path = f'./src/hrg/{self.gname}_{self.run_id}.g'
         nx.write_edgelist(self.input_graph, edgelist_path, data=False)
+        output_pickle_path = f'./src/hrg/Results/{self.gname}_{self.run_id}_hstars.pickle'
 
         completed_process = sub.run(
             f'. ./envs/hrg/bin/activate; cd src/hrg; python2 exact_phrg.py --orig {self.gname}_{self.run_id}.g --trials {num_graphs}; deactivate;',
             shell=True, stdout=sub.DEVNULL)
 
-        assert completed_process.returncode == 0, 'Error in HRG'
+        if completed_process.returncode != 0:
+            CP.print_blue(f'Error in HRG: "{self.input_graph.name}"')
+            generated_graphs = None
 
-        output_pickle_path = f'./src/hrg/Results/{self.gname}_{self.run_id}_hstars.pickle'
+        elif not check_file_exists(output_pickle_path):
+            CP.print_blue(f'Error in HRG: "{self.input_graph.name}"')
+            generated_graphs = None
 
-        generated_graphs = []
-        for i, gen_graph in enumerate(load_pickle(output_pickle_path)):
-            gen_graph = self._make_graph(gen_graph)
-            gen_graph.name = f'{self.input_graph.name}_{self.run_id}_{i + 1}'  # adding the number of graph
-            gen_graph.gen_id = gen_id
+        else:
+            generated_graphs = []
+            for i, gen_graph in enumerate(load_pickle(output_pickle_path)):
+                gen_graph = self._make_graph(gen_graph)
+                gen_graph.name = f'{self.input_graph.name}_{self.run_id}_{i + 1}'  # adding the number of graph
+                gen_graph.gen_id = gen_id
 
-            generated_graphs.append(gen_graph)
+                generated_graphs.append(gen_graph)
 
-        assert isinstance(generated_graphs, list) and len(generated_graphs) == num_graphs, \
-            'Failed to generate graphs'
+            assert isinstance(generated_graphs, list) and len(generated_graphs) == num_graphs, \
+                'Failed to generate graphs'
 
         delete_files(edgelist_path, output_pickle_path)
-
         return generated_graphs
 
 
@@ -439,6 +459,7 @@ class Kronecker(BaseGraphModel):
         if 'Linux' in platform.platform():
             self.kronfit_exec = './kronfit_linux'
             self.krongen_exec = './krongen_linux'
+
         else:
             self.kronfit_exec = './kronfit_mac'
             self.krongen_exec = './krongen_mac'
@@ -449,7 +470,6 @@ class Kronecker(BaseGraphModel):
         call KronFit
         """
         output_file = f'./src/kronecker/{self.gname}_{self.run_id}-fit'
-        # tqdm.write(f'Running KronFit for {self.gname}_{self.run_id}')
 
         # write edgelist to the path, but graph needs to start from 1
         g = nx.convert_node_labels_to_integers(self.input_graph, first_label=1, label_attribute='old_label')
@@ -460,47 +480,61 @@ class Kronecker(BaseGraphModel):
 
         bash_code = f'cd src/kronecker; {self.kronfit_exec} -i:{self.gname}_{self.run_id}.txt -o:{self.gname}_{self.run_id}-fit'
         completed_process = sub.run(bash_code, shell=True, stdout=sub.PIPE)
-        assert completed_process.returncode == 0, 'Error in KronEM'
 
-        assert check_file_exists(output_file), f'File does not exist {output_file}'
+        if completed_process.returncode != 0:
+            CP.print_blue(f'Error in KronFit: "{self.input_graph.name}"')
+            matrix = []
 
-        with open(output_file) as f:
-            last_line = f.readlines()[-1]
-            last_line = last_line.replace(']', '')
-            matrix = last_line[last_line.find('[') + 1:]
+        elif not check_file_exists(output_file):
+            CP.print_blue(f'Error in KronFit: "{self.input_graph.name}"')
+            matrix = []
+
+        else:
+            with open(output_file) as f:
+                last_line = f.readlines()[-1]
+                last_line = last_line.replace(']', '')
+                matrix = last_line[last_line.find('[') + 1:]
             # CP.print_blue('Initiator matrix:', matrix)
-            self.params['initiator_matrix'] = matrix
 
+        self.params['initiator_matrix'] = matrix
         return
 
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
         """
         call KronGen
         """
-        assert 'initiator_matrix' in self.params, 'Initiator matrix not found'
-
         orig_n = self.input_graph.order()
-
         kron_iters = int(math.log2(orig_n))  # floor of log2 gives a bound on kronecker iteration count
         if math.fabs(2 ** kron_iters - orig_n) > math.fabs(2 ** (kron_iters + 1) - orig_n):
             kron_iters += 1
 
+        assert 'initiator_matrix' in self.params, 'Initiator matrix not found'
         matrix = self.params['initiator_matrix']
-        # CP.print_blue(f'Running kronGen with n={kron_iters}, matrix={matrix}')
-
-        bash_code = f'cd src/kronecker; ./{self.krongen_exec} -o:{self.gname}_{self.run_id}_kron.txt -m:"{matrix}" -i:{kron_iters}'
-        completed_process = sub.run(bash_code, shell=True, stdout=sub.PIPE)
-        assert completed_process.returncode == 0, 'Error in KronGen'
 
         output_file = f'src/kronecker/{self.gname}_{self.run_id}_kron.txt'
-        assert check_file_exists(output_file), f'Output file does not exist {output_file}'
 
-        graph = nx.read_edgelist(output_file, nodetype=int, create_using=nx.Graph())
-        graph.name = gname
+        if len(matrix) == 0:  # KronFit failed
+            CP.print_blue(f'Error in KronGen: "{self.input_graph.name}"')
+            graph = get_blank_graph(gname)
+
+        else:
+            bash_code = f'cd src/kronecker; ./{self.krongen_exec} -o:{self.gname}_{self.run_id}_kron.txt -m:"{matrix}" -i:{kron_iters}'
+            completed_process = sub.run(bash_code, shell=True, stdout=sub.PIPE)
+
+            if completed_process.returncode != 0:
+                CP.print_blue(f'Error in KronGen: "{self.input_graph.name}"')
+                graph = get_blank_graph(gname)
+
+            elif not check_file_exists(output_file):
+                CP.print_blue(f'Error in KronGen: "{self.input_graph.name}"')
+                graph = get_blank_graph(gname)
+
+            else:
+                graph = nx.read_edgelist(output_file, nodetype=int, create_using=nx.Graph())
+                graph.name = gname
+
+                delete_files(output_file)
         graph.gen_id = gen_id
-
-        delete_files(output_file)
-
         return graph
 
 
