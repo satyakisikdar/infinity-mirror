@@ -314,10 +314,11 @@ class GraphStats:
         :return:
         """
         pgd_path = './src/PGD'
+
         if 'Linux' not in platform.platform() or not check_file_exists(f'{pgd_path}/pgd_linux'):
-            # CP.print_orange('PGD executable does not exist.. Skipping')
-            self.stats['pgd_graphlet_counts'] = {}
-            return {}
+            graphlet_counts = {}
+            self.stats['pgd_graphlet_counts'] = graphlet_counts
+            return graphlet_counts
 
         graph_filename = f'{self.graph.name}.g'
         graph_path = f'{pgd_path}/{graph_filename}'
@@ -325,26 +326,22 @@ class GraphStats:
         counts_filename = f'{self.graph.name}.counts'
         counts_path = f'{pgd_path}/{counts_filename}'
 
-        if not check_file_exists(counts_path):
-            nx.write_edgelist(self.graph, graph_path, data=False)
+        nx.write_edgelist(self.graph, graph_path, data=False)
 
+        try:
             completed_process = sub.run(f'cd src/PGD; ./pgd_linux -f {graph_filename} --counts {counts_filename}',
                                         shell=True,
-                                        stdout=sub.PIPE)
-            assert completed_process.returncode == 0, 'Problem in PGD'
-            assert check_file_exists(counts_path), f'Counts not found in {counts_path}'
+                                        stdout=sub.PIPE, timeout=10)  # timeout: 10s
+        except sub.TimeoutExpired:
+            graphlet_counts = {}
+            self.stats['pgd_graphlet_counts'] = graphlet_counts
+            return graphlet_counts
 
-        graphlet_counts: Dict[str, int] = {}
-
-        with open(counts_path) as fp:
-            for line in fp:
-                graphlet_name, count = map(lambda st: st.strip(), line.split('='))
-                graphlet_counts[graphlet_name] = int(count)
-
-        self.stats['pgd_graphlet_counts'] = graphlet_counts
-
-        if graph_filename.count('_') > 1:  # don't delete the path for original graphs
-            delete_files(counts_path)
-            delete_files(graph_path)
-
-        return graphlet_counts
+        if completed_process.returncode == 0 and check_file_exists(counts_path):
+            graphlet_counts = {}
+            with open(counts_path) as fp:
+                for line in fp:
+                    graphlet_name, count = map(lambda st: st.strip(), line.split('='))
+                    graphlet_counts[graphlet_name] = int(count)
+            self.stats['pgd_graphlet_counts'] = graphlet_counts
+            return graphlet_counts
