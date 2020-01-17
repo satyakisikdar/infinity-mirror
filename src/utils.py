@@ -5,9 +5,10 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Union, Any
+from typing import Union, Any, Tuple, List
 
 import matplotlib.pyplot as plt
+import networkx as nx
 import numpy as np
 import seaborn as sns
 import statsmodels.stats.api as sm
@@ -32,13 +33,26 @@ def timer(func):
     return wrapper_timer
 
 
-def mean_confidence_interval(arr, alpha=0.05):
+def get_blank_graph(name=None) -> nx.Graph:
+    """
+    Returns a blank graph with 1 node and 0 edges
+    :return:
+    """
+    blank_graph = nx.empty_graph(n=1)
+    gname = 'blank'
+    if name is not None:
+        name += f'_{name}'
+    blank_graph.name = gname
+    return blank_graph
+
+
+def mean_confidence_interval(arr, alpha=0.05) -> Tuple:
     if len(arr) == 1:
-        return (0, 0)
+        return 0, 0
     return sm.DescrStatsW(arr).tconfint_mean(alpha=alpha)
 
 
-def borda_sort(lists):
+def borda_sort(lists) -> List:
     """
     Finds the aggregate ranking from a list of individual rankings
     :param lists:
@@ -63,14 +77,16 @@ def check_file_exists(path: Union[Path, str]) -> bool:
         path = Path(path)
     return path.exists()
 
-def delete_files(*files):
-    '''
+
+def delete_files(*files) -> None:
+    """
     deletes all the files
     :param args:
     :return:
-    '''
+    """
     for file in files:
-        os.remove(file)
+        if check_file_exists(file):
+            os.remove(file)
 
 
 def print_float(x: float) -> float:
@@ -113,7 +129,7 @@ def make_plot(y, kind='line', x=None, title='', xlabel='', ylabel='') -> None:
     return
 
 
-def cvm_distance(data1, data2):
+def cvm_distance(data1, data2) -> float:
     data1, data2 = map(np.asarray, (data1, data2))
     n1 = len(data1)
     n2 = len(data2)
