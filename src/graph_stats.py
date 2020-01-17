@@ -332,7 +332,7 @@ class GraphStats:
         nx.write_edgelist(self.graph, graph_path, data=False)
 
         try:
-            completed_process = sub.run(f'cd src/PGD; ./pgd_linux -f {graph_filename} -w 3 --counts {counts_filename}',
+            completed_process = sub.run(f'cd src/PGD; ./pgd_linux -f {graph_filename} -w 1 --counts {counts_filename}',
                                         shell=True,
                                         stdout=sub.PIPE, timeout=10)  # timeout: 10s
         except sub.TimeoutExpired:
