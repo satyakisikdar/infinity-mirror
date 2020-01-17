@@ -17,7 +17,7 @@ from src.utils import timer, ColorPrint as CP
 
 def parse_args():
     model_names = {'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker', 'UniformRandom'}
-    selections = {'best', 'worst', 'median'}
+    selections = {'best', 'worst', 'median', 'all'}
 
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)  # formatter class shows defaults in help
@@ -101,15 +101,26 @@ def run_infinity_mirror(args, run_id):
         run_id=run_id)  # this is a roundabout way to ensure the name of GraphModel object is correct
 
     make_dirs(g.name, model=model_obj.model_name)
-    inf = InfinityMirror(selection=selection, initial_graph=g, num_generations=num_gens, model_obj=model,
-                         num_graphs=num_graphs, run_id=run_id)
-    tic = time.perf_counter()
-    inf.run(use_pickle=use_pickle)
-    toc = time.perf_counter()
 
-    inf.write_timing_stats(round(toc - tic, 3))
-    print(run_id, inf)
+    if selection == 'all':
+        for sel in 'best', 'median', 'worst':
+            inf = InfinityMirror(selection=sel, initial_graph=g, num_generations=num_gens, model_obj=model,
+                                 num_graphs=num_graphs, run_id=run_id)
+            tic = time.perf_counter()
+            inf.run(use_pickle=use_pickle)
+            toc = time.perf_counter()
 
+            inf.write_timing_stats(round(toc - tic, 3))
+            print(run_id, inf)
+    else:
+        inf = InfinityMirror(selection=selection, initial_graph=g, num_generations=num_gens, model_obj=model,
+                             num_graphs=num_graphs, run_id=run_id)
+        tic = time.perf_counter()
+        inf.run(use_pickle=use_pickle)
+        toc = time.perf_counter()
+
+        inf.write_timing_stats(round(toc - tic, 3))
+        print(run_id, inf)
 
 @timer
 def main():
