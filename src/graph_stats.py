@@ -314,6 +314,9 @@ class GraphStats:
         :return:
         """
         pgd_path = './src/PGD'
+        graphlet_counts = {}
+        self.stats['pgd_graphlet_counts'] = graphlet_counts
+        return graphlet_counts
 
         if 'Linux' not in platform.platform() or not check_file_exists(f'{pgd_path}/pgd_linux'):
             graphlet_counts = {}
