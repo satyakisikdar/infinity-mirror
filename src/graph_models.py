@@ -25,7 +25,7 @@ class BaseGraphModel:
         self.input_graph: nx.Graph = input_graph  # networkX graph to be fitted
         assert self.input_graph.name != '', 'Input graph does not have a name'
 
-        self.gname = self.input_graph.name  # name of the graph
+        self.gname: str = input_graph.name  # name of the initial graph
         self.model_name: str = model_name  # name of the model
         self.run_id = run_id  # run id prevents files from getting clobbered
         self.params: Dict[Any] = {}  # dictionary of model parameters
