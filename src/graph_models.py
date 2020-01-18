@@ -483,7 +483,7 @@ class Kronecker(BaseGraphModel):
         nx.write_edgelist(directed_g, edgelist_path, data=False)
 
         bash_code = f'cd src/kronecker; {self.kronfit_exec} -i:{self.gname}_{self.run_id}.txt -o:{self.gname}_{self.run_id}-fit'
-        completed_process = sub.run(bash_code, shell=True, stdout=sub.PIPE)
+        completed_process = sub.run(bash_code, shell=True)#, stdout=sub.PIPE)
 
         if completed_process.returncode != 0:
             CP.print_blue(f'Error in KronFit: "{self.input_graph.name}"')
