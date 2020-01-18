@@ -68,10 +68,12 @@ class BaseGraphModel:
         :param run_id: run_id keeps things separate when run in parallel
         :return:
         """
-        generated_graphs = Parallel(n_jobs=3)(
-            delayed(self._gen)(gen_id=gen_id, gname=f'{self.gname}_{gen_id}_{self.run_id}_{i + 1}')
-            for i in range(num_graphs)
-        )
+        # generated_graphs = Parallel(n_jobs=3)(
+        #     delayed(self._gen)(gen_id=gen_id, gname=f'{self.gname}_{gen_id}_{self.run_id}_{i + 1}')
+        #     for i in range(num_graphs)
+        # )
+        generated_graphs = [self._gen(gen_id=gen_id, gname=f'{self.gname}_{gen_id}_{self.run_id}_{i + 1}')
+                            for i in range(num_graphs)]
 
         assert isinstance(generated_graphs, list), 'Parallel generation didnt work'
 
