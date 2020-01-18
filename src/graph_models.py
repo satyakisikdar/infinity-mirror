@@ -175,12 +175,14 @@ class ChungLu(BaseGraphModel):
 
         try:
             g = nx.configuration_model(self.params['degree_seq'])  # fit the model to the degree seq
-            g = nx.Graph(g)  # make it into a simple graph
-            g.remove_edges_from(nx.selfloop_edges(g))  # remove self-loops
 
         except nx.NetworkXError:  # config model failed
             g = get_blank_graph(gname)
             gname = 'blank_' + gname  # add blank to the name
+
+        else:  # gets called only if the exception is not thrown
+            g = nx.Graph(g)  # make it into a simple graph
+            g.remove_edges_from(nx.selfloop_edges(g))  # remove self-loops
 
         g.name = gname
         g.gen_id = gen_id
