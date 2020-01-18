@@ -19,13 +19,13 @@ __all__ = ['BaseGraphModel', 'ErdosRenyi', 'UniformRandom', 'ChungLu', 'BTER', '
 
 
 class BaseGraphModel:
-    __slots__ = ['input_graph', 'gname', 'model_name', 'params', 'run_id']
+    __slots__ = ['input_graph', 'initial_gname', 'model_name', 'params', 'run_id']
 
     def __init__(self, model_name: str, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
         self.input_graph: nx.Graph = input_graph  # networkX graph to be fitted
         assert self.input_graph.name != '', 'Input graph does not have a name'
 
-        self.gname: str = input_graph.name  # name of the initial graph
+        self.initial_gname: str = input_graph.name  # name of the initial graph
         self.model_name: str = model_name  # name of the model
         self.run_id = run_id  # run id prevents files from getting clobbered
         self.params: Dict[Any] = {}  # dictionary of model parameters
@@ -331,14 +331,14 @@ class CNRG(BaseGraphModel):
         return
 
     def generate(self, num_graphs: int, gen_id: int) -> Union[List[nx.Graph], Any]:
-        edgelist_path = f'./src/cnrg/src/tmp/{self.gname}_{self.run_id}.g'
+        edgelist_path = f'./src/cnrg/src/tmp/{self.initial_gname}_{self.run_id}.g'
         nx.write_edgelist(self.input_graph, edgelist_path, data=False)
 
         completed_process = sub.run(
-            f'. ./envs/cnrg/bin/activate; cd src/cnrg; python3 runner.py -g {self.gname}_{self.run_id} -n {num_graphs}; deactivate;',
+            f'. ./envs/cnrg/bin/activate; cd src/cnrg; python3 runner.py -g {self.initial_gname}_{self.run_id} -n {num_graphs}; deactivate;',
             shell=True, stdout=sub.DEVNULL, stderr=sub.DEVNULL)
 
-        output_pickle_path = f'./src/cnrg/output/{self.gname}_{self.run_id}_cnrg.pkl'
+        output_pickle_path = f'./src/cnrg/output/{self.initial_gname}_{self.run_id}_cnrg.pkl'
 
         if completed_process.returncode != 0:
             CP.print_blue(f'Error in CNRG: "{self.input_graph.name}"')
@@ -421,12 +421,12 @@ class HRG(BaseGraphModel):
         return
 
     def generate(self, num_graphs: int, gen_id: int) -> Union[List[nx.Graph], None]:
-        edgelist_path = f'./src/hrg/{self.gname}_{self.run_id}.g'
+        edgelist_path = f'./src/hrg/{self.initial_gname}_{self.run_id}.g'
         nx.write_edgelist(self.input_graph, edgelist_path, data=False)
-        output_pickle_path = f'./src/hrg/Results/{self.gname}_{self.run_id}_hstars.pickle'
+        output_pickle_path = f'./src/hrg/Results/{self.initial_gname}_{self.run_id}_hstars.pickle'
 
         completed_process = sub.run(
-            f'. ./envs/hrg/bin/activate; cd src/hrg; python2 exact_phrg.py --orig {self.gname}_{self.run_id}.g --trials {num_graphs}; deactivate;',
+            f'. ./envs/hrg/bin/activate; cd src/hrg; python2 exact_phrg.py --orig {self.initial_gname}_{self.run_id}.g --trials {num_graphs}; deactivate;',
             shell=True, stdout=sub.DEVNULL)
 
         if completed_process.returncode != 0:
@@ -473,16 +473,16 @@ class Kronecker(BaseGraphModel):
         """
         call KronFit
         """
-        output_file = f'./src/kronecker/{self.gname}_{self.run_id}-fit'
+        output_file = f'./src/kronecker/{self.initial_gname}_{self.run_id}-fit'
 
         # write edgelist to the path, but graph needs to start from 1
         g = nx.convert_node_labels_to_integers(self.input_graph, first_label=1, label_attribute='old_label')
         directed_g = g.to_directed()  # kronecker expects a directed graph
 
-        edgelist_path = f'src/kronecker/{self.gname}_{self.run_id}.txt'
+        edgelist_path = f'src/kronecker/{self.initial_gname}_{self.run_id}.txt'
         nx.write_edgelist(directed_g, edgelist_path, data=False)
 
-        bash_code = f'cd src/kronecker; {self.kronfit_exec} -i:{self.gname}_{self.run_id}.txt -o:{self.gname}_{self.run_id}-fit'
+        bash_code = f'cd src/kronecker; {self.kronfit_exec} -i:{self.initial_gname}_{self.run_id}.txt -o:{self.initial_gname}_{self.run_id}-fit'
         completed_process = sub.run(bash_code, shell=True)#, stdout=sub.PIPE)
 
         if completed_process.returncode != 0:
@@ -515,14 +515,14 @@ class Kronecker(BaseGraphModel):
         assert 'initiator_matrix' in self.params, 'Initiator matrix not found'
         matrix = self.params['initiator_matrix']
 
-        output_file = f'src/kronecker/{self.gname}_{self.run_id}_kron.txt'
+        output_file = f'src/kronecker/{self.initial_gname}_{self.run_id}_kron.txt'
 
         if len(matrix) == 0:  # KronFit failed
             CP.print_blue(f'Error in KronGen: "{self.input_graph.name}"')
             graph = get_blank_graph(gname)
 
         else:
-            bash_code = f'cd src/kronecker; ./{self.krongen_exec} -o:{self.gname}_{self.run_id}_kron.txt -m:"{matrix}" -i:{kron_iters}'
+            bash_code = f'cd src/kronecker; ./{self.krongen_exec} -o:{self.initial_gname}_{self.run_id}_kron.txt -m:"{matrix}" -i:{kron_iters}'
             completed_process = sub.run(bash_code, shell=True, stdout=sub.PIPE)
 
             if completed_process.returncode != 0:
