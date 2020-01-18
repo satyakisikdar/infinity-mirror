@@ -1,3 +1,4 @@
+import csv
 import pickle
 from collections import namedtuple
 from typing import Any, List, Dict, Union
@@ -147,6 +148,9 @@ class InfinityMirror:
             self.model.update(new_input_graph=curr_graph)  # update the model
             generated_graphs = self.model.generate(num_graphs=self.num_graphs,
                                                    gen_id=level)  # generate a new set of graphs
+
+            # TODO: insert failure check
+
             graph_stats = self._get_representative_graph_stat(generated_graphs=generated_graphs)
 
             if graph_stats is None:
@@ -155,6 +159,7 @@ class InfinityMirror:
                 break
 
             curr_graph, stats = graph_stats
+            curr_graph.name = f'{self.initial_graph.name}_{self.selection}_{level}_{self.run_id}'
             tnode = TreeNode(name=f'{self.selection}_{level}', graph=curr_graph, stats=stats, parent=tnode)
             pbar.update(1)
 
@@ -163,16 +168,41 @@ class InfinityMirror:
         pickle.dump(self.root, open(self.root_pickle_path + pickle_ext, 'wb'))
         return
 
-    def write_timing_stats(self, time_taken):
+    def write_timing_stats(self, time_taken) -> None:
         """
         Write timing stats into a csv
         Write model info and timing info
         :return:
         """
+        fieldnames = ['run_id', 'gname', 'model', 'sel', 'gens', 'time']
+
         stats_file = './output/timing_stats.csv'
+        if not check_file_exists(stats_file):  # initialize the file with headers
+            writer = csv.DictWriter(open(stats_file, 'w'), fieldnames=fieldnames)
+            writer.writeheader()
 
         with open(stats_file, 'a') as fp:
-            fp.write(f'run_id:{self.run_id},gname:{self.initial_graph.name},model:{self.model.model_name},'
-                     f'sel:{self.selection},gens:{self.num_generations},time:{time_taken}s\n')
+            writer = csv.DictWriter(fp, fieldnames=fieldnames)
+            writer.writerow({'run_id': self.run_id, 'gname': self.initial_graph.name, 'model': self.model.model_name,
+                             'sel': self.selection, 'gens': self.num_generations, 'time': time_taken})
+
+        return
+
+    def write_fail_stats(self, level) -> None:
+        """
+        Write fail stats into a csv
+        :return:
+        """
+        fieldnames = ['run_id', 'gname', 'model', 'sel', 'gens', 'level']
+
+        fail_file = './output/fail_stats.csv'
+        if not check_file_exists(fail_file):  # initialize the file with headers
+            writer = csv.DictWriter(open(fail_file, 'w'), fieldnames=fieldnames)
+            writer.writeheader()
+
+        with open(fail_file, 'a') as fp:
+            writer = csv.DictWriter(fp, fieldnames=fieldnames)
+            writer.writerow({'run_id': self.run_id, 'gname': self.initial_graph.name, 'model': self.model.model_name,
+                             'sel': self.selection, 'gens': self.num_generations, 'level': level})
 
         return
