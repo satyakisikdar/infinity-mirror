@@ -72,7 +72,7 @@ class BaseGraphModel:
         #     delayed(self._gen)(gen_id=gen_id, gname=f'{self.gname}_{gen_id}_{self.run_id}_{i + 1}')
         #     for i in range(num_graphs)
         # )
-        generated_graphs = [self._gen(gen_id=gen_id, gname=f'{self.gname}_{gen_id}_{self.run_id}_{i + 1}')
+        generated_graphs = [self._gen(gen_id=gen_id, gname=f'{self.input_graph.name}_{gen_id}_{self.run_id}_{i + 1}')
                             for i in range(num_graphs)]
 
         assert isinstance(generated_graphs, list), 'Parallel generation didnt work'
