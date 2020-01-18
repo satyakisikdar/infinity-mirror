@@ -131,7 +131,7 @@ def main():
 
     CP.print_green(f'Running infinity mirror on {num_jobs} cores for {num_trials} trials')
 
-    Parallel(n_jobs=num_jobs, backend="loky")(
+    Parallel(n_jobs=num_jobs, backend="multiprocessing")(
         delayed(run_infinity_mirror)(run_id=i + 1, args=args)
         for i in range(num_trials)
     )
