@@ -54,7 +54,7 @@ class GraphReader:
         str_path = str(self.path)
 
         if extension in ('.g', '.txt'):
-            graph: nx.Graph = nx.read_edgelist(str_path)
+            graph: nx.Graph = nx.read_edgelist(str_path, nodetype=int)
 
         elif extension == '.gml':
             graph: nx.Graph = nx.read_gml(str_path)
