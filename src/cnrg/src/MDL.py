@@ -1,10 +1,14 @@
-import networkx as nx
 import math
-from src.LightMultiGraph import LightMultiGraph
+from src.cnrg.src.LightMultiGraph import LightMultiGraph
+import math
+
+from src.cnrg.src.LightMultiGraph import LightMultiGraph
+
 
 def gamma_code(n):
     bits = math.log2(n)
     return 2 * bits + 1
+
 
 def nbits(x):
     """
@@ -24,7 +28,7 @@ def graph_dl(g):
      :return: Length in bits to represent graph g in binary
     """
     n = g.order()
-    m = len(g.edges()) # here we dont use size because it will throw the algorithm into a whack
+    m = len(g.edges())  # here we dont use size because it will throw the algorithm into a whack
 
     # TODO: set l_u dynamically, l_u = 2 if the graph consists of just nts and edges
     l_u = find_lu(g)
@@ -41,9 +45,10 @@ def graph_dl(g):
     nnz = 2 * m  # the number of non-zero entries in the matrix
     dl_edges += (n ** 2 - nnz) * gamma_code(0 + 1)
 
-    dl_e = nbits(m) + nbits(l_u) * dl_edges # added the l_u factor
+    dl_e = nbits(m) + nbits(l_u) * dl_edges  # added the l_u factor
 
     return dl_v + dl_e
+
 
 def find_lu(g: LightMultiGraph) -> int:
     l_u = 1  # for edges

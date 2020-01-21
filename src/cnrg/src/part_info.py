@@ -9,8 +9,8 @@ import random
 import networkx as nx
 import numpy as np
 
-from src.LightMultiGraph import LightMultiGraph
-from src.globals import find_boundary_edges
+from src.cnrg.src.LightMultiGraph import LightMultiGraph
+from src.cnrg.src.globals import find_boundary_edges
 
 
 def set_boundary_degrees(g, sg):
@@ -23,6 +23,7 @@ def set_boundary_degrees(g, sg):
         else:
             boundary_degree[v] += g.number_of_edges(u, v)
     nx.set_node_attributes(sg, values=boundary_degree, name='b_deg')
+
 
 def set_boundary_degrees_old(g, sg):
     """
@@ -39,7 +40,7 @@ def set_boundary_degrees_old(g, sg):
         boundary_degree[u] = 0
         for v in g.neighbors(u):
             if not sg.has_node(v):
-                boundary_degree[u] += g.number_of_edges(u, v)   # for a multi-graph
+                boundary_degree[u] += g.number_of_edges(u, v)  # for a multi-graph
 
     nx.set_node_attributes(sg, values=boundary_degree, name='b_deg')
 
@@ -61,7 +62,7 @@ def generate_graph(rule_dict, rule_list):
 
     rule_ordering = []  # list of rule ids in the order they were fired
 
-    while len(non_terminals) > 0:      # continue until no more non-terminal nodes
+    while len(non_terminals) > 0:  # continue until no more non-terminal nodes
         # choose a non terminal node at random
         node_sample = random.sample(non_terminals, 1)[0]
         lhs = new_g.nodes[node_sample]['label']
@@ -73,7 +74,7 @@ def generate_graph(rule_dict, rule_list):
             rhs = rhs_candidates[0]
         else:
             weights = np.array([rule.frequency for rule in rhs_candidates])
-            weights = weights / np.sum(weights)   # normalize into probabilities
+            weights = weights / np.sum(weights)  # normalize into probabilities
             idx = int(np.random.choice(range(len(rhs_candidates)), size=1, p=weights))  # pick based on probability
             rhs = rhs_candidates[idx]
 
@@ -92,14 +93,13 @@ def generate_graph(rule_dict, rule_list):
 
         nodes = {}
 
-        for n, d in rhs.graph.nodes(data=True):   # all the nodes are internal
+        for n, d in rhs.graph.nodes(data=True):  # all the nodes are internal
             new_node = node_counter
             nodes[n] = new_node
             new_g.add_node(new_node, attr_dict=d)
             if 'label' in d:  # if it's a new non-terminal add it to the set of non-terminals
                 non_terminals.add(new_node)
             node_counter += 1
-
 
         # randomly assign broken edges to boundary edges
         random.shuffle(broken_edges)
@@ -112,8 +112,8 @@ def generate_graph(rule_dict, rule_list):
 
             assert len(broken_edges) >= num_boundary_edges
 
-            edge_candidates = broken_edges[: num_boundary_edges]   # picking the first num_broken edges
-            broken_edges = broken_edges[num_boundary_edges: ]    # removing them from future consideration
+            edge_candidates = broken_edges[: num_boundary_edges]  # picking the first num_broken edges
+            broken_edges = broken_edges[num_boundary_edges:]  # removing them from future consideration
 
             for u, v in edge_candidates:  # each edge is either (node_sample, v) or (u, node_sample)
                 if u == node_sample:
@@ -122,7 +122,6 @@ def generate_graph(rule_dict, rule_list):
                     v = nodes[n]
                 # print('adding broken edge ({}, {})'.format(u, v))
                 new_g.add_edge(u, v)
-
 
         # adding the rhs to the new graph
         for u, v in rhs.graph.edges():
@@ -140,4 +139,3 @@ if __name__ == '__main__':
     print(g.edges(data=True))
     set_boundary_degrees(g, sg)
     print(sg.nodes(data=True))
-

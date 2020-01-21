@@ -1,7 +1,7 @@
 import networkx as nx
 import networkx.algorithms.isomorphism as iso
 
-import src.MDL as MDL
+import src.cnrg.src.MDL as MDL
 
 
 class BaseRule:
@@ -88,6 +88,7 @@ class BaseRule:
     def activate(self):
         self.is_active = True
 
+
 class FullRule(BaseRule):
     """
     Rule object for full-info option
@@ -95,7 +96,7 @@ class FullRule(BaseRule):
     __slots__ = 'internal_nodes', 'edges_covered'
 
     def __init__(self, lhs, graph, internal_nodes, level=0, cost=0, frequency=1,
-                 edges_covered = None):
+                 edges_covered=None):
         super().__init__(lhs=lhs, graph=graph, level=level, cost=cost, frequency=frequency)
         self.internal_nodes = internal_nodes  # the set of internal nodes
         self.edges_covered = edges_covered  # edges in the original graph that's covered by the rule
@@ -124,7 +125,6 @@ class FullRule(BaseRule):
         internal_node_counter = 'a'
         boundary_node_counter = 0
 
-
         for n in self.internal_nodes:
             mapping[n] = internal_node_counter
             internal_node_counter = chr(ord(internal_node_counter) + 1)
@@ -134,7 +134,6 @@ class FullRule(BaseRule):
             boundary_node_counter += 1
         self.graph = nx.relabel_nodes(self.graph, mapping=mapping)
         self.internal_nodes = {mapping[n] for n in self.internal_nodes}
-
 
     def contract_rhs(self):
         """
@@ -157,7 +156,7 @@ class FullRule(BaseRule):
 
         assert self.graph.has_node('Iso'), 'No Iso node after contractions'
 
-        self.graph.remove_nodes_from(iso_nodes)   # remove the old isolated nodes
+        self.graph.remove_nodes_from(iso_nodes)  # remove the old isolated nodes
 
         self.generalize_rhs()
         return
@@ -167,6 +166,7 @@ class PartRule(BaseRule):
     """
     Rule class for Partial option
     """
+
     def __init__(self, lhs, graph, level=0, cost=0, frequency=1):
         super().__init__(lhs=lhs, graph=graph, level=level, cost=cost, frequency=frequency)
 
@@ -188,7 +188,6 @@ class PartRule(BaseRule):
             internal_node_counter = chr(ord(internal_node_counter) + 1)
 
         nx.relabel_nodes(self.graph, mapping=mapping, copy=False)
-
 
     def calculate_cost(self):
         """
@@ -212,6 +211,7 @@ class NoRule(PartRule):
     """
     Class for no_info
     """
+
     def __deepcopy__(self, memodict={}):
         return NoRule(lhs=self.lhs, graph=self.graph, level=self.level, cost=self.cost, frequency=self.frequency)
 

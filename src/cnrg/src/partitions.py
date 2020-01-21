@@ -14,12 +14,10 @@ import leidenalg as la
 import networkx as nx
 import scipy.sparse.linalg
 import sklearn.preprocessing
-
-from scipy.cluster.hierarchy import linkage, to_tree, cophenet
-from scipy.spatial.distance import pdist
 from sklearn.cluster import KMeans
 
-from src.LightMultiGraph import LightMultiGraph
+from src.cnrg.src.LightMultiGraph import LightMultiGraph
+
 
 def leiden_one_level_old(g):
     if g.size() < 3 and nx.is_connected(g):
@@ -27,7 +25,8 @@ def leiden_one_level_old(g):
     g = nx.convert_node_labels_to_integers(g, label_attribute='old_label')
     nx.write_edgelist(g, './src/leiden/graph.g', delimiter='\t', data=False)
 
-    subprocess.run('cd src/leiden; java -jar RunNetworkClustering.jar -q modularity -o clusters.txt graph.g', shell=True)
+    subprocess.run('cd src/leiden; java -jar RunNetworkClustering.jar -q modularity -o clusters.txt graph.g',
+                   shell=True)
 
     clusters = defaultdict(list)
     old_label = nx.get_node_attributes(g, 'old_label')
@@ -92,7 +91,7 @@ def random_partition(nodes):
         return nodes
 
     left = nodes[: len(nodes) // 2]
-    right = nodes[len(nodes) // 2: ]
+    right = nodes[len(nodes) // 2:]
 
     tree.append(random_partition(left))
     tree.append(random_partition(right))
@@ -170,7 +169,7 @@ def approx_min_conductance_partitioning(g: LightMultiGraph, max_k=1):
 
         # Hack to check and fix non connected subgraphs
         if not nx.is_connected(sg1):
-            for sg in sorted(nx.connected_component_subgraphs(sg1), key=len, reverse=True)[1: ]:
+            for sg in sorted(nx.connected_component_subgraphs(sg1), key=len, reverse=True)[1:]:
                 p2.update(sg.nodes())
                 for n in sg.nodes():
                     p1.remove(n)
@@ -178,7 +177,7 @@ def approx_min_conductance_partitioning(g: LightMultiGraph, max_k=1):
             sg2 = g.subgraph(p2)  # updating sg2 since p2 has changed
 
         if not nx.is_connected(sg2):
-            for sg in sorted(nx.connected_component_subgraphs(sg2), key=len, reverse=True)[1: ]:
+            for sg in sorted(nx.connected_component_subgraphs(sg2), key=len, reverse=True)[1:]:
                 p1.update(sg.nodes())
                 for n in sg.nodes():
                     p2.remove(n)
@@ -206,7 +205,7 @@ def spectral_kmeans(g: LightMultiGraph, K):
     """
     tree = []
 
-    if g.order() <= K:   # not more than k nodes, return the list of nodes
+    if g.order() <= K:  # not more than k nodes, return the list of nodes
         return [[n] for n in g.nodes()]
 
     if K == 2:  # if K is two, use approx min partitioning
@@ -214,9 +213,9 @@ def spectral_kmeans(g: LightMultiGraph, K):
 
     if not nx.is_connected(g):
         for p in nx.connected_component_subgraphs(g):
-            if p.order() > K + 1:   # if p has more than K + 1 nodes, use spectral K-means
+            if p.order() > K + 1:  # if p has more than K + 1 nodes, use spectral K-means
                 tree.append(spectral_kmeans(p, K))
-            else:   # try spectral K-means with a lesser K
+            else:  # try spectral K-means with a lesser K
                 tree.append(spectral_kmeans(p, K - 1))
         assert len(tree) > 0
         return tree
@@ -252,4 +251,3 @@ def spectral_kmeans(g: LightMultiGraph, K):
             tree.append(spectral_kmeans(sg, K - 1))
 
     return tree
-
