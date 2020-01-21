@@ -9,7 +9,7 @@ from src.cnrg.src.Rule import PartRule
 from src.cnrg.src.globals import find_boundary_edges
 
 
-def generate_graph(target_n: int, rule_dict: Dict, tolerance_bounds: float = 0.10) -> LightMultiGraph:
+def generate_graph(target_n: int, rule_dict: Dict, tolerance_bounds: float = 0.05) -> LightMultiGraph:
     """
     Generates graphs
     :param target_n: number of nodes to target
