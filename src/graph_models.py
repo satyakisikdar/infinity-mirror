@@ -10,10 +10,11 @@ from typing import List, Dict, Any, Union
 
 import networkx as nx
 import numpy as np
-from joblib import Parallel, delayed
 
 from src.utils import ColorPrint as CP
 from src.utils import check_file_exists, load_pickle, delete_files, get_blank_graph
+from src.cnrg.runner import get_grammar
+from src.cnrg.src.generate import generate_graph
 
 __all__ = ['BaseGraphModel', 'ErdosRenyi', 'UniformRandom', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker']
 
@@ -296,14 +297,23 @@ class CNRG(BaseGraphModel):
 
     def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
         super().__init__(model_name='CNRG', input_graph=input_graph, run_id=run_id)
-        self.prep_environment()
         return
 
     def _fit(self) -> None:
-        pass  # the Python code does the fitting
+        grammar = get_grammar(self.input_graph, name=self.input_graph.name)
+        self.params['grammar'] = grammar
+        return
 
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
-        pass  # CNRGs can generate multiple graphs at once
+        assert 'grammar' in self.params, 'Improper params. Grammar object is missing.'
+
+        light_g = generate_graph(target_n=self.input_graph.order(), rule_dict=self.params['grammar'].rule_dict)
+        g = nx.Graph()
+        g.add_edges_from(light_g.edges())
+        g.name = gname
+        g.gen_id = gen_id
+
+        return g
 
     def prep_environment(self) -> None:
         """
@@ -330,7 +340,7 @@ class CNRG(BaseGraphModel):
         assert completed_process.returncode == 0, 'Error while creating environment for CNRG'
         return
 
-    def generate(self, num_graphs: int, gen_id: int) -> Union[List[nx.Graph], Any]:
+    def _generate(self, num_graphs: int, gen_id: int) -> Union[List[nx.Graph], Any]:
         edgelist_path = f'./src/cnrg/src/tmp/{self.initial_gname}_{self.run_id}.g'
         nx.write_edgelist(self.input_graph, edgelist_path, data=False)
 
@@ -375,7 +385,7 @@ class HRG(BaseGraphModel):
         return
 
     def _fit(self) -> None:
-        pass  # the Python code does the fitting
+        return
 
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
         pass  # HRGs can generate multiple graphs at once
