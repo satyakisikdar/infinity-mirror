@@ -2,6 +2,8 @@
 Container for different graph stats
 """
 import platform
+import signal
+import os
 import subprocess as sub
 from collections import Counter, deque
 from typing import Dict, Tuple, List
@@ -321,14 +323,16 @@ class GraphStats:
             nx.write_edgelist(self.graph, graph_path, data=False)
 
             try:
-                completed_process = sub.run(f'cd src/PGD; ./pgd_{self.run_id} -w 1 -f {graph_filename} -c {counts_filename}',
-                                            shell=True, timeout=10)  # timeout: 10s
+                bash_script = f'{pgd_path}/pgd_{self.run_id} -w 1 -f {graph_path} -c {counts_path}'
+                pipe = sub.Popen(['exec ', bash_script], shell=True, preexec_fn=os.setsid)
+                pipe.wait(2)  # waits 2 seconds to finish
             except sub.TimeoutExpired:
+                pipe.kill()
                 CP.print_blue('PGD timed out')
                 graphlet_counts = {}
 
             else:  # pgd is successfully run
-                if completed_process.returncode == 0 and check_file_exists(counts_path):
+                if check_file_exists(counts_path):
                     graphlet_counts = {}
                     with open(counts_path) as fp:
                         for line in fp:
