@@ -22,10 +22,11 @@ class GraphStats:
     """
     GraphStats has methods for finding different statistics for a NetworkX graph
     """
-    __slots__ = ['graph', 'stats']
+    __slots__ = ['graph', 'stats', 'run_id']
 
-    def __init__(self, graph: nx.Graph):
+    def __init__(self, graph: nx.Graph, run_id: int):
         self.graph: nx.Graph = graph
+        self.run_id = run_id
         self.stats: Dict[str, float] = {'n': graph.order(), 'm': graph.size()}
 
     def __str__(self) -> str:
@@ -167,11 +168,6 @@ class GraphStats:
             deg = self.graph.degree[node]
             degree_counts[deg] += 1
             clustering_by_degree[deg] += cc
-
-        # average it out - TODO: double check
-        # for node, cc in clustering_coeffs.items():
-        #     deg = self.graph.degree[node]
-        #     clustering_by_degree[deg] /= degree_counts[deg]  # calculate the mean
 
         self.stats['clustering_coefficients_by_degree'] = clustering_by_degree
         return clustering_by_degree
@@ -315,7 +311,7 @@ class GraphStats:
         """
         pgd_path = './src/PGD'
 
-        if 'Linux' in platform.platform() and check_file_exists(f'{pgd_path}/pgd'):
+        if 'Linux' in platform.platform() and check_file_exists(f'{pgd_path}/pgd_{self.run_id}'):
             graph_filename = f'{self.graph.name}.g'
             graph_path = f'{pgd_path}/{graph_filename}'
             counts_filename = f'{self.graph.name}.counts'
@@ -327,6 +323,7 @@ class GraphStats:
                 completed_process = sub.run(f'cd src/PGD; ./pgd -w 1 -f {graph_filename} -c {counts_filename}',
                                             shell=True, timeout=10)  # timeout: 10s
             except sub.TimeoutExpired:
+                CP.print_blue('PGD timed out')
                 graphlet_counts = {}
 
             else:  # pgd is successfully run
@@ -336,7 +333,10 @@ class GraphStats:
                         for line in fp:
                             graphlet_name, count = map(lambda st: st.strip(), line.split('='))
                             graphlet_counts[graphlet_name] = int(count)
+            delete_files(graph_path, counts_path)
         else:
             graphlet_counts = {}
+
         self.stats['pgd_graphlet_counts'] = graphlet_counts
+
         return graphlet_counts

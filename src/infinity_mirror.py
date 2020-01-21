@@ -40,7 +40,7 @@ class InfinityMirror:
         self.num_generations: int = num_generations  # number of generations
         self.model: BaseGraphModel = model_obj(input_graph=self.initial_graph,
                                                run_id=self.run_id)  # initialize and fit the model
-        self.initial_graph_stats: GraphStats = GraphStats(
+        self.initial_graph_stats: GraphStats = GraphStats(run_id=run_id,
             graph=self.initial_graph)  # initialize graph_stats object for the initial_graph which is the same across generations
         self.root: TreeNode = TreeNode('root', graph=self.initial_graph,
                                        stats={})  # root of the tree with the initial graph and empty stats dictionary
@@ -82,7 +82,7 @@ class InfinityMirror:
         scores: Dict[str, List[Stats]] = {metric: [] for metric in self._metrics}
 
         graph_comps_list = Parallel()(
-            delayed(GraphPairCompare)(gstats1=self.initial_graph_stats, gstats2=GraphStats(gen_graph))
+            delayed(GraphPairCompare)(gstats1=self.initial_graph_stats, gstats2=GraphStats(gen_graph, run_id=self.run_id))
             for i, gen_graph in enumerate(generated_graphs))
 
         assert isinstance(graph_comps_list, list), 'Graph comp pairs is not a list'
