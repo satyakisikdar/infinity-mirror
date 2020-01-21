@@ -310,6 +310,7 @@ class GraphStats:
         :return:
         """
         pgd_path = './src/PGD'
+        graphlet_counts = {}
 
         if 'Linux' in platform.platform() and check_file_exists(f'{pgd_path}/pgd_{self.run_id}'):
             graph_filename = f'{self.graph.name}.g'
