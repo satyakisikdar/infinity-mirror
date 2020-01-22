@@ -30,3 +30,9 @@ clone `https://github.com/daniel-gonzalez-cedre/gae.git` instead of the standard
 ##  training the model
 - run `python train.py`
 - run `python train.py --dataset <mydata>`
+
+
+## Program notes
+- Treat trained matrix as a matrix of probabilities
+- Sample 'n' binary matrices from the prob matrix thru repeated sampling like Erdos Renyi
+- Make the matrices symmetric by taking logical AND of the matrix and its transpose

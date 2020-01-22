@@ -1,10 +1,6 @@
-from __future__ import division
-from __future__ import print_function
-
 import os
-import time
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 # Train on CPU (hide GPU) due to memory constraints
 os.environ['CUDA_VISIBLE_DEVICES'] = "0"
@@ -13,76 +9,40 @@ import tensorflow as tf
 import numpy as np
 import scipy.sparse as sp
 
-from sklearn.metrics import roc_auc_score
-from sklearn.metrics import average_precision_score
-from networkx import from_numpy_matrix
+from collections import namedtuple
 
 from src.gae.gae.optimizer import OptimizerAE, OptimizerVAE
-from src.gae.gae.input_data import load_data
 from src.gae.gae.model import GCNModelAE, GCNModelVAE
 from src.gae.gae.preprocessing import preprocess_graph, construct_feed_dict, sparse_to_tuple, mask_test_edges
 
 # Settings
-flags = tf.app.flags
-FLAGS = flags.FLAGS
-flags.DEFINE_float('learning_rate', 0.01, 'Initial learning rate.')
-flags.DEFINE_integer('epochs', 200, 'Number of epochs to train.')
-flags.DEFINE_integer('hidden1', 32, 'Number of units in hidden layer 1.')
-flags.DEFINE_integer('hidden2', 16, 'Number of units in hidden layer 2.')
-flags.DEFINE_float('weight_decay', 0., 'Weight for L2 loss on embedding matrix.')
-flags.DEFINE_float('dropout', 0., 'Dropout rate (1 - keep probability).')
+flags = namedtuple('FLAGS', 'learning_rate epochs hidden1 hidden2 weight_decay dropout model dataset features')
+FLAGS = flags(0.01, 200, 32, 16, 0., 0., 'gcn_ae', 'cora', 1)
 
-flags.DEFINE_string('model', 'gcn_ae', 'Model string.')
-flags.DEFINE_string('dataset', 'cora', 'Dataset string.')
-flags.DEFINE_integer('features', 1, 'Whether to use features (1) or not (0).')
+# flags = tf.app.flags
+# FLAGS = flags.FLAGS
+# flags.DEFINE_float('learning_rate', 0.01, 'Initial learning rate.')
+# flags.DEFINE_integer('epochs', 200, 'Number of epochs to train.')
+# flags.DEFINE_integer('hidden1', 32, 'Number of units in hidden layer 1.')
+# flags.DEFINE_integer('hidden2', 16, 'Number of units in hidden layer 2.')
+# flags.DEFINE_float('weight_decay', 0., 'Weight for L2 loss on embedding matrix.')
+# flags.DEFINE_float('dropout', 0., 'Dropout rate (1 - keep probability).')
+#
+# flags.DEFINE_string('model', 'gcn_ae', 'Model string.')
+# flags.DEFINE_string('dataset', 'cora', 'Dataset string.')
+# flags.DEFINE_integer('features', 1, 'Whether to use features (1) or not (0).')
 
-# EXPERIMENTAL
-flags.DEFINE_string('format', 'g', 'Output data format.')
-# /EXPERIMENTAL
-
-def get_roc_score(edges_pos, edges_neg, emb=None):
-    if emb is None:
-        feed_dict.update({placeholders['dropout']: 0})
-        emb = sess.run(model.z_mean, feed_dict=feed_dict)
-
-    def sigmoid(x):
-        return 1 / (1 + np.exp(-x))
-
-    # Predict on test set of edges
-    adj_rec = np.dot(emb, emb.T)
-    preds = []
-    pos = []
-    for e in edges_pos:
-        preds.append(sigmoid(adj_rec[e[0], e[1]]))
-        pos.append(adj_orig[e[0], e[1]])
-
-    preds_neg = []
-    neg = []
-    for e in edges_neg:
-        preds_neg.append(sigmoid(adj_rec[e[0], e[1]]))
-        neg.append(adj_orig[e[0], e[1]])
-
-    preds_all = np.hstack([preds, preds_neg])
-    labels_all = np.hstack([np.ones(len(preds)), np.zeros(len(preds_neg))])
-    roc_score = roc_auc_score(labels_all, preds_all)
-    ap_score = average_precision_score(labels_all, preds_all)
-
-    return roc_score, ap_score
-
-# takes in some parameters and returns a learned probability adjacency matrix
-def fit_ae(dataset, features_flag, epochs):
+def fit_ae(adj_matrix, epochs=200):
     ''' trains a non-variational graph autoencoder on a given input graph
-
         parameters:
-            dataset (string):       path to the graph (edge list) to use for training
-            features_flag (bool):   boolean flag indicating whether or not to use features for training
+            adj_matrix (ndarray):   adjacency matrix of the graph
             epochs (int):           how many iterations to train the model for
         output:
-            an adjacency matrix of probabilities for every edge
+            a matrix containing probabilities corresponding to edges in an adjacency matrix
     '''
     # load data
-    adj, features = load_data(dataset, features_flag)
-    #dataset = adj
+    adj = adj_matrix
+    features = sp.identity(adj.shape[0])
 
     # store original adjacency matrix (without diagonal entries) for later
     adj_orig = adj
@@ -90,7 +50,13 @@ def fit_ae(dataset, features_flag, epochs):
     adj_orig.eliminate_zeros()
 
     # compute train/test/validation splits
-    adj_train, train_edges, val_edges, val_edges_false, test_edges, test_edges_false = mask_test_edges(adj)
+    while True:
+        try:
+            adj_train, train_edges, val_edges, val_edges_false, test_edges, test_edges_false = mask_test_edges(adj)
+        except AssertionError as e:
+            continue
+        else:
+            break
     adj = adj_train
 
     # some preprocessing
@@ -104,13 +70,11 @@ def fit_ae(dataset, features_flag, epochs):
         'dropout': tf.placeholder_with_default(0., shape=())
     }
 
-    num_nodes = adj.shape[0]
     features = sparse_to_tuple(features.tocoo())
     num_features = features[2][1]
     features_nonzero = features[1].shape[0]
 
     # define the model
-    model = None
     model = GCNModelAE(placeholders, num_features, features_nonzero)
 
     pos_weight = float(adj.shape[0] * adj.shape[0] - adj.sum()) / adj.sum()
@@ -119,27 +83,19 @@ def fit_ae(dataset, features_flag, epochs):
     # define the optimizer
     with tf.name_scope('optimizer'):
         opt = OptimizerAE(preds=model.reconstructions,
-                        labels=tf.reshape(tf.sparse_tensor_to_dense(placeholders['adj_orig'],
-                                                                    validate_indices=False), [-1]),
-                        pos_weight=pos_weight,
-                        norm=norm)
+                          labels=tf.reshape(tf.sparse_tensor_to_dense(placeholders['adj_orig'], validate_indices=False), [-1]),
+                          pos_weight=pos_weight,
+                          norm=norm)
 
     # start up TensorFlow session
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
 
-    cost_val = []
-    acc_val = []
-    val_roc_score = []
-
     adj_label = adj_train + sp.eye(adj_train.shape[0])
     adj_label = sparse_to_tuple(adj_label)
 
     # train the model
-    info = []
     for epoch in range(epochs):
-        t = time.time()
-
         # construct feed dictionary
         feed_dict = construct_feed_dict(adj_norm, adj_label, features, placeholders)
         feed_dict.update({placeholders['dropout']: FLAGS.dropout})
@@ -147,45 +103,21 @@ def fit_ae(dataset, features_flag, epochs):
         # run single weight update
         outs = sess.run([opt.opt_op, opt.cost, opt.accuracy, opt.preds_sub], feed_dict=feed_dict)
 
-        # compute average loss
-        avg_cost = outs[1]
-        avg_accuracy = outs[2]
+    probs = sess.run(tf.nn.sigmoid(outs[3])).reshape(adj_matrix.shape)
 
-        roc_curr, ap_curr = get_roc_score(val_edges, val_edges_false)
-        val_roc_score.append(roc_curr)
+    return probs
 
-        # accumulate training info
-        summary = 'Epoch: ' + '%04d' % (epoch + 1) + ' ' \
-                + 'train_loss= ' + '{:.5f}'.format(avg_cost) + ' ' \
-                + 'train_acc= ' + '{:.5f}'.format(avg_accuracy) + ' ' \
-                + 'val_roc= ' + '{:.5f}'.format(val_roc_score[-1]) + ' ' \
-                + 'val_ap= ' + '{:.5f}'.format(ap_curr) + ' ' \
-                + 'time= ' + '{:.5f}'.format(time.time() - t)
-        info.append()
-
-    # print some stats
-    roc_score, ap_score = get_roc_score(test_edges, test_edges_false)
-    info.append('Optimization Finished!')
-    info.append('Test ROC score: ' + str(roc_score))
-    info.append('Test AP score: ' + str(ap_score))
-
-    probs = sess.run(tf.nn.sigmoid(outs[3])).reshape(dataset.shape)
-
-    return probs, info
-
-def fit_vae(dataset, features_flag, epochs):
-    ''' trains a non-variational graph autoencoder on a given input graph
-
+def fit_vae(adj_matrix, epochs=200):
+    ''' trains a variational graph autoencoder on a given input graph
         parameters:
-            dataset (string):       path to the graph (edge list) to use for training
-            features_flag (bool):   boolean flag indicating whether or not to use features for training
+            adj_matrix (ndarray):   adjacency matrix of the graph
             epochs (int):           how many iterations to train the model for
         output:
-            an adjacency matrix of probabilities for every edge
+            a matrix containing probabilities corresponding to edges in an adjacency matrix
     '''
     # load data
-    adj, features = load_data(dataset, features_flag)
-    #dataset = adj
+    adj = adj_matrix
+    features = sp.identity(adj.shape[0])
 
     # store original adjacency matrix (without diagonal entries) for later
     adj_orig = adj
@@ -193,7 +125,14 @@ def fit_vae(dataset, features_flag, epochs):
     adj_orig.eliminate_zeros()
 
     # compute train/test/validation splits
-    adj_train, train_edges, val_edges, val_edges_false, test_edges, test_edges_false = mask_test_edges(adj)
+    while True:
+        # compute train/test/validation splits
+        try:
+            adj_train, train_edges, val_edges, val_edges_false, test_edges, test_edges_false = mask_test_edges(adj)
+        except AssertionError as e:
+            continue
+        else:
+            break
     adj = adj_train
 
     # some preprocessing
@@ -213,7 +152,6 @@ def fit_vae(dataset, features_flag, epochs):
     features_nonzero = features[1].shape[0]
 
     # define the model
-    model = None
     model = GCNModelVAE(placeholders, num_features, num_nodes, features_nonzero)
 
     pos_weight = float(adj.shape[0] * adj.shape[0] - adj.sum()) / adj.sum()
@@ -222,28 +160,20 @@ def fit_vae(dataset, features_flag, epochs):
     # define the optimizer
     with tf.name_scope('optimizer'):
         opt = OptimizerVAE(preds=model.reconstructions,
-                        labels=tf.reshape(tf.sparse_tensor_to_dense(placeholders['adj_orig'],
-                                                                    validate_indices=False), [-1]),
-                        model=model, num_nodes=num_nodes,
-                        pos_weight=pos_weight,
-                        norm=norm)
+                           labels=tf.reshape(tf.sparse_tensor_to_dense(placeholders['adj_orig'], validate_indices=False), [-1]),
+                           model=model, num_nodes=num_nodes,
+                           pos_weight=pos_weight,
+                           norm=norm)
 
     # start up TensorFlow session
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
 
-    cost_val = []
-    acc_val = []
-    val_roc_score = []
-
     adj_label = adj_train + sp.eye(adj_train.shape[0])
     adj_label = sparse_to_tuple(adj_label)
 
     # train the model
-    info = []
     for epoch in range(epochs):
-        t = time.time()
-
         # construct feed dictionary
         feed_dict = construct_feed_dict(adj_norm, adj_label, features, placeholders)
         feed_dict.update({placeholders['dropout']: FLAGS.dropout})
@@ -251,38 +181,6 @@ def fit_vae(dataset, features_flag, epochs):
         # run single weight update
         outs = sess.run([opt.opt_op, opt.cost, opt.accuracy, opt.preds_sub], feed_dict=feed_dict)
 
-        # compute average loss
-        avg_cost = outs[1]
-        avg_accuracy = outs[2]
+    probs = sess.run(tf.nn.sigmoid(outs[3])).reshape(adj_matrix.shape)
 
-        roc_curr, ap_curr = get_roc_score(val_edges, val_edges_false)
-        val_roc_score.append(roc_curr)
-
-        # accumulate training info
-        summary = 'Epoch: ' + '%04d' % (epoch + 1) + ' ' \
-                + 'train_loss= ' + '{:.5f}'.format(avg_cost) + ' ' \
-                + 'train_acc= ' + '{:.5f}'.format(avg_accuracy) + ' ' \
-                + 'val_roc= ' + '{:.5f}'.format(val_roc_score[-1]) + ' ' \
-                + 'val_ap= ' + '{:.5f}'.format(ap_curr) + ' ' \
-                + 'time= ' + '{:.5f}'.format(time.time() - t)
-        info.append()
-
-    # print some stats
-    roc_score, ap_score = get_roc_score(test_edges, test_edges_false)
-    info.append('Optimization Finished!')
-    info.append('Test ROC score: ' + str(roc_score))
-    info.append('Test AP score: ' + str(ap_score))
-
-    probs = sess.run(tf.nn.sigmoid(outs[3])).reshape(dataset.shape)
-
-    return probs, info
-
-# EXPERIMENTAL
-output = sess.run(tf.nn.sigmoid(outs[3])).reshape(dataset.shape)
-output = output >= np.ones(dataset.shape) * 0.5
-if format_str == 'mat':
-    np.savetxt('data/' + dataset_str + '_' + model_str + '.mat', output, fmt='%d')
-elif format_str == 'g':
-    output_g = np.asarray(from_numpy_matrix(output).edges())
-    np.savetxt('data/' + dataset_str + '_' + model_str + '.g', output, fmt='%d')
-# /EXPERIMENTAL
+    return probs

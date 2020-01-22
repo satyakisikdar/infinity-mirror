@@ -1,8 +1,15 @@
-from gae.layers import GraphConvolution, GraphConvolutionSparse, InnerProductDecoder
+import os
+from collections import namedtuple
+
 import tensorflow as tf
 
-flags = tf.app.flags
-FLAGS = flags.FLAGS
+from src.gae.gae.layers import GraphConvolution, GraphConvolutionSparse, InnerProductDecoder
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+tf.logging.set_verbosity(tf.logging.ERROR)
+
+flags = namedtuple('FLAGS', 'learning_rate epochs hidden1 hidden2 weight_decay dropout model dataset features')
+FLAGS = flags(0.01, 200, 32, 16, 0., 0., 'gcn_ae', 'cora', 1)
 
 
 class Model(object):
@@ -70,8 +77,8 @@ class GCNModelAE(Model):
         self.z_mean = self.embeddings
 
         self.reconstructions = InnerProductDecoder(input_dim=FLAGS.hidden2,
-                                      act=lambda x: x,
-                                      logging=self.logging)(self.embeddings)
+                                                   act=lambda x: x,
+                                                   logging=self.logging)(self.embeddings)
 
 
 class GCNModelVAE(Model):
@@ -112,5 +119,5 @@ class GCNModelVAE(Model):
         self.z = self.z_mean + tf.random_normal([self.n_samples, FLAGS.hidden2]) * tf.exp(self.z_log_std)
 
         self.reconstructions = InnerProductDecoder(input_dim=FLAGS.hidden2,
-                                      act=lambda x: x,
-                                      logging=self.logging)(self.z)
+                                                   act=lambda x: x,
+                                                   logging=self.logging)(self.z)

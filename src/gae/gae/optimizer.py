@@ -1,7 +1,13 @@
+import os
+from collections import namedtuple
+
 import tensorflow as tf
 
-flags = tf.app.flags
-FLAGS = flags.FLAGS
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+
+flags = namedtuple('FLAGS', 'learning_rate epochs hidden1 hidden2 weight_decay dropout model dataset features')
+FLAGS = flags(0.01, 200, 32, 16, 0., 0., 'gcn_ae', 'cora', 1)
 
 
 class OptimizerAE(object):
@@ -9,7 +15,8 @@ class OptimizerAE(object):
         self.preds_sub = preds
         labels_sub = labels
 
-        self.cost = norm * tf.reduce_mean(tf.nn.weighted_cross_entropy_with_logits(logits=self.preds_sub, targets=labels_sub, pos_weight=pos_weight))
+        self.cost = norm * tf.reduce_mean(
+            tf.nn.weighted_cross_entropy_with_logits(logits=self.preds_sub, targets=labels_sub, pos_weight=pos_weight))
         self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)  # Adam Optimizer
 
         self.opt_op = self.optimizer.minimize(self.cost)
@@ -25,7 +32,8 @@ class OptimizerVAE(object):
         self.preds_sub = preds
         labels_sub = labels
 
-        self.cost = norm * tf.reduce_mean(tf.nn.weighted_cross_entropy_with_logits(logits=self.preds_sub, targets=labels_sub, pos_weight=pos_weight))
+        self.cost = norm * tf.reduce_mean(
+            tf.nn.weighted_cross_entropy_with_logits(logits=self.preds_sub, targets=labels_sub, pos_weight=pos_weight))
         self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)  # Adam Optimizer
 
         # Latent loss
