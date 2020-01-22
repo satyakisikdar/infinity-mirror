@@ -324,7 +324,7 @@ class GraphStats:
 
             try:
                 bash_script = f'{pgd_path}/pgd_{self.run_id} -w 1 -f {graph_path} -c {counts_path}'
-                pipe = sub.Popen(['exec ', bash_script], shell=True, preexec_fn=os.setsid)
+                pipe = sub.Popen([bash_script], shell=True, stdout=sub.DEVNULL)
                 pipe.wait(2)  # waits 2 seconds to finish
             except sub.TimeoutExpired:
                 pipe.kill()
