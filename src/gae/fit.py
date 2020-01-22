@@ -31,51 +31,15 @@ flags.DEFINE_string('model', 'gcn_ae', 'Model string.')
 flags.DEFINE_string('dataset', 'cora', 'Dataset string.')
 flags.DEFINE_integer('features', 1, 'Whether to use features (1) or not (0).')
 
-# EXPERIMENTAL
 flags.DEFINE_string('format', 'g', 'Output data format.')
-
-
-# /EXPERIMENTAL
-
-def get_roc_score(edges_pos, edges_neg, feed_dict, placeholders, model, sess, adj_orig, emb=None):
-    if emb is None:
-        feed_dict.update({placeholders['dropout']: 0})
-        emb = sess.run(model.z_mean, feed_dict=feed_dict)
-
-    def sigmoid(x):
-        return 1 / (1 + np.exp(-x))
-
-    # Predict on test set of edges
-    adj_rec = np.dot(emb, emb.T)
-    preds = []
-    pos = []
-    for e in edges_pos:
-        preds.append(sigmoid(adj_rec[e[0], e[1]]))
-        pos.append(adj_orig[e[0], e[1]])
-
-    preds_neg = []
-    neg = []
-    for e in edges_neg:
-        preds_neg.append(sigmoid(adj_rec[e[0], e[1]]))
-        neg.append(adj_orig[e[0], e[1]])
-
-    preds_all = np.hstack([preds, preds_neg])
-    labels_all = np.hstack([np.ones(len(preds)), np.zeros(len(preds_neg))])
-    roc_score = roc_auc_score(labels_all, preds_all)
-    ap_score = average_precision_score(labels_all, preds_all)
-
-    return roc_score, ap_score
-
 
 def fit_ae(adj_matrix, epochs):
     ''' trains a non-variational graph autoencoder on a given input graph
-
-            parameters:
-                dataset (string):       path to the graph (edge list) to use for training
-                features_flag (bool):   boolean flag indicating whether or not to use features for training
-                epochs (int):           how many iterations to train the model for
-            output:
-                an adjacency matrix of probabilities for every edge
+        parameters:
+            adj_matrix (ndarray):   adjacency matrix of the graph
+            epochs (int):           how many iterations to train the model for
+        output:
+            a matrix containing probabilities corresponding to edges in an adjacency matrix
     '''
     # load data
     adj = adj_matrix
@@ -101,7 +65,6 @@ def fit_ae(adj_matrix, epochs):
         'dropout': tf.placeholder_with_default(0., shape=())
     }
 
-    num_nodes = adj.shape[0]
     features = sparse_to_tuple(features.tocoo())
     num_features = features[2][1]
     features_nonzero = features[1].shape[0]
@@ -115,21 +78,19 @@ def fit_ae(adj_matrix, epochs):
     # define the optimizer
     with tf.name_scope('optimizer'):
         opt = OptimizerAE(preds=model.reconstructions,
-                          labels=tf.reshape(tf.sparse_tensor_to_dense(placeholders['adj_orig'],
-                                                                      validate_indices=False), [-1]),
+                          labels=tf.reshape(tf.sparse_tensor_to_dense(placeholders['adj_orig'], validate_indices=False), [-1]),
                           pos_weight=pos_weight,
                           norm=norm)
 
     # start up TensorFlow session
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
+
     adj_label = adj_train + sp.eye(adj_train.shape[0])
     adj_label = sparse_to_tuple(adj_label)
 
     # train the model
     for epoch in range(epochs):
-        t = time.time()
-
         # construct feed dictionary
         feed_dict = construct_feed_dict(adj_norm, adj_label, features, placeholders)
         feed_dict.update({placeholders['dropout']: FLAGS.dropout})
@@ -141,16 +102,13 @@ def fit_ae(adj_matrix, epochs):
 
     return probs
 
-
 def fit_vae(adj_matrix, epochs):
-    ''' trains a non-variational graph autoencoder on a given input graph
-
+    ''' trains a variational graph autoencoder on a given input graph
         parameters:
-            adj_matrix (string):    adjacency matrix of the graph
-            features_flag (bool):   boolean flag indicating whether or not to use features for training
+            adj_matrix (ndarray):   adjacency matrix of the graph
             epochs (int):           how many iterations to train the model for
         output:
-            an adjacency matrix of probabilities for every edge
+            a matrix containing probabilities corresponding to edges in an adjacency matrix
     '''
     # load data
     adj = adj_matrix
@@ -190,8 +148,7 @@ def fit_vae(adj_matrix, epochs):
     # define the optimizer
     with tf.name_scope('optimizer'):
         opt = OptimizerVAE(preds=model.reconstructions,
-                           labels=tf.reshape(tf.sparse_tensor_to_dense(placeholders['adj_orig'],
-                                                                       validate_indices=False), [-1]),
+                           labels=tf.reshape(tf.sparse_tensor_to_dense(placeholders['adj_orig'], validate_indices=False), [-1]),
                            model=model, num_nodes=num_nodes,
                            pos_weight=pos_weight,
                            norm=norm)
@@ -215,13 +172,3 @@ def fit_vae(adj_matrix, epochs):
     probs = sess.run(tf.nn.sigmoid(outs[3])).reshape(adj_matrix.shape)
 
     return probs
-
-# # EXPERIMENTAL
-# output = sess.run(tf.nn.sigmoid(outs[3])).reshape(dataset.shape)
-# output = output >= np.ones(dataset.shape) * 0.5
-# if format_str == 'mat':
-#     np.savetxt('data/' + dataset_str + '_' + model_str + '.mat', output, fmt='%d')
-# elif format_str == 'g':
-#     output_g = np.asarray(from_numpy_matrix(output).edges())
-#     np.savetxt('data/' + dataset_str + '_' + model_str + '.g', output, fmt='%d')
-# # /EXPERIMENTAL
