@@ -11,10 +11,10 @@ from typing import List, Dict, Any, Union
 import networkx as nx
 import numpy as np
 
-from src.utils import ColorPrint as CP
-from src.utils import check_file_exists, load_pickle, delete_files, get_blank_graph
 from src.cnrg.runner import get_grammar
 from src.cnrg.src.generate import generate_graph
+from src.utils import ColorPrint as CP
+from src.utils import check_file_exists, load_pickle, delete_files, get_blank_graph
 
 __all__ = ['BaseGraphModel', 'ErdosRenyi', 'UniformRandom', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker']
 
@@ -315,64 +315,6 @@ class CNRG(BaseGraphModel):
 
         return g
 
-    def prep_environment(self) -> None:
-        """
-        Prepare the Python environment
-        :return:
-        """
-        if check_file_exists('./envs/cnrg'):
-            return
-
-        CP.print_blue('Making virtual environment for CNRG')
-        sub.run('python3 -m venv ./envs/cnrg; . ./envs/cnrg/bin/activate; which python3;', shell=True,
-                stdout=sub.DEVNULL)  # create and activate environment
-
-        if 'Linux' not in platform.platform():
-            completed_process = sub.run(
-                'export CC=gcc-9; export CXX=g++-9;. ./envs/cnrg/bin/activate; python3 -m pip install -r ./envs/requirements_cnrg.txt',
-                shell=True, stdout=sub.DEVNULL)  # install requirements for cnrg
-
-        else:
-            completed_process = sub.run(
-                '. ./envs/cnrg/bin/activate; python3 -m pip install -r ./envs/requirements_cnrg.txt',
-                shell=True, stdout=sub.DEVNULL)  # install requirements for cnrg
-
-        assert completed_process.returncode == 0, 'Error while creating environment for CNRG'
-        return
-
-    def _generate(self, num_graphs: int, gen_id: int) -> Union[List[nx.Graph], Any]:
-        edgelist_path = f'./src/cnrg/src/tmp/{self.initial_gname}_{self.run_id}.g'
-        nx.write_edgelist(self.input_graph, edgelist_path, data=False)
-
-        completed_process = sub.run(
-            f'. ./envs/cnrg/bin/activate; cd src/cnrg; python3 runner.py -g {self.initial_gname}_{self.run_id} -n {num_graphs}; deactivate;',
-            shell=True, stdout=sub.DEVNULL, stderr=sub.DEVNULL)
-
-        output_pickle_path = f'./src/cnrg/output/{self.initial_gname}_{self.run_id}_cnrg.pkl'
-
-        if completed_process.returncode != 0:
-            CP.print_blue(f'Error in CNRG: "{self.input_graph.name}"')
-            generated_graphs = None
-
-        elif not check_file_exists(output_pickle_path):
-            CP.print_blue(f'Error in CNRG: "{self.input_graph.name}"')
-            generated_graphs = None
-
-        else:
-            generated_graphs = []  # reset generated graphs
-
-            for i, gen_graph in enumerate(load_pickle(output_pickle_path)):
-                gen_graph.name = self.input_graph.name
-                gen_graph.gen_id = gen_id
-                gen_graph.name += f'{self.run_id}_{i + 1}'  # append run id and number of graph generated
-                generated_graphs.append(gen_graph)
-
-            if not isinstance(generated_graphs, list) or len(generated_graphs) != num_graphs:
-                CP.print_blue('CNRG failed to generate graphs')
-
-        delete_files(output_pickle_path, edgelist_path)  # remove the pickle and edgelist
-        return generated_graphs
-
 
 class HRG(BaseGraphModel):
     """
@@ -493,7 +435,7 @@ class Kronecker(BaseGraphModel):
         nx.write_edgelist(directed_g, edgelist_path, data=False)
 
         bash_code = f'cd src/kronecker; {self.kronfit_exec} -i:{self.initial_gname}_{self.run_id}.txt -o:{self.initial_gname}_{self.run_id}-fit'
-        completed_process = sub.run(bash_code, shell=True)#, stdout=sub.PIPE)
+        completed_process = sub.run(bash_code, shell=True)  # , stdout=sub.PIPE)
 
         if completed_process.returncode != 0:
             CP.print_blue(f'Error in KronFit: "{self.input_graph.name}"')
