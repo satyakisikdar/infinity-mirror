@@ -28,7 +28,7 @@ def generate_graph(target_n: int, rule_dict: Dict, tolerance_bounds: float = 0.0
         if lower_bound <= g.order() <= upper_bound:  # if the number of nodes falls in bounds,
             break
 
-    print(f'Graph {g.order(), g.size()} generated in {num_trials} trials')
+    # print(f'Graph {g.order(), g.size()} generated in {num_trials} trials')
     return g
 
 
