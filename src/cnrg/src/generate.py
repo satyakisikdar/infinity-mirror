@@ -1,6 +1,6 @@
 import logging
 import random
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Union
 
 import numpy as np
 
@@ -23,8 +23,9 @@ def generate_graph(target_n: int, rule_dict: Dict, tolerance_bounds: float = 0.0
     num_trials = 0
     while True:
         num_trials += 1
-        g = _generate_graph(rule_dict=rule_dict)
-
+        g = _generate_graph(rule_dict=rule_dict, upper_bound=upper_bound)
+        if g is None:   # early stopping
+            break
         if lower_bound <= g.order() <= upper_bound:  # if the number of nodes falls in bounds,
             break
 
@@ -32,9 +33,10 @@ def generate_graph(target_n: int, rule_dict: Dict, tolerance_bounds: float = 0.0
     return g
 
 
-def _generate_graph(rule_dict: Dict[int, List[PartRule]]) -> LightMultiGraph:
+def _generate_graph(rule_dict: Dict[int, List[PartRule]], upper_bound: int) -> Union[LightMultiGraph, None]:
     """
     Create a new graph from the VRG at random
+    stops the generation if the new graph has more nodes than upper bound
     :return: newly generated graph
     """
     node_counter = 1
@@ -45,6 +47,8 @@ def _generate_graph(rule_dict: Dict[int, List[PartRule]]) -> LightMultiGraph:
     non_terminals = {0}
 
     while len(non_terminals) > 0:  # continue until no more non-terminal nodes
+        if new_g.order() > upper_bound:  # early stopping
+            return None
         node_sample = random.sample(non_terminals, 1)[0]  # choose a non terminal node at random
         lhs = new_g.nodes[node_sample]['label']
 
