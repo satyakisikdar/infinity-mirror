@@ -1,6 +1,3 @@
-from __future__ import division
-from __future__ import print_function
-
 import os
 import time
 
@@ -15,10 +12,8 @@ import scipy.sparse as sp
 
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import average_precision_score
-from networkx import from_numpy_matrix
 
 from src.gae.gae.optimizer import OptimizerAE, OptimizerVAE
-from src.gae.gae.input_data import load_data
 from src.gae.gae.model import GCNModelAE, GCNModelVAE
 from src.gae.gae.preprocessing import preprocess_graph, construct_feed_dict, sparse_to_tuple, mask_test_edges
 
@@ -38,9 +33,11 @@ flags.DEFINE_integer('features', 1, 'Whether to use features (1) or not (0).')
 
 # EXPERIMENTAL
 flags.DEFINE_string('format', 'g', 'Output data format.')
+
+
 # /EXPERIMENTAL
 
-def get_roc_score(edges_pos, edges_neg, emb=None):
+def get_roc_score(edges_pos, edges_neg, feed_dict, placeholders, model, sess, adj_orig, emb=None):
     if emb is None:
         feed_dict.update({placeholders['dropout']: 0})
         emb = sess.run(model.z_mean, feed_dict=feed_dict)
@@ -69,20 +66,20 @@ def get_roc_score(edges_pos, edges_neg, emb=None):
 
     return roc_score, ap_score
 
-# takes in some parameters and returns a learned probability adjacency matrix
-def fit_ae(dataset, features_flag, epochs):
+
+def fit_ae(adj_matrix, epochs):
     ''' trains a non-variational graph autoencoder on a given input graph
 
-        parameters:
-            dataset (string):       path to the graph (edge list) to use for training
-            features_flag (bool):   boolean flag indicating whether or not to use features for training
-            epochs (int):           how many iterations to train the model for
-        output:
-            an adjacency matrix of probabilities for every edge
+            parameters:
+                dataset (string):       path to the graph (edge list) to use for training
+                features_flag (bool):   boolean flag indicating whether or not to use features for training
+                epochs (int):           how many iterations to train the model for
+            output:
+                an adjacency matrix of probabilities for every edge
     '''
     # load data
-    adj, features = load_data(dataset, features_flag)
-    #dataset = adj
+    adj = adj_matrix
+    features = sp.identity(adj.shape[0])
 
     # store original adjacency matrix (without diagonal entries) for later
     adj_orig = adj
@@ -110,7 +107,6 @@ def fit_ae(dataset, features_flag, epochs):
     features_nonzero = features[1].shape[0]
 
     # define the model
-    model = None
     model = GCNModelAE(placeholders, num_features, features_nonzero)
 
     pos_weight = float(adj.shape[0] * adj.shape[0] - adj.sum()) / adj.sum()
@@ -119,24 +115,18 @@ def fit_ae(dataset, features_flag, epochs):
     # define the optimizer
     with tf.name_scope('optimizer'):
         opt = OptimizerAE(preds=model.reconstructions,
-                        labels=tf.reshape(tf.sparse_tensor_to_dense(placeholders['adj_orig'],
-                                                                    validate_indices=False), [-1]),
-                        pos_weight=pos_weight,
-                        norm=norm)
+                          labels=tf.reshape(tf.sparse_tensor_to_dense(placeholders['adj_orig'],
+                                                                      validate_indices=False), [-1]),
+                          pos_weight=pos_weight,
+                          norm=norm)
 
     # start up TensorFlow session
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
-
-    cost_val = []
-    acc_val = []
-    val_roc_score = []
-
     adj_label = adj_train + sp.eye(adj_train.shape[0])
     adj_label = sparse_to_tuple(adj_label)
 
     # train the model
-    info = []
     for epoch in range(epochs):
         t = time.time()
 
@@ -147,45 +137,24 @@ def fit_ae(dataset, features_flag, epochs):
         # run single weight update
         outs = sess.run([opt.opt_op, opt.cost, opt.accuracy, opt.preds_sub], feed_dict=feed_dict)
 
-        # compute average loss
-        avg_cost = outs[1]
-        avg_accuracy = outs[2]
+    probs = sess.run(tf.nn.sigmoid(outs[3])).reshape(adj_matrix.shape)
 
-        roc_curr, ap_curr = get_roc_score(val_edges, val_edges_false)
-        val_roc_score.append(roc_curr)
+    return probs
 
-        # accumulate training info
-        summary = 'Epoch: ' + '%04d' % (epoch + 1) + ' ' \
-                + 'train_loss= ' + '{:.5f}'.format(avg_cost) + ' ' \
-                + 'train_acc= ' + '{:.5f}'.format(avg_accuracy) + ' ' \
-                + 'val_roc= ' + '{:.5f}'.format(val_roc_score[-1]) + ' ' \
-                + 'val_ap= ' + '{:.5f}'.format(ap_curr) + ' ' \
-                + 'time= ' + '{:.5f}'.format(time.time() - t)
-        info.append()
 
-    # print some stats
-    roc_score, ap_score = get_roc_score(test_edges, test_edges_false)
-    info.append('Optimization Finished!')
-    info.append('Test ROC score: ' + str(roc_score))
-    info.append('Test AP score: ' + str(ap_score))
-
-    probs = sess.run(tf.nn.sigmoid(outs[3])).reshape(dataset.shape)
-
-    return probs, info
-
-def fit_vae(dataset, features_flag, epochs):
+def fit_vae(adj_matrix, epochs):
     ''' trains a non-variational graph autoencoder on a given input graph
 
         parameters:
-            dataset (string):       path to the graph (edge list) to use for training
+            adj_matrix (string):    adjacency matrix of the graph
             features_flag (bool):   boolean flag indicating whether or not to use features for training
             epochs (int):           how many iterations to train the model for
         output:
             an adjacency matrix of probabilities for every edge
     '''
     # load data
-    adj, features = load_data(dataset, features_flag)
-    #dataset = adj
+    adj = adj_matrix
+    features = sp.identity(adj.shape[0])
 
     # store original adjacency matrix (without diagonal entries) for later
     adj_orig = adj
@@ -213,7 +182,6 @@ def fit_vae(dataset, features_flag, epochs):
     features_nonzero = features[1].shape[0]
 
     # define the model
-    model = None
     model = GCNModelVAE(placeholders, num_features, num_nodes, features_nonzero)
 
     pos_weight = float(adj.shape[0] * adj.shape[0] - adj.sum()) / adj.sum()
@@ -222,28 +190,21 @@ def fit_vae(dataset, features_flag, epochs):
     # define the optimizer
     with tf.name_scope('optimizer'):
         opt = OptimizerVAE(preds=model.reconstructions,
-                        labels=tf.reshape(tf.sparse_tensor_to_dense(placeholders['adj_orig'],
-                                                                    validate_indices=False), [-1]),
-                        model=model, num_nodes=num_nodes,
-                        pos_weight=pos_weight,
-                        norm=norm)
+                           labels=tf.reshape(tf.sparse_tensor_to_dense(placeholders['adj_orig'],
+                                                                       validate_indices=False), [-1]),
+                           model=model, num_nodes=num_nodes,
+                           pos_weight=pos_weight,
+                           norm=norm)
 
     # start up TensorFlow session
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
 
-    cost_val = []
-    acc_val = []
-    val_roc_score = []
-
     adj_label = adj_train + sp.eye(adj_train.shape[0])
     adj_label = sparse_to_tuple(adj_label)
 
     # train the model
-    info = []
     for epoch in range(epochs):
-        t = time.time()
-
         # construct feed dictionary
         feed_dict = construct_feed_dict(adj_norm, adj_label, features, placeholders)
         feed_dict.update({placeholders['dropout']: FLAGS.dropout})
@@ -251,38 +212,16 @@ def fit_vae(dataset, features_flag, epochs):
         # run single weight update
         outs = sess.run([opt.opt_op, opt.cost, opt.accuracy, opt.preds_sub], feed_dict=feed_dict)
 
-        # compute average loss
-        avg_cost = outs[1]
-        avg_accuracy = outs[2]
+    probs = sess.run(tf.nn.sigmoid(outs[3])).reshape(adj_matrix.shape)
 
-        roc_curr, ap_curr = get_roc_score(val_edges, val_edges_false)
-        val_roc_score.append(roc_curr)
+    return probs
 
-        # accumulate training info
-        summary = 'Epoch: ' + '%04d' % (epoch + 1) + ' ' \
-                + 'train_loss= ' + '{:.5f}'.format(avg_cost) + ' ' \
-                + 'train_acc= ' + '{:.5f}'.format(avg_accuracy) + ' ' \
-                + 'val_roc= ' + '{:.5f}'.format(val_roc_score[-1]) + ' ' \
-                + 'val_ap= ' + '{:.5f}'.format(ap_curr) + ' ' \
-                + 'time= ' + '{:.5f}'.format(time.time() - t)
-        info.append()
-
-    # print some stats
-    roc_score, ap_score = get_roc_score(test_edges, test_edges_false)
-    info.append('Optimization Finished!')
-    info.append('Test ROC score: ' + str(roc_score))
-    info.append('Test AP score: ' + str(ap_score))
-
-    probs = sess.run(tf.nn.sigmoid(outs[3])).reshape(dataset.shape)
-
-    return probs, info
-
-# EXPERIMENTAL
-output = sess.run(tf.nn.sigmoid(outs[3])).reshape(dataset.shape)
-output = output >= np.ones(dataset.shape) * 0.5
-if format_str == 'mat':
-    np.savetxt('data/' + dataset_str + '_' + model_str + '.mat', output, fmt='%d')
-elif format_str == 'g':
-    output_g = np.asarray(from_numpy_matrix(output).edges())
-    np.savetxt('data/' + dataset_str + '_' + model_str + '.g', output, fmt='%d')
-# /EXPERIMENTAL
+# # EXPERIMENTAL
+# output = sess.run(tf.nn.sigmoid(outs[3])).reshape(dataset.shape)
+# output = output >= np.ones(dataset.shape) * 0.5
+# if format_str == 'mat':
+#     np.savetxt('data/' + dataset_str + '_' + model_str + '.mat', output, fmt='%d')
+# elif format_str == 'g':
+#     output_g = np.asarray(from_numpy_matrix(output).edges())
+#     np.savetxt('data/' + dataset_str + '_' + model_str + '.g', output, fmt='%d')
+# # /EXPERIMENTAL

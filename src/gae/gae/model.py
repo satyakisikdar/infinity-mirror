@@ -1,4 +1,4 @@
-from gae.layers import GraphConvolution, GraphConvolutionSparse, InnerProductDecoder
+from src.gae.gae.layers import GraphConvolution, GraphConvolutionSparse, InnerProductDecoder
 import tensorflow as tf
 
 flags = tf.app.flags

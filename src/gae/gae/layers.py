@@ -1,4 +1,4 @@
-from gae.initializations import *
+from src.gae.gae.initializations import *
 import tensorflow as tf
 
 flags = tf.app.flags
