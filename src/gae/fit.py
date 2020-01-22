@@ -1,6 +1,6 @@
 import os
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 # Train on CPU (hide GPU) due to memory constraints
 os.environ['CUDA_VISIBLE_DEVICES'] = "0"
@@ -9,23 +9,28 @@ import tensorflow as tf
 import numpy as np
 import scipy.sparse as sp
 
+from collections import namedtuple
+
 from src.gae.gae.optimizer import OptimizerAE, OptimizerVAE
 from src.gae.gae.model import GCNModelAE, GCNModelVAE
 from src.gae.gae.preprocessing import preprocess_graph, construct_feed_dict, sparse_to_tuple, mask_test_edges
 
 # Settings
-flags = tf.app.flags
-FLAGS = flags.FLAGS
-flags.DEFINE_float('learning_rate', 0.01, 'Initial learning rate.')
-flags.DEFINE_integer('epochs', 200, 'Number of epochs to train.')
-flags.DEFINE_integer('hidden1', 32, 'Number of units in hidden layer 1.')
-flags.DEFINE_integer('hidden2', 16, 'Number of units in hidden layer 2.')
-flags.DEFINE_float('weight_decay', 0., 'Weight for L2 loss on embedding matrix.')
-flags.DEFINE_float('dropout', 0., 'Dropout rate (1 - keep probability).')
+flags = namedtuple('FLAGS', 'learning_rate epochs hidden1 hidden2 weight_decay dropout model dataset features')
+FLAGS = flags(0.01, 200, 32, 16, 0., 0., 'gcn_ae', 'cora', 1)
 
-flags.DEFINE_string('model', 'gcn_ae', 'Model string.')
-flags.DEFINE_string('dataset', 'cora', 'Dataset string.')
-flags.DEFINE_integer('features', 1, 'Whether to use features (1) or not (0).')
+# flags = tf.app.flags
+# FLAGS = flags.FLAGS
+# flags.DEFINE_float('learning_rate', 0.01, 'Initial learning rate.')
+# flags.DEFINE_integer('epochs', 200, 'Number of epochs to train.')
+# flags.DEFINE_integer('hidden1', 32, 'Number of units in hidden layer 1.')
+# flags.DEFINE_integer('hidden2', 16, 'Number of units in hidden layer 2.')
+# flags.DEFINE_float('weight_decay', 0., 'Weight for L2 loss on embedding matrix.')
+# flags.DEFINE_float('dropout', 0., 'Dropout rate (1 - keep probability).')
+#
+# flags.DEFINE_string('model', 'gcn_ae', 'Model string.')
+# flags.DEFINE_string('dataset', 'cora', 'Dataset string.')
+# flags.DEFINE_integer('features', 1, 'Whether to use features (1) or not (0).')
 
 def fit_ae(adj_matrix, epochs=200):
     ''' trains a non-variational graph autoencoder on a given input graph
@@ -45,7 +50,13 @@ def fit_ae(adj_matrix, epochs=200):
     adj_orig.eliminate_zeros()
 
     # compute train/test/validation splits
-    adj_train, train_edges, val_edges, val_edges_false, test_edges, test_edges_false = mask_test_edges(adj)
+    while True:
+        try:
+            adj_train, train_edges, val_edges, val_edges_false, test_edges, test_edges_false = mask_test_edges(adj)
+        except AssertionError as e:
+            continue
+        else:
+            break
     adj = adj_train
 
     # some preprocessing
@@ -114,7 +125,14 @@ def fit_vae(adj_matrix, epochs=200):
     adj_orig.eliminate_zeros()
 
     # compute train/test/validation splits
-    adj_train, train_edges, val_edges, val_edges_false, test_edges, test_edges_false = mask_test_edges(adj)
+    while True:
+        # compute train/test/validation splits
+        try:
+            adj_train, train_edges, val_edges, val_edges_false, test_edges, test_edges_false = mask_test_edges(adj)
+        except AssertionError as e:
+            continue
+        else:
+            break
     adj = adj_train
 
     # some preprocessing
