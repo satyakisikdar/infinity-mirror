@@ -13,11 +13,12 @@ import numpy as np
 
 from src.cnrg.runner import get_grammar
 from src.cnrg.src.generate import generate_graph
-from src.gae.fit import fit_vae
+from src.gae.fit import fit_vae, fit_ae
 from src.utils import ColorPrint as CP
 from src.utils import check_file_exists, load_pickle, delete_files, get_blank_graph, get_graph_from_prob_matrix
 
-__all__ = ['BaseGraphModel', 'ErdosRenyi', 'UniformRandom', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker']
+__all__ = ['BaseGraphModel', 'ErdosRenyi', 'UniformRandom', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker',
+           'GraphAE', 'GraphVAE']
 
 
 class BaseGraphModel:
@@ -524,6 +525,30 @@ class GraphVAE(BaseGraphModel):
     def _fit(self) -> None:
         adj_mat = nx.adjacency_matrix(self.input_graph)  # converts the graph into a sparse adj mat
         prob_mat = fit_vae(adj_matrix=adj_mat)
+        self.params['prob_mat'] = prob_mat
+
+        return
+
+    def _gen(self, gname: str, gen_id: int) -> nx.Graph:
+        assert 'prob_mat' in self.params, 'Improper params. Prob matrix object is missing.'
+        g = get_graph_from_prob_matrix(self.params['prob_mat'])
+        g.name = gname
+        g.gen_id = gen_id
+
+        return g
+
+
+class GraphAE(BaseGraphModel):
+    """
+    Graph Autoencoder - from T. Kipf
+    """
+    def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
+        super().__init__(model_name='GraphAE', input_graph=input_graph, run_id=run_id)
+        return
+
+    def _fit(self) -> None:
+        adj_mat = nx.adjacency_matrix(self.input_graph)  # converts the graph into a sparse adj mat
+        prob_mat = fit_ae(adj_matrix=adj_mat)
         self.params['prob_mat'] = prob_mat
 
         return
