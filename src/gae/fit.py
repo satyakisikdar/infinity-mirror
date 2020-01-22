@@ -31,8 +31,6 @@ flags.DEFINE_string('model', 'gcn_ae', 'Model string.')
 flags.DEFINE_string('dataset', 'cora', 'Dataset string.')
 flags.DEFINE_integer('features', 1, 'Whether to use features (1) or not (0).')
 
-flags.DEFINE_string('format', 'g', 'Output data format.')
-
 def fit_ae(adj_matrix, epochs):
     ''' trains a non-variational graph autoencoder on a given input graph
         parameters:
