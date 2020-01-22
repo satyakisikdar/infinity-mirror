@@ -1,5 +1,4 @@
 import os
-import time
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -9,9 +8,6 @@ os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 import tensorflow as tf
 import numpy as np
 import scipy.sparse as sp
-
-from sklearn.metrics import roc_auc_score
-from sklearn.metrics import average_precision_score
 
 from src.gae.gae.optimizer import OptimizerAE, OptimizerVAE
 from src.gae.gae.model import GCNModelAE, GCNModelVAE
@@ -31,7 +27,7 @@ flags.DEFINE_string('model', 'gcn_ae', 'Model string.')
 flags.DEFINE_string('dataset', 'cora', 'Dataset string.')
 flags.DEFINE_integer('features', 1, 'Whether to use features (1) or not (0).')
 
-def fit_ae(adj_matrix, epochs):
+def fit_ae(adj_matrix, epochs=200):
     ''' trains a non-variational graph autoencoder on a given input graph
         parameters:
             adj_matrix (ndarray):   adjacency matrix of the graph
@@ -100,7 +96,7 @@ def fit_ae(adj_matrix, epochs):
 
     return probs
 
-def fit_vae(adj_matrix, epochs):
+def fit_vae(adj_matrix, epochs=200):
     ''' trains a variational graph autoencoder on a given input graph
         parameters:
             adj_matrix (ndarray):   adjacency matrix of the graph
