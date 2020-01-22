@@ -3,6 +3,7 @@ Container for different graph stats
 """
 import platform
 import signal
+import sys
 import os
 import subprocess as sub
 from collections import Counter, deque
@@ -320,11 +321,16 @@ class GraphStats:
             counts_filename = f'{self.graph.name}.counts'
             counts_path = f'{pgd_path}/{counts_filename}'
 
-            nx.write_edgelist(self.graph, graph_path, data=False)
+            edgelist = '\n'.join(nx.generate_edgelist(self.graph, data=False))
+            edgelist += '\nX'  # add the X
+            dummy_path = f'{pgd_path}/dummy.txt'
 
             try:
-                bash_script = f'{pgd_path}/pgd_{self.run_id} -w 1 -f {graph_path} -c {counts_path}'
-                pipe = sub.Popen([bash_script], shell=True, stdout=sub.DEVNULL)
+                bash_script = f'{pgd_path}/pgd_{self.run_id} -w 1 -f {dummy_path} -c {dummy_path}'
+                pipe = sub.Popen([bash_script], shell=True, stdout=sub.PIPE,
+                                stdin=sub.PIPE, stderr=sub.PIPE)
+                output_data = pipe.communicate(input=edgelist.encode())[0]
+                output_data = output_data.decode()
                 pipe.wait(2)  # waits 2 seconds to finish
             except sub.TimeoutExpired:
                 pipe.kill()
@@ -332,13 +338,9 @@ class GraphStats:
                 graphlet_counts = {}
 
             else:  # pgd is successfully run
-                if check_file_exists(counts_path):
-                    graphlet_counts = {}
-                    with open(counts_path) as fp:
-                        for line in fp:
-                            graphlet_name, count = map(lambda st: st.strip(), line.split('='))
-                            graphlet_counts[graphlet_name] = int(count)
-            delete_files(graph_path, counts_path)
+                for line in output_data.split('\n')[: -1]:  # last line blank
+                    graphlet_name, count = map(lambda st: st.strip(), line.split('='))
+                    graphlet_counts[graphlet_name] = int(count)
         else:
             graphlet_counts = {}
 

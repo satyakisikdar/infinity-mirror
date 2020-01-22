@@ -47,7 +47,7 @@ def get_graph(filename='sample') -> LightMultiGraph:
     g_new.add_edges_from(g.edges())
 
     end_time = time() - start_time
-    print(f'Graph: {filename}, n = {g.order():_d}, m = {g.size():_d} read in {round(end_time, 3):_g}s.')
+    # print(f'Graph: {filename}, n = {g.order():_d}, m = {g.size():_d} read in {round(end_time, 3):_g}s.')
 
     return g_new
 
@@ -59,7 +59,6 @@ def get_clustering(g, clustering):
     :param clustering: name of clustering method
     :return: root node of the dendrogram
     '''
-    tqdm.write('Running {} clustering...'.format(clustering))
     if clustering == 'random':
         list_of_list_clusters = partitions.get_random_partition(g)
     elif clustering == 'leiden':
