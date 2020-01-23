@@ -315,30 +315,30 @@ class GraphStats:
         pgd_path = './src/PGD'
         graphlet_counts = {}
 
-        if 'Linux' in platform.platform() and check_file_exists(f'{pgd_path}/pgd_{self.run_id}'):
-            edgelist = '\n'.join(nx.generate_edgelist(self.graph, data=False))
-            edgelist += '\nX'  # add the X
-            dummy_path = f'{pgd_path}/dummy.txt'
-
-            try:
-                bash_script = f'{pgd_path}/pgd_{self.run_id} -w 1 -f {dummy_path} -c {dummy_path}'
-
-                pipe = sub.Popen([bash_script], shell=True, stdout=sub.PIPE, stdin=sub.PIPE, stderr=sub.PIPE)
-                output_data = pipe.communicate(input=edgelist.encode(), timeout=2)[0]
-                output_data = output_data.decode()
-                pipe.wait(2)  # waits 2 seconds to finish
-            except sub.TimeoutExpired:
-                pipe.kill()
-                CP.print_blue('PGD timed out')
-                graphlet_counts = {}
-
-            else:  # pgd is successfully run
-                pipe.kill()
-                for line in output_data.split('\n')[: -1]:  # last line blank
-                    graphlet_name, count = map(lambda st: st.strip(), line.split('='))
-                    graphlet_counts[graphlet_name] = int(count)
-        else:
-            graphlet_counts = {}
+        # if 'Linux' in platform.platform() and check_file_exists(f'{pgd_path}/pgd_{self.run_id}'):
+        #     edgelist = '\n'.join(nx.generate_edgelist(self.graph, data=False))
+        #     edgelist += '\nX'  # add the X
+        #     dummy_path = f'{pgd_path}/dummy.txt'
+        #
+        #     try:
+        #         bash_script = f'{pgd_path}/pgd_{self.run_id} -w 1 -f {dummy_path} -c {dummy_path}'
+        #
+        #         pipe = sub.Popen([bash_script], shell=True, stdout=sub.PIPE, stdin=sub.PIPE, stderr=sub.PIPE)
+        #         output_data = pipe.communicate(input=edgelist.encode(), timeout=2)[0]
+        #         output_data = output_data.decode()
+        #         pipe.wait(2)  # waits 2 seconds to finish
+        #     except sub.TimeoutExpired:
+        #         pipe.kill()
+        #         CP.print_blue('PGD timed out')
+        #         graphlet_counts = {}
+        #
+        #     else:  # pgd is successfully run
+        #         pipe.kill()
+        #         for line in output_data.split('\n')[: -1]:  # last line blank
+        #             graphlet_name, count = map(lambda st: st.strip(), line.split('='))
+        #             graphlet_counts[graphlet_name] = int(count)
+        # else:
+        #     graphlet_counts = {}
 
         self.stats['pgd_graphlet_counts'] = graphlet_counts
 
