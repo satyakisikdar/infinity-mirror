@@ -316,20 +316,15 @@ class GraphStats:
         graphlet_counts = {}
 
         if 'Linux' in platform.platform() and check_file_exists(f'{pgd_path}/pgd_{self.run_id}'):
-            graph_filename = f'{self.graph.name}.g'
-            graph_path = f'{pgd_path}/{graph_filename}'
-            counts_filename = f'{self.graph.name}.counts'
-            counts_path = f'{pgd_path}/{counts_filename}'
-
             edgelist = '\n'.join(nx.generate_edgelist(self.graph, data=False))
             edgelist += '\nX'  # add the X
             dummy_path = f'{pgd_path}/dummy.txt'
 
             try:
                 bash_script = f'{pgd_path}/pgd_{self.run_id} -w 1 -f {dummy_path} -c {dummy_path}'
-                pipe = sub.Popen([bash_script], shell=True, stdout=sub.PIPE,
-                                stdin=sub.PIPE, stderr=sub.PIPE)
-                output_data = pipe.communicate(input=edgelist.encode())[0]
+
+                pipe = sub.Popen([bash_script], shell=True, stdout=sub.PIPE, stdin=sub.PIPE, stderr=sub.PIPE)
+                output_data = pipe.communicate(input=edgelist.encode(), timeout=2)[0]
                 output_data = output_data.decode()
                 pipe.wait(2)  # waits 2 seconds to finish
             except sub.TimeoutExpired:
@@ -338,6 +333,7 @@ class GraphStats:
                 graphlet_counts = {}
 
             else:  # pgd is successfully run
+                pipe.kill()
                 for line in output_data.split('\n')[: -1]:  # last line blank
                     graphlet_name, count = map(lambda st: st.strip(), line.split('='))
                     graphlet_counts[graphlet_name] = int(count)
