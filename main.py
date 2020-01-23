@@ -2,6 +2,7 @@ import argparse
 import ast
 import glob
 import importlib
+import multiprocessing
 import os
 import time
 from pathlib import Path
@@ -131,10 +132,19 @@ def main():
 
     CP.print_green(f'Running infinity mirror on {num_jobs} cores for {num_trials} trials')
 
-    Parallel(n_jobs=num_jobs, backend="multiprocessing")(
-        delayed(run_infinity_mirror)(run_id=i + 1, args=args)
-        for i in range(num_trials)
-    )
+    with multiprocessing.Pool(num_jobs, maxtasksperchild=1) as pool:
+        processes = []  # processes
+        for i in range(num_trials):
+            proc = pool.apply_async(run_infinity_mirror, (args, i+1))
+            processes.append(proc)
+
+        for proc in processes:
+            proc.wait()
+
+    # Parallel(n_jobs=num_jobs, backend="multiprocessing")(
+    #     delayed(run_infinity_mirror)(run_id=i + 1, args=args)
+    #     for i in range(num_trials)
+    # )
 
     return
 
