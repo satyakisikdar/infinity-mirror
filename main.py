@@ -132,14 +132,17 @@ def main():
 
     CP.print_green(f'Running infinity mirror on {num_jobs} cores for {num_trials} trials')
 
-    with multiprocessing.Pool(num_jobs) as pool:
-        processes = []  # processes
-        for i in range(num_trials):
-            proc = pool.apply_async(run_infinity_mirror, (args, i+1))
-            processes.append(proc)
+    for i in range(num_trials):
+        run_infinity_mirror(args=args, run_id=1)
 
-        for proc in processes:
-            proc.wait()
+    # with multiprocessing.Pool(num_jobs) as pool:
+    #     processes = []  # processes
+    #     for i in range(num_trials):
+    #         proc = pool.apply_async(run_infinity_mirror, (args, i+1))
+    #         processes.append(proc)
+    #
+    #     for proc in processes:
+    #         proc.wait()
 
     # Parallel(n_jobs=num_jobs, backend="multiprocessing")(
     #     delayed(run_infinity_mirror)(run_id=i + 1, args=args)
