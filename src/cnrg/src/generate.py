@@ -13,7 +13,7 @@ def generate_graph(target_n: int, rule_dict: Dict, tolerance_bounds: float = 0.0
     """
     Generates graphs
     :param target_n: number of nodes to target
-    :param tolerance_bounds: bounds of tolerance - accept graphs with target_n . (1 +- tolerance)
+    :param tolerance_bounds: bounds of tolerance - accept graphs with target_n * (1 +- tolerance)
     :param rule_dict: dictionary of rules
     :return:
     """
@@ -25,7 +25,7 @@ def generate_graph(target_n: int, rule_dict: Dict, tolerance_bounds: float = 0.0
         num_trials += 1
         g = _generate_graph(rule_dict=rule_dict, upper_bound=upper_bound)
         if g is None:   # early stopping
-            break
+            continue
         if lower_bound <= g.order() <= upper_bound:  # if the number of nodes falls in bounds,
             break
 
