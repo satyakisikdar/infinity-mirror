@@ -9,11 +9,6 @@ from typing import Union, Any, Tuple, List
 
 import matplotlib.pyplot as plt
 import networkx as nx
-import os
-os.environ["MKL_NUM_THREADS"] = "1"
-os.environ["NUMEXPR_NUM_THREADS"] = "1"
-os.environ["OMP_NUM_THREADS"] = "1"
-
 import numpy as np
 import seaborn as sns
 import statsmodels.stats.api as sm

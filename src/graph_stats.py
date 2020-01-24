@@ -2,8 +2,6 @@
 Container for different graph stats
 """
 import platform
-import signal
-import sys
 import subprocess as sub
 from collections import Counter, deque
 from typing import Dict, Tuple, List
@@ -11,16 +9,10 @@ from typing import Dict, Tuple, List
 import editdistance as ed
 import matplotlib.pyplot as plt
 import networkx as nx
-
-import os
-os.environ["MKL_NUM_THREADS"] = "1"
-os.environ["NUMEXPR_NUM_THREADS"] = "1"
-os.environ["OMP_NUM_THREADS"] = "1"
-
 import numpy as np
 import seaborn as sns
 
-from src.utils import check_file_exists, delete_files, ColorPrint as CP
+from src.utils import check_file_exists, ColorPrint as CP
 
 sns.set()
 sns.set_style("darkgrid")
