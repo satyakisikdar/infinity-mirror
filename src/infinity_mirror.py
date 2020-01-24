@@ -4,7 +4,6 @@ from collections import namedtuple
 from typing import Any, List, Dict, Union
 
 import networkx as nx
-from joblib import Parallel, delayed
 from tqdm import tqdm
 
 from src.Tree import TreeNode
