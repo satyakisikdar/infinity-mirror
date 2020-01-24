@@ -4,7 +4,6 @@ from collections import namedtuple
 from typing import Any, List, Dict, Union
 
 import networkx as nx
-from joblib import Parallel, delayed
 from tqdm import tqdm
 
 from src.Tree import TreeNode
@@ -81,9 +80,8 @@ class InfinityMirror:
         assert len(generated_graphs) != 0, f'generated graphs empty'
         scores: Dict[str, List[Stats]] = {metric: [] for metric in self._metrics}
 
-        graph_comps_list = Parallel()(
-            delayed(GraphPairCompare)(gstats1=self.initial_graph_stats, gstats2=GraphStats(gen_graph, run_id=self.run_id))
-            for i, gen_graph in enumerate(generated_graphs))
+        graph_comps_list = [GraphPairCompare(gstats1=self.initial_graph_stats, gstats2=GraphStats(gen_graph, run_id=self.run_id))
+                            for i, gen_graph in enumerate(generated_graphs)]
 
         assert isinstance(graph_comps_list, list), 'Graph comp pairs is not a list'
         assert isinstance(graph_comps_list[0], GraphPairCompare), 'Improper object in Graph comp list'
