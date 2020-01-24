@@ -471,6 +471,7 @@ def compute_net_statistics_on(orig_df, gn): # gn = graph name
 
 
 if __name__ == '__main__':
+	np.seterr(all='ignore')
 	parser = get_parser()
 	args = vars(parser.parse_args())
 
