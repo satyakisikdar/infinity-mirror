@@ -69,12 +69,11 @@ def get_clustering(g, clustering):
         list_of_list_clusters = partitions.approx_min_conductance_partitioning(g)
     elif clustering == 'spectral':
         list_of_list_clusters = partitions.spectral_kmeans(g, K=int(math.sqrt(g.order() // 2)))
-    else:
-        list_of_list_clusters = partitions.get_node2vec(g)
+
     return list_of_list_clusters
 
 
-logging.basicConfig(level=logging.WARNING, format="%(message)s")
+logging.basicConfig(level=logging.ERROR, format="%(message)s")
 
 
 def make_dirs(outdir: str, name: str) -> None:
