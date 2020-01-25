@@ -8,14 +8,16 @@ import subprocess as sub
 from time import time
 from typing import List, Dict, Any, Union
 
+import graph_tool.all as gt
 import networkx as nx
 import numpy as np
 
 from src.utils import ColorPrint as CP
-from src.utils import check_file_exists, load_pickle, delete_files, get_blank_graph, get_graph_from_prob_matrix
+from src.utils import check_file_exists, load_pickle, delete_files, get_blank_graph, get_graph_from_prob_matrix, \
+    networkx_to_graph_tool, graph_tool_to_networkx
 
 __all__ = ['BaseGraphModel', 'ErdosRenyi', 'UniformRandom', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker',
-           'GraphAE', 'GraphVAE']
+           'GraphAE', 'GraphVAE', 'SBM']
 
 
 class BaseGraphModel:
@@ -494,28 +496,39 @@ class Kronecker(BaseGraphModel):
         return graph
 
 
-class StochasticBlockModel(BaseGraphModel):
+class SBM(BaseGraphModel):
     """
-    Stochastic Block Model  - basic and degree corrected
-    """
-
-
-class RMAT(BaseGraphModel):
-    """
-    Recursive-matrix graph generators
+    Stochastic Block Model  - degree corrected
     """
 
+    def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
+        super().__init__(model_name='SBM', input_graph=input_graph, run_id=run_id)
+        return
 
-class ERGM(BaseGraphModel):
-    """
-    Exponential Random Graph Models
-    """
+    def _fit(self) -> None:
+        gt_g = networkx_to_graph_tool(self.input_graph)  # convert to graphtool obj
+        state = gt.minimize_blockmodel_dl(gt_g)  # run SBM fit
+        self.params['state'] = state
+        return
+
+    def _gen(self, gname: str, gen_id: int) -> nx.Graph:
+        assert 'state' in self.params, 'missing parameter: state for SBM'
+        state = self.params['state']
+
+        gen_gt_g = gt.generate_sbm(state.b.a,
+                                   gt.adjacency(state.get_bg(), state.get_ers()).T)  # returns a graphtool graph
+        g = graph_tool_to_networkx(gen_gt_g)
+        g.name = gname
+        g.gen_id = gen_id
+
+        return g
 
 
 class GraphVAE(BaseGraphModel):
     """
     Graph Variational Autoencoder - from T. Kipf
     """
+
     def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
         super().__init__(model_name='GraphVAE', input_graph=input_graph, run_id=run_id)
         return
@@ -541,6 +554,7 @@ class GraphAE(BaseGraphModel):
     """
     Graph Autoencoder - from T. Kipf
     """
+
     def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
         super().__init__(model_name='GraphAE', input_graph=input_graph, run_id=run_id)
         return
