@@ -529,7 +529,6 @@ class GraphVAE(BaseGraphModel):
         return
 
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
-        from src.cnrg.src.generate import generate_graph
         assert 'prob_mat' in self.params, 'Improper params. Prob matrix object is missing.'
         g = get_graph_from_prob_matrix(self.params['prob_mat'])
         g.name = gname
