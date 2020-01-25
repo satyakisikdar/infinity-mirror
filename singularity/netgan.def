@@ -17,13 +17,11 @@ from: nvidia/cuda:10.1-cudnn7-devel-ubuntu18.04
         libxtst6 \
         libncurses5-dev \
         zlib1g-dev
-    #wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ./miniconda.sh
-    wget https://repo.anaconda.com/miniconda/Miniconda3-4.4.10-Linux-x86_64.sh -O ./miniconda.sh
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ./miniconda.sh
     bash miniconda.sh -b -p "/opt/conda" && rm miniconda.sh
     export PATH=/opt/conda/bin:$PATH
 
-    #conda install --yes python=3.6
-    conda install --yes -c anaconda tensorflow-gpu=1.4.1
+    conda install --yes -c anaconda tensorflow==2.0.0
     conda install --yes -c conda-forge numpy
     conda install --yes -c conda-forge scipy
     conda install --yes -c conda-forge scikit-learn
