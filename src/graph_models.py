@@ -70,14 +70,14 @@ class BaseGraphModel:
         :param run_id: run_id keeps things separate when run in parallel
         :return:
         """
-        # generated_graphs = Parallel(n_jobs=3)(
-        #     delayed(self._gen)(gen_id=gen_id, gname=f'{self.gname}_{gen_id}_{self.run_id}_{i + 1}')
-        #     for i in range(num_graphs)
-        # )
-        generated_graphs = [self._gen(gen_id=gen_id, gname=f'{self.input_graph.name}_{gen_id}_{self.run_id}_{i + 1}')
-                            for i in range(num_graphs)]
-
-        assert isinstance(generated_graphs, list), 'Parallel generation didnt work'
+        generated_graphs = []
+        for i in range(num_graphs):
+            g = self._gen(gen_id=gen_id, gname=f'{self.input_graph.name}_{gen_id}_{self.run_id}_{i + 1}')
+            if not isinstance(g, nx.Graph):
+                g = nx.Graph(g)  # make it into an undirected graph with no parallel edges
+            self_loops = list(nx.selfloop_edges(g))
+            g.remove_edges_from(self_loops)  # remove self loops
+            generated_graphs.append(g)
 
         return generated_graphs
 
