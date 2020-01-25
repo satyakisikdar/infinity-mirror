@@ -23,7 +23,8 @@ from src.utils import timer, ColorPrint as CP
 
 
 def parse_args():
-    model_names = {'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker', 'UniformRandom', 'GraphVAE', 'GraphAE'}
+    model_names = {'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker', 'UniformRandom', 'GraphVAE', 'GraphAE',
+                   'SBM'}
     selections = {'best', 'worst', 'median', 'all'}
 
     parser = argparse.ArgumentParser(
