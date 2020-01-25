@@ -3,6 +3,8 @@ import os
 import pickle
 import sys
 import time
+import pyintergraph as pig
+import graph_tool.all as gt
 from datetime import datetime
 from pathlib import Path
 from typing import Union, Any, Tuple, List
@@ -10,14 +12,21 @@ from typing import Union, Any, Tuple, List
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-import seaborn as sns
+import seaborn as sns; sns.set(); sns.set_style("darkgrid")
 import statsmodels.stats.api as sm
 from numpy import linalg as la
 from scipy import sparse as sps
 from scipy.sparse import issparse
 
-sns.set()
-sns.set_style("darkgrid")
+
+def networkx_to_graph_tool(nx_g: nx.Graph) -> gt.Graph:
+    gt_g = pig.nx2gt(nx_g)
+    return gt_g
+
+
+def graph_tool_to_networkx(gt_g: gt.Graph) -> nx.Graph:
+    nx_g = pig.gt2nx(gt_g)
+    return nx_g
 
 def timer(func):
     @functools.wraps(func)
@@ -60,6 +69,7 @@ def get_graph_from_prob_matrix(p_mat: np.array) -> nx.Graph:
 
     g = nx.from_numpy_array(sampled_mat, create_using=nx.Graph())
     return g
+
 
 def mean_confidence_interval(arr, alpha=0.05) -> Tuple:
     if len(arr) == 1:
