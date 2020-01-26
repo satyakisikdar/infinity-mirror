@@ -80,7 +80,7 @@ class GraphStats:
         assert item in self.stats, f'stat: {item} is not updated after function call'
         return self.stats[item]
 
-    def plot(self, y, ax=None, kind='line', x=None, title='', xlabel='', ylabel='') -> None:
+    def plot(self, y, ax=None, kind='line', x=None, **kwargs) -> None:
         if isinstance(y, dict):
             lists = sorted(y.items())
             x, y = zip(*lists)
@@ -89,15 +89,19 @@ class GraphStats:
 
         if kind == 'line':
             # plt.plot(x, y, marker='o', linestyle='--')
-            sns.lineplot(x, y, marker='o', dashes='--', ax=ax)  # , dashes=True)
+            sns.lineplot(x, y, marker='o', dashes='--', ax=ax, **kwargs)  # , dashes=True)
         if kind == 'scatter':
             # plt.scatter(x, y, marker='o')
-            sns.scatterplot(x, y, alpha=0.75, ax=ax)
+            ax = sns.scatterplot(x, y, ax=ax, **kwargs)
+
+        title = kwargs.get('title', '')
+        xlabel = kwargs.get('xlabel', '')
+        ylabel = kwargs.get('ylabel', '')
         plt.title(title)
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
-
-        return
+        plt.legend(loc='best')
+        return ax
 
     def adj_eigenvalues(self):
         """
