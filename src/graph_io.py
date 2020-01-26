@@ -125,7 +125,7 @@ class SyntheticGraph:
 
     implemented_methods = {'chain': ('n',), 'tree': ('r', 'h'), 'ladder': ('n',), 'circular_ladder': ('n',),
                            'ring': ('n',), 'clique_ring': ('n', 'k'), 'grid': ('m', 'n'),
-                           'erdos_renyi': ('n', 'p', 'seed'),
+                           'erdos_renyi': ('n', 'p', 'seed'), 'ring_lattice': ('n', ), 'BA': ('n', 'm'),
                            'cycle': ('n',)}
 
     def __init__(self, kind, **kwargs):
@@ -173,6 +173,12 @@ class SyntheticGraph:
             name = f"erdos-renyi-{self.args['n']}-{g.size()}"
             if seed is not None:
                 name += f'-{seed}'  # add the seed to the name
+        elif self.kind == 'ring_lattice':
+            g = nx.watts_strogatz_graph(n=self.args['n'], k=2, p=0)
+            name = f"ring-lattice-{g.order()}"
+        elif self.kind == 'BA':
+            g = nx.barabasi_albert_graph(n=self.args['n'], m=self.args['m'])
+            name = f"BA-{self.args['n']}-{self.args['m']}"
         else:
             raise NotImplementedError(f'Improper kind: {self.kind}')
         g.name = name
