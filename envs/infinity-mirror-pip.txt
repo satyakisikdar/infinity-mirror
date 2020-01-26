@@ -64,7 +64,6 @@ prometheus-client==0.7.1
 prompt-toolkit==2.0.10
 protobuf==3.11.2
 ptyprocess==0.6.0
-pycairo==1.18.2
 pycparser==2.19
 Pygments==2.5.2
 pyintergraph==1.1.2
