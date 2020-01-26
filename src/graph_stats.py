@@ -160,17 +160,19 @@ class GraphStats:
         clustering_coeffs = nx.clustering(self.graph)
         self.stats['clustering_coeffs'] = clustering_coeffs
 
-        clustering_by_degree = Counter()  # average clustering per degree
-        degree_counts = Counter()  # keeps track of #nodes with degree k
+        clustering_by_degree = {}  # clustering per degree
 
         # get the sums
         for node, cc in clustering_coeffs.items():
             deg = self.graph.degree[node]
-            degree_counts[deg] += 1
-            clustering_by_degree[deg] += cc
+            if deg not in clustering_by_degree:
+                clustering_by_degree[deg] = []
+            clustering_by_degree[deg].append(cc)
 
-        self.stats['clustering_coefficients_by_degree'] = clustering_by_degree
-        return clustering_by_degree
+        avg_clustering_by_degree = {deg: np.mean(ccs) for deg, ccs in clustering_by_degree.items()}
+        self.stats['clustering_coefficients_by_degree'] = avg_clustering_by_degree
+
+        return avg_clustering_by_degree
 
     def component_size_distribution(self) -> List[Tuple[int, float]]:
         """
