@@ -1,39 +1,40 @@
 bootstrap: docker
-from: nvidia/cuda:10.1-cudnn7-devel-ubuntu18.04
+from: tensorflow/tensorflow:latest-gpu-py3-jupyter
 
 %post
     apt-get -y update
     apt-get -y install gcc make vim wget
-    apt-get -y install \
-        libgl1-mesa-glx \
-        libegl1-mesa \
-        libxrandr2 \
-        libxrandr2 \
-        libxss1 \
-        libxcursor1 \
-        libxcomposite1 \
-        libasound2 \
-        libxi6 \
-        libxtst6 \
-        libncurses5-dev \
-        zlib1g-dev
-    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ./miniconda.sh
-    bash miniconda.sh -b -p "/opt/conda" && rm miniconda.sh
-    export PATH=/opt/conda/bin:$PATH
+    apt-get -y install libigraph0-dev
+    #apt-get -y install \
+    #    libgl1-mesa-glx \
+    #    libegl1-mesa \
+    #    libxrandr2 \
+    #    libxrandr2 \
+    #    libxss1 \
+    #    libxcursor1 \
+    #    libxcomposite1 \
+    #    libasound2 \
+    #    libxi6 \
+    #    libxtst6 \
+    #    libncurses5-dev \
+    #    zlib1g-dev
+    #wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ./miniconda.sh
+    #bash miniconda.sh -b -p "/opt/conda" && rm miniconda.sh
+    #export PATH=/opt/conda/bin:$PATH
 
-    conda install --yes -c anaconda tensorflow==2.0.0
-    conda install --yes -c conda-forge numpy
-    conda install --yes -c conda-forge scipy
-    conda install --yes -c conda-forge scikit-learn
-    conda install --yes -c conda-forge matplotlib
-    conda install --yes -c conda-forge python-igraph
-    conda install --yes -c conda-forge networkx
-    conda install --yes -c conda-forge numba
+    #conda install --yes -c conda-forge numpy --freeze-installed
+    #conda install --yes -c conda-forge scipy --freeze-installed
+    #conda install --yes -c conda-forge scikit-learn --freeze-installed
+    #conda install --yes -c conda-forge python-igraph --freeze-installed
+    #conda install --yes -c conda-forge networkx --freeze-installed
+    #conda install --yes -c conda-forge numba --freeze-installed
 
-    conda clean --index-cache --tarballs --packages --yes
+    #conda clean --index-cache --tarballs --packages --yes
 
-    pip install powerlaw
-    pip install notebook
+    python3.6 -m pip install --upgrade pip
+    python3.6 -m pip install powerlaw
+    python3.6 -m pip install numba
+    python3.6 -m pip install python-igraph
 
 %environment
     export PATH="/opt/conda/bin:/usr/local/bin:/usr/bin:/bin:"
