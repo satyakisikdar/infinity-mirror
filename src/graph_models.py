@@ -20,7 +20,7 @@ from src.utils import check_file_exists, load_pickle, delete_files, get_blank_gr
     networkx_to_graph_tool, graph_tool_to_networkx
 
 __all__ = ['BaseGraphModel', 'ErdosRenyi', 'UniformRandom', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker',
-           'GraphAE', 'GraphVAE', 'SBM']
+           'GraphAE', 'GraphVAE', 'SBM', 'GraphForge']
 
 
 class BaseGraphModel:
@@ -673,4 +673,23 @@ class GraphAE(BaseGraphModel):
         g.name = gname
         g.gen_id = gen_id
 
+        return g
+
+
+class GraphForge(BaseGraphModel):
+    """
+    Spectral Graph Forge by Baldesi et al
+    Copy 50% of the original
+    """
+    def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
+        super().__init__(model_name='GraphForge', input_graph=input_graph, run_id=run_id)
+        return
+
+    def _fit(self) -> None:
+        return  # does not need to fit
+
+    def _gen(self, gname: str, gen_id: int) -> nx.Graph:
+        g = nx.spectral_graph_forge(self.input_graph, alpha=0.5)
+        g.name = gname
+        g.gen_id = gen_id
         return g

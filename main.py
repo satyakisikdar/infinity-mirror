@@ -26,7 +26,7 @@ from src.utils import timer, ColorPrint as CP
 
 def parse_args():
     model_names = {'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker', 'UniformRandom', 'GraphVAE', 'GraphAE',
-                   'SBM'}
+                   'SBM', 'GraphForge'}
     selections = {'best', 'worst', 'median', 'all'}
 
     parser = argparse.ArgumentParser(
@@ -142,7 +142,7 @@ def main():
 
     CP.print_green(f'Running infinity mirror on {num_jobs} cores for {num_trials} trials')
 
-    Parallel(n_jobs=num_jobs, backend="multiprocessing")(
+    Parallel(n_jobs=num_jobs)(
         delayed(run_infinity_mirror)(run_id=i + 1, args=args)
         for i in range(num_trials)
     )
