@@ -163,7 +163,7 @@ class InfinityMirror:
 
         pbar.close()
         CP.print_green(f'Root object is pickled at "{self.root_pickle_path + pickle_ext}"')
-        pickle.dump(self.root, open(self.root_pickle_path + pickle_ext, 'wb'))
+        pickle.dump(self.root, open(self.root_pickle_path + pickle_ext, 'wb'), protocol=-1)  # use highest possible protocol
         return
 
     def write_timing_stats(self, time_taken) -> None:
