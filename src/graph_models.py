@@ -10,7 +10,6 @@ from itertools import combinations
 from time import time
 from typing import List, Dict, Any, Union, Set, Tuple
 
-import graph_tool.all as gt
 import networkx as nx
 import numpy as np
 
@@ -605,12 +604,16 @@ class SBM(BaseGraphModel):
         return
 
     def _fit(self) -> None:
+        import graph_tool.all as gt  # local import
+
         gt_g = networkx_to_graphtool(self.input_graph)  # convert to graphtool obj
         state = gt.minimize_blockmodel_dl(gt_g)  # run SBM fit
         self.params['state'] = state
         return
 
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
+        import graph_tool.all as gt  # local import
+
         assert 'state' in self.params, 'missing parameter: state for SBM'
         state = self.params['state']
 
