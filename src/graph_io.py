@@ -202,7 +202,7 @@ class SyntheticGraph:
         :return:
         """
         double_edges_to_rewire = int(math.ceil(self.r * self.g.size())) // 2
-        CP.print_blue(f'Rewiring {double_edges_to_rewire} edges')
+        CP.print_blue(f'Rewiring {double_edges_to_rewire} edges: {self.g.name}')
         nx.connected_double_edge_swap(self.g, nswap=double_edges_to_rewire)
 
         return
