@@ -46,16 +46,23 @@ def get_blank_graph(name=None) -> nx.Graph:
     return blank_graph
 
 
-def get_graph_from_prob_matrix(p_mat: np.array) -> nx.Graph:
+def get_graph_from_prob_matrix(p_mat: np.array, thresh: float=None) -> nx.Graph:
     """
     Generates a NetworkX graph from probability matrix
     :param p_mat: matrix of edge probabilities
     :return:
     """
     n = p_mat.shape[0]  # number of rows / nodes
-    sampled_mat = np.random.rand(n, n) <= p_mat
+
+    if thresh is not None:
+        rand_mat = np.ones((n, n)) * thresh
+    else:
+        rand_mat = np.random.rand(n, n)
+
+    sampled_mat = rand_mat <= p_mat
     sampled_mat = sampled_mat * sampled_mat.T  # to make sure it is symmetric
     np.fill_diagonal(sampled_mat, False)  # zero out the diagonals
+
     sampled_mat = sampled_mat.astype(int)
 
     g = nx.from_numpy_array(sampled_mat, create_using=nx.Graph())
