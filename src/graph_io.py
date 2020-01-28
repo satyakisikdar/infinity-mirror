@@ -1,12 +1,14 @@
 """
 Grpah i/o helpers
 """
+import math
 from pathlib import Path
 
 import networkx as nx
 import numpy as np
 
 from src.utils import ColorPrint as CP, check_file_exists, print_float
+
 
 # TODO: add LFR benchmark graphs
 
@@ -121,11 +123,11 @@ class SyntheticGraph:
     """
     Container for Synthetic graphs
     """
-    __slots__ = ['kind', 'args', 'g']
+    __slots__ = ['kind', 'args', 'g', 'r']
 
     implemented_methods = {'chain': ('n',), 'tree': ('r', 'h'), 'ladder': ('n',), 'circular_ladder': ('n',),
                            'ring': ('n',), 'clique_ring': ('n', 'k'), 'grid': ('m', 'n'),
-                           'erdos_renyi': ('n', 'p', 'seed'), 'ring_lattice': ('n', ), 'BA': ('n', 'm'),
+                           'erdos_renyi': ('n', 'p', 'seed'), 'ring_lattice': ('n',), 'BA': ('n', 'm'),
                            'cycle': ('n',)}
 
     def __init__(self, kind, **kwargs):
@@ -133,10 +135,14 @@ class SyntheticGraph:
         assert kind in SyntheticGraph.implemented_methods, f'Generator {kind} not implemented. Implemented methods: {self.implemented_methods.keys()}'
         self.args = kwargs
 
-        if 'seed' in SyntheticGraph.implemented_methods[
-            kind] and 'seed' not in self.args:  # if seed is not specified, set it to None
+        if 'seed' in SyntheticGraph.implemented_methods[kind] \
+                and 'seed' not in self.args:  # if seed is not specified, set it to None
             self.args['seed'] = None
         self.g = self._make_graph()
+
+        self.r = self.args.get('r', 0)  # default r is 0
+        if self.r != 0:
+            self._rewire_edges()
 
     def _make_graph(self) -> nx.Graph:
         """
@@ -174,16 +180,32 @@ class SyntheticGraph:
             if seed is not None:
                 name += f'-{seed}'  # add the seed to the name
         elif self.kind == 'ring_lattice':
-            g = nx.watts_strogatz_graph(n=self.args['n'], k=2, p=0)
+            g = nx.watts_strogatz_graph(n=self.args['n'], k=4, p=0)
             name = f"ring-lattice-{g.order()}"
         elif self.kind == 'BA':
-            g = nx.barabasi_albert_graph(n=self.args['n'], m=self.args['m'])
+            seed = self.args['seed']
+            g = nx.barabasi_albert_graph(n=self.args['n'], m=self.args['m'], seed=seed)
             name = f"BA-{self.args['n']}-{self.args['m']}"
+        elif self.kind == 'PLC':  # powerlaw cluster graph
+            p = self.args.get('p', 0.5)  # default p is 0.5
+            seed = self.args['seed']
+            g = nx.powerlaw_cluster_graph(n=self.args['n'], m=self.args['m'], p=p, seed=seed)
+            name = f"PLC-{self.args['n']}-{self.args['m']}-{int(p * 100)}"
         else:
             raise NotImplementedError(f'Improper kind: {self.kind}')
         g.name = name
         return g
 
+    def _rewire_edges(self) -> None:
+        """
+        Re-wires edges randomly
+        :return:
+        """
+        double_edges_to_rewire = int(math.ceil(self.r * self.g.size())) // 2
+        CP.print_blue(f'Rewiring {double_edges_to_rewire} edges')
+        nx.connected_double_edge_swap(self.g, nswap=double_edges_to_rewire)
+
+        return
 
 class GraphWriter:
     """
