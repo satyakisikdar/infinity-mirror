@@ -3,8 +3,6 @@ import os
 import pickle
 import sys
 import time
-import pyintergraph as pig
-import graph_tool.all as gt
 from datetime import datetime
 from pathlib import Path
 from typing import Union, Any, Tuple, List
@@ -12,7 +10,9 @@ from typing import Union, Any, Tuple, List
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-import seaborn as sns; sns.set(); sns.set_style("darkgrid")
+import seaborn as sns;
+
+sns.set(); sns.set_style("darkgrid")
 import statsmodels.stats.api as sm
 from numpy import linalg as la
 from scipy import sparse as sps
