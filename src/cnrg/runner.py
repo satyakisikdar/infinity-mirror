@@ -69,12 +69,11 @@ def get_clustering(g, clustering):
         list_of_list_clusters = partitions.approx_min_conductance_partitioning(g)
     elif clustering == 'spectral':
         list_of_list_clusters = partitions.spectral_kmeans(g, K=int(math.sqrt(g.order() // 2)))
-    else:
-        list_of_list_clusters = partitions.get_node2vec(g)
+
     return list_of_list_clusters
 
 
-logging.basicConfig(level=logging.WARNING, format="%(message)s")
+logging.basicConfig(level=logging.ERROR, format="%(message)s")
 
 
 def make_dirs(outdir: str, name: str) -> None:
@@ -108,7 +107,7 @@ def get_grammar(g: nx.Graph, name: str, clustering: str='leiden', grammar_type: 
     original_graph.name = name
     outdir = 'dumps'
 
-    make_dirs(outdir, name)  # make the directories if needed
+    # make_dirs(outdir, name)  # make the directories if needed
 
     grammar_types = ('mu_random', 'mu_level', 'mu_dl', 'mu_level_dl', 'local_dl', 'global_dl')
     assert grammar_type in grammar_types, f'Invalid grammar type: {grammar_type}'
@@ -135,11 +134,9 @@ def get_grammar(g: nx.Graph, name: str, clustering: str='leiden', grammar_type: 
         extractor = GlobalExtractor(g=g, type=grammar.type, grammar=grammar, mu=mu, root=root)
 
     extractor.generate_grammar()
-    time_taken = round(time() - start_time, 4)
-
     grammar = extractor.grammar
 
-    tqdm.write(f"name: {name}, original: {g_dl}, grammar: {grammar.cost}, time: {time_taken}")
+    # tqdm.write(f"name: {name}, original: {g_dl}, grammar: {grammar.cost}, time: {time_taken}")
     return grammar
 
 

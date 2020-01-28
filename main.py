@@ -2,20 +2,22 @@ import argparse
 import ast
 import glob
 import importlib
-import multiprocessing
+import os
 import time
+import warnings
 from pathlib import Path
 from typing import Any
 
 import networkx as nx
 from joblib import Parallel, delayed
 
-import os
-os.environ["OMP_NUM_THREADS"] = "2" # export OMP_NUM_THREADS=4
-os.environ["OPENBLAS_NUM_THREADS"] = "2" # export OPENBLAS_NUM_THREADS=4
-os.environ["MKL_NUM_THREADS"] = "2" # export MKL_NUM_THREADS=6
-os.environ["VECLIB_MAXIMUM_THREADS"] = "2" # export VECLIB_MAXIMUM_THREADS=4
-os.environ["NUMEXPR_NUM_THREADS"] = "2" # export NUMEXPR_NUM_THREADS=6
+warnings.filterwarnings('ignore', category=UserWarning)
+warnings.filterwarnings('ignore', category=RuntimeWarning)
+os.environ["OMP_NUM_THREADS"] = "2"  # export OMP_NUM_THREADS=4
+os.environ["OPENBLAS_NUM_THREADS"] = "2"  # export OPENBLAS_NUM_THREADS=4
+os.environ["MKL_NUM_THREADS"] = "2"  # export MKL_NUM_THREADS=6
+os.environ["VECLIB_MAXIMUM_THREADS"] = "2"  # export VECLIB_MAXIMUM_THREADS=4
+os.environ["NUMEXPR_NUM_THREADS"] = "2"  # export NUMEXPR_NUM_THREADS=6
 
 from src.graph_io import GraphReader, SyntheticGraph
 from src.infinity_mirror import InfinityMirror
@@ -23,7 +25,8 @@ from src.utils import timer, ColorPrint as CP
 
 
 def parse_args():
-    model_names = {'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker', 'UniformRandom', 'GraphVAE', 'GraphAE'}
+    model_names = {'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker', 'UniformRandom', 'GraphVAE', 'GraphAE',
+                   'SBM', 'GraphForge'}
     selections = {'best', 'worst', 'median', 'all'}
 
     parser = argparse.ArgumentParser(
@@ -129,6 +132,7 @@ def run_infinity_mirror(args, run_id):
         inf.write_timing_stats(round(toc - tic, 3))
         print(run_id, inf)
 
+
 @timer
 def main():
     CP.print_orange('GCD is disabled')
@@ -138,7 +142,7 @@ def main():
 
     CP.print_green(f'Running infinity mirror on {num_jobs} cores for {num_trials} trials')
 
-    Parallel(n_jobs=num_jobs, backend="multiprocessing")(
+    Parallel(n_jobs=num_jobs)(
         delayed(run_infinity_mirror)(run_id=i + 1, args=args)
         for i in range(num_trials)
     )

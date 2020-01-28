@@ -4,18 +4,23 @@ Container for different graph models
 import abc
 import math
 import platform
+import random
 import subprocess as sub
+from itertools import combinations
 from time import time
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Any, Union, Set, Tuple
 
+import graph_tool.all as gt
 import networkx as nx
 import numpy as np
 
+from src.graph_stats import GraphStats
 from src.utils import ColorPrint as CP
-from src.utils import check_file_exists, load_pickle, delete_files, get_blank_graph, get_graph_from_prob_matrix
+from src.utils import check_file_exists, load_pickle, delete_files, get_blank_graph, get_graph_from_prob_matrix, \
+    networkx_to_graph_tool, graph_tool_to_networkx
 
 __all__ = ['BaseGraphModel', 'ErdosRenyi', 'UniformRandom', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker',
-           'GraphAE', 'GraphVAE']
+           'GraphAE', 'GraphVAE', 'SBM', 'GraphForge']
 
 
 class BaseGraphModel:
@@ -68,14 +73,14 @@ class BaseGraphModel:
         :param run_id: run_id keeps things separate when run in parallel
         :return:
         """
-        # generated_graphs = Parallel(n_jobs=3)(
-        #     delayed(self._gen)(gen_id=gen_id, gname=f'{self.gname}_{gen_id}_{self.run_id}_{i + 1}')
-        #     for i in range(num_graphs)
-        # )
-        generated_graphs = [self._gen(gen_id=gen_id, gname=f'{self.input_graph.name}_{gen_id}_{self.run_id}_{i + 1}')
-                            for i in range(num_graphs)]
-
-        assert isinstance(generated_graphs, list), 'Parallel generation didnt work'
+        generated_graphs = []
+        for i in range(num_graphs):
+            g = self._gen(gen_id=gen_id, gname=f'{self.input_graph.name}_{gen_id}_{self.run_id}_{i + 1}')
+            if not isinstance(g, nx.Graph):
+                g = nx.Graph(g)  # make it into an undirected graph with no parallel edges
+            self_loops = list(nx.selfloop_edges(g))
+            g.remove_edges_from(self_loops)  # remove self loops
+            generated_graphs.append(g)
 
         return generated_graphs
 
@@ -190,7 +195,7 @@ class ChungLu(BaseGraphModel):
         return g
 
 
-class BTER(BaseGraphModel):
+class _BTER(BaseGraphModel):
     """
     BTER model by Tammy Kolda
     feastpack implementation at https://www.sandia.gov/~tgkolda/feastpack/feastpack_v1.2.zip
@@ -287,6 +292,102 @@ class BTER(BaseGraphModel):
         delete_files(graph_path, output_path, matlab_code_path)
 
         return g_bter
+
+
+class BTER(BaseGraphModel):
+    """
+        BTER model by Tammy Kolda
+        feastpack implementation at https://www.sandia.gov/~tgkolda/feastpack/feastpack_v1.2.zip
+    """
+
+    def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
+        super().__init__(model_name='BTER', input_graph=input_graph, run_id=run_id)
+        return
+
+    def _fit(self) -> None:
+        # find degree distribution and avg clustering by degree
+        g_stats = GraphStats(self.input_graph, run_id=-1)
+
+        self.params['n'] = self.input_graph.order()
+        self.params['degree_dist'] = g_stats.degree_dist(normalized=False)  # we need the counts
+        self.params['degree_seq'] = g_stats['degree_seq']
+        self.params['avg_cc_by_deg'] = g_stats.clustering_coefficients_by_degree()
+
+        return
+
+    def _gen(self, gname: str, gen_id: int) -> nx.Graph:
+        assert 'degree_dist' in self.params and 'avg_cc_by_deg' in self.params and 'n' in self.params, \
+            'insufficient parameters for BTER'
+
+        n, avg_cc_by_deg = self.params['n'], self.params['avg_cc_by_deg']
+        degree_seq, degree_dist = self.params['degree_seq'], self.params['degree_dist']
+
+        g = nx.empty_graph(n=n)  # adding n isolated nodes
+
+        # preprocessing
+        # step 1: assign n1 nodes to have degree 1, n2 nodes to have degree 2, ...
+        assigned_deg: Dict[int, int] = {node: degree_seq[node] for node in g.nodes()}  # deg seq is sorted
+
+        nx.set_node_attributes(g, values=assigned_deg, name='assigned_deg')
+
+        # step 2: partition all nodes into affinity blocks, ideally blocks with degree d as d+1 nodes - no edges yet
+        #         ignore degree 1 nodes
+        node2block: Dict[int, int] = {}  # keyed by node, vals are block id
+        block_members: Dict[int, Tuple[int, Set[int]]] = {}  # keyed by block_id, vals: expected degree, set of members
+
+        idx = 0
+        block_id = 0
+        while idx < n - 1:  # idx is node id
+            deg = assigned_deg[idx]
+            if deg == 1:  # skip the degree 1 nodes
+                idx += 1
+                continue
+
+            for j in range(deg + 1):  # assign deg+1 nodes to degree block of degree deg
+                node = idx + j
+                if node > n - 1:  # if node > n, break
+                    break
+                node2block[node] = block_id  # assign node to block
+
+                if block_id not in block_members:  # update block_members data structure
+                    block_members[block_id] = deg, set()  # first item is the expected degree, second is the set of members
+                block_members[block_id][1].add(node)
+
+            block_id += 1 # update block id
+            idx += deg + 1  # skip deg + 1 nodes
+
+        # phase 1
+        # step 3: add edges within each affinity block by fitting a dense ER graph depending on avg cc by degree
+        phase1_edges = []
+
+        for block_id, (exp_deg, members) in block_members.items():
+            clustering_coeff = avg_cc_by_deg[exp_deg]
+            prob = math.pow(clustering_coeff, 1/3)
+            for u, v in combinations(members, 2):
+                r = random.random()
+                if r <= prob:
+                    g.add_edge(u, v)
+                    phase1_edges.append((u, v))
+
+        # phase 2
+        # step 4: Add edges between blocks by using excess degree. Expected degree: d_i, already incident: d_j. excess degree: d_i - d_j.
+        #         Create a CL graph based on the excess degrees
+
+        excess_degs = {node: max(0, assigned_deg[node] - g.degree(node))
+                       for node in g.nodes()}  # dictionary of excess degs
+
+        if sum(excess_degs.values()) % 2 != 0:  # excess degs do not sum to even degrees, decrease the node with max degree by 1
+            max_deg_node, max_deg = max(excess_degs.items(), key=lambda x, y: y)
+            excess_degs[max_deg_node] -= 1  # decrease it by 1 to make the sum even
+
+        phase2_graph = nx.configuration_model(excess_degs.values(), create_using=nx.Graph())
+        selfloops = list(nx.selfloop_edges(phase2_graph))
+        phase2_graph.remove_edges_from(selfloops)
+        g.add_edges_from(phase2_graph.edges())
+
+        g.name = gname
+        g.gen_id = gen_id
+        return g
 
 
 class CNRG(BaseGraphModel):
@@ -494,28 +595,39 @@ class Kronecker(BaseGraphModel):
         return graph
 
 
-class StochasticBlockModel(BaseGraphModel):
+class SBM(BaseGraphModel):
     """
-    Stochastic Block Model  - basic and degree corrected
-    """
-
-
-class RMAT(BaseGraphModel):
-    """
-    Recursive-matrix graph generators
+    Stochastic Block Model  - degree corrected
     """
 
+    def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
+        super().__init__(model_name='SBM', input_graph=input_graph, run_id=run_id)
+        return
 
-class ERGM(BaseGraphModel):
-    """
-    Exponential Random Graph Models
-    """
+    def _fit(self) -> None:
+        gt_g = networkx_to_graph_tool(self.input_graph)  # convert to graphtool obj
+        state = gt.minimize_blockmodel_dl(gt_g)  # run SBM fit
+        self.params['state'] = state
+        return
+
+    def _gen(self, gname: str, gen_id: int) -> nx.Graph:
+        assert 'state' in self.params, 'missing parameter: state for SBM'
+        state = self.params['state']
+
+        gen_gt_g = gt.generate_sbm(state.b.a,
+                                   gt.adjacency(state.get_bg(), state.get_ers()).T)  # returns a graphtool graph
+        g = graph_tool_to_networkx(gen_gt_g)
+        g.name = gname
+        g.gen_id = gen_id
+
+        return g
 
 
 class GraphVAE(BaseGraphModel):
     """
     Graph Variational Autoencoder - from T. Kipf
     """
+
     def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
         super().__init__(model_name='GraphVAE', input_graph=input_graph, run_id=run_id)
         return
@@ -529,7 +641,6 @@ class GraphVAE(BaseGraphModel):
         return
 
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
-        from src.cnrg.src.generate import generate_graph
         assert 'prob_mat' in self.params, 'Improper params. Prob matrix object is missing.'
         g = get_graph_from_prob_matrix(self.params['prob_mat'])
         g.name = gname
@@ -542,6 +653,7 @@ class GraphAE(BaseGraphModel):
     """
     Graph Autoencoder - from T. Kipf
     """
+
     def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
         super().__init__(model_name='GraphAE', input_graph=input_graph, run_id=run_id)
         return
@@ -561,4 +673,23 @@ class GraphAE(BaseGraphModel):
         g.name = gname
         g.gen_id = gen_id
 
+        return g
+
+
+class GraphForge(BaseGraphModel):
+    """
+    Spectral Graph Forge by Baldesi et al
+    Copy 50% of the original
+    """
+    def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
+        super().__init__(model_name='GraphForge', input_graph=input_graph, run_id=run_id)
+        return
+
+    def _fit(self) -> None:
+        return  # does not need to fit
+
+    def _gen(self, gname: str, gen_id: int) -> nx.Graph:
+        g = nx.spectral_graph_forge(self.input_graph, alpha=0.5)
+        g.name = gname
+        g.gen_id = gen_id
         return g

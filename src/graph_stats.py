@@ -80,7 +80,7 @@ class GraphStats:
         assert item in self.stats, f'stat: {item} is not updated after function call'
         return self.stats[item]
 
-    def plot(self, y, ax=None, kind='line', x=None, title='', xlabel='', ylabel='') -> None:
+    def plot(self, y, ax=None, kind='line', x=None, **kwargs) -> None:
         if isinstance(y, dict):
             lists = sorted(y.items())
             x, y = zip(*lists)
@@ -89,15 +89,19 @@ class GraphStats:
 
         if kind == 'line':
             # plt.plot(x, y, marker='o', linestyle='--')
-            sns.lineplot(x, y, marker='o', dashes='--', ax=ax)  # , dashes=True)
+            sns.lineplot(x, y, marker='o', dashes='--', ax=ax, **kwargs)  # , dashes=True)
         if kind == 'scatter':
             # plt.scatter(x, y, marker='o')
-            sns.scatterplot(x, y, alpha=0.75, ax=ax)
+            ax = sns.scatterplot(x, y, ax=ax, **kwargs)
+
+        title = kwargs.get('title', '')
+        xlabel = kwargs.get('xlabel', '')
+        ylabel = kwargs.get('ylabel', '')
         plt.title(title)
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
-
-        return
+        plt.legend(loc='best')
+        return ax
 
     def adj_eigenvalues(self):
         """
@@ -160,17 +164,19 @@ class GraphStats:
         clustering_coeffs = nx.clustering(self.graph)
         self.stats['clustering_coeffs'] = clustering_coeffs
 
-        clustering_by_degree = Counter()  # average clustering per degree
-        degree_counts = Counter()  # keeps track of #nodes with degree k
+        clustering_by_degree = {}  # clustering per degree
 
         # get the sums
         for node, cc in clustering_coeffs.items():
             deg = self.graph.degree[node]
-            degree_counts[deg] += 1
-            clustering_by_degree[deg] += cc
+            if deg not in clustering_by_degree:
+                clustering_by_degree[deg] = []
+            clustering_by_degree[deg].append(cc)
 
-        self.stats['clustering_coefficients_by_degree'] = clustering_by_degree
-        return clustering_by_degree
+        avg_clustering_by_degree = {deg: np.mean(ccs) for deg, ccs in clustering_by_degree.items()}
+        self.stats['clustering_coefficients_by_degree'] = avg_clustering_by_degree
+
+        return avg_clustering_by_degree
 
     def component_size_distribution(self) -> List[Tuple[int, float]]:
         """
@@ -320,23 +326,21 @@ class GraphStats:
             try:
                 bash_script = f'{pgd_path}/pgd_{self.run_id} -w 1 -f {dummy_path} -c {dummy_path}'
 
-                pipe = sub.Popen([bash_script], shell=True, stdout=sub.PIPE, stdin=sub.PIPE, stderr=sub.PIPE)
-                output_data = pipe.communicate(input=edgelist.encode(), timeout=2)[0]
-                output_data = output_data.decode()
-                pipe.wait(2)  # waits 2 seconds to finish
-            except sub.TimeoutExpired:
-                pipe.kill()
+                pipe = sub.run(bash_script, shell=True, capture_output=True, input=edgelist.encode(), check=True,
+                               timeout=10)  # timeout of 10s
+
+                output_data = pipe.stdout.decode()
+
+            except (sub.TimeoutExpired, sub.CalledProcessError):
                 CP.print_blue('PGD timed out')
                 graphlet_counts = {}
 
             else:  # pgd is successfully run
-                pipe.kill()
                 for line in output_data.split('\n')[: -1]:  # last line blank
                     graphlet_name, count = map(lambda st: st.strip(), line.split('='))
                     graphlet_counts[graphlet_name] = int(count)
         else:
             graphlet_counts = {}
-
         self.stats['pgd_graphlet_counts'] = graphlet_counts
 
         return graphlet_counts

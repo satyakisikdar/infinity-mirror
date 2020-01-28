@@ -10,8 +10,6 @@ from time import time
 from typing import List, Tuple, Dict, Set, Any, Union
 
 import networkx as nx
-from tqdm import tqdm
-
 from src.cnrg.src.LightMultiGraph import LightMultiGraph
 from src.cnrg.src.MDL import graph_dl
 from src.cnrg.src.Rule import FullRule, NoRule, PartRule
@@ -275,25 +273,20 @@ class BaseExtractor(abc.ABC):
         num_nodes = self.g.order()
 
         is_global_extractor = hasattr(self, 'final_grammar')
-        # tqdm.write(f'Extracting grammar name:{self.grammar.name} mu:{self.grammar.mu} type:{self.grammar.type} clustering:{self.grammar.clustering}')
-        with tqdm(total=100, bar_format='{l_bar}{bar}|[{elapsed}<{remaining}]', ncols=50) as pbar:
-            while True:
-                rule = self.extract_rule()
-                assert nx.is_connected(self.g), 'graph is disonnected'
-                assert rule is not None
-                logging.debug(f'new rule: {rule}')
+        while True:
+            rule = self.extract_rule()
+            assert nx.is_connected(self.g), 'graph is disonnected'
+            assert rule is not None
+            logging.debug(f'new rule: {rule}')
 
-                if is_global_extractor:
-                    self.final_grammar.add_rule(rule)
-                else:
-                    self.grammar.add_rule(rule)
+            if is_global_extractor:
+                self.final_grammar.add_rule(rule)
+            else:
+                self.grammar.add_rule(rule)
 
-                percent = (1 - (self.g.order() - 1) / (num_nodes - 1)) * 100
-                curr_progress = percent - pbar.n
-                pbar.update(curr_progress)
-                if rule.lhs == 0:  # we are compressing the root, so that's the end
-                    assert self.g.order() == 1, 'Graph not correctly compressed'
-                    break
+            if rule.lhs == 0:  # we are compressing the root, so that's the end
+                assert self.g.order() == 1, 'Graph not correctly compressed'
+                break
 
         if is_global_extractor:
             self.grammar = self.final_grammar
@@ -572,7 +565,7 @@ if __name__ == '__main__':
     g = LightMultiGraph()
     g.add_edges_from(g_.edges())
     root = pickle.load(open('../output/trees/sample/cond_tree.pkl', 'rb'))
-    print(root)
+    # print(root)
 
     grammar = VRG(clustering=clustering, type=type, name=name, mu=mu)
 

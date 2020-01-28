@@ -31,7 +31,7 @@ class GraphPairCompare:
 
     def __str__(self) -> str:
         st = f'Comparing graphs: "{self.graph1.name}" and "{self.graph2.name}"'
-        for key, val in self.stats:
+        for key, val in self.stats.items():
             st += f'\n{key}: {round(val, 3)}'
         return st
 
@@ -41,7 +41,6 @@ class GraphPairCompare:
 
     def calculate(self) -> None:
         self.lambda_dist(k=10)
-        # self.gcd()
         self.node_diff()
         self.edge_diff()
         self.pgd_pearson()
