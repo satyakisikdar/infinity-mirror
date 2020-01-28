@@ -271,7 +271,7 @@ except ImportError as e:
 
 
 def networkx_to_graphtool(nx_G: nx.Graph):
-    return pig.nx2gt(nx_G, labelname='node_label')
+    return pig.nx2gt(nx_G)
 
 
 def graphtool_to_networkx(gt_G):
