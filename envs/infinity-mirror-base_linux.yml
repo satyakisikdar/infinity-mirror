@@ -26,6 +26,7 @@ dependencies:
   - gettext=0.19.8.1
   - glib=2.58.3
   - gmp=6.1.2
+  - graph-tool=2.29
   - icu=64.2
   - idna=2.8
   - igraph=0.7.1
