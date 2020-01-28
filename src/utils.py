@@ -19,15 +19,6 @@ from scipy import sparse as sps
 from scipy.sparse import issparse
 
 
-def networkx_to_graph_tool(nx_g: nx.Graph) -> gt.Graph:
-    gt_g = pig.nx2gt(nx_g)
-    return gt_g
-
-
-def graph_tool_to_networkx(gt_g: gt.Graph) -> nx.Graph:
-    nx_g = pig.gt2nx(gt_g)
-    return nx_g
-
 def timer(func):
     @functools.wraps(func)
     def wrapper_timer(*args, **kwargs):
