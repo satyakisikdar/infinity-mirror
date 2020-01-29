@@ -83,12 +83,13 @@ def process_args(args) -> Any:
         g = SyntheticGraph(kind, **kwd_args).g
     else:
         g = GraphReader(filename=args.input[0]).graph
+        r = 0
 
     model_name = args.model[0]
     module = importlib.import_module(f'src.graph_models')
     model_obj = getattr(module, model_name)
 
-    return args.sel[0], g, model_obj, int(args.gens[0]), args.pickle, int(args.num_graphs[0])
+    return args.sel[0], g, model_obj, int(args.gens[0]), args.pickle, int(args.num_graphs[0]), r
 
 
 def make_dirs(gname, model):
@@ -107,7 +108,7 @@ def run_infinity_mirror(args, run_id):
     Creates and runs infinity mirror
     :return:
     """
-    selection, g, model, num_gens, use_pickle, num_graphs = process_args(args)
+    selection, g, model, num_gens, use_pickle, num_graphs, rewire = process_args(args)
 
     # process args returns the Class and not an object
     empty_g = nx.empty_graph(1)
@@ -121,7 +122,7 @@ def run_infinity_mirror(args, run_id):
     if selection == 'all':
         for sel in 'best', 'median', 'worst':
             inf = InfinityMirror(selection=sel, initial_graph=g, num_generations=num_gens, model_obj=model,
-                                 num_graphs=num_graphs, run_id=run_id)
+                                 num_graphs=num_graphs, run_id=run_id, r=rewire)
             tic = time.perf_counter()
             inf.run(use_pickle=use_pickle)
             toc = time.perf_counter()
@@ -130,7 +131,7 @@ def run_infinity_mirror(args, run_id):
             print(run_id, inf)
     else:
         inf = InfinityMirror(selection=selection, initial_graph=g, num_generations=num_gens, model_obj=model,
-                             num_graphs=num_graphs, run_id=run_id)
+                             num_graphs=num_graphs, run_id=run_id, r=rewire)
         tic = time.perf_counter()
         inf.run(use_pickle=use_pickle)
         toc = time.perf_counter()
