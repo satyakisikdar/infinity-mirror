@@ -407,7 +407,7 @@ class CNRG(BaseGraphModel):
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
         assert 'grammar' in self.params, 'Improper params. Grammar object is missing.'
         from src.cnrg.runner import generate_graph
-        light_g = generate_graph(target_n=self.input_graph.order(), rule_dict=self.params['grammar'].rule_dict, tolerance_bounds=0)  # exact generation
+        light_g = generate_graph(target_n=self.input_graph.order(), rule_dict=self.params['grammar'].rule_dict, tolerance_bounds=0.01)  # exact generation
         g = nx.Graph()
         g.add_edges_from(light_g.edges())
         g.name = gname
