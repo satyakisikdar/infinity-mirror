@@ -3,8 +3,6 @@ import os
 import pickle
 import sys
 import time
-import pyintergraph as pig
-import graph_tool.all as gt
 from datetime import datetime
 from pathlib import Path
 from typing import Union, Any, Tuple, List
@@ -12,21 +10,14 @@ from typing import Union, Any, Tuple, List
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-import seaborn as sns; sns.set(); sns.set_style("darkgrid")
+import seaborn as sns;
+
+sns.set(); sns.set_style("darkgrid")
 import statsmodels.stats.api as sm
 from numpy import linalg as la
 from scipy import sparse as sps
 from scipy.sparse import issparse
 
-
-def networkx_to_graph_tool(nx_g: nx.Graph) -> gt.Graph:
-    gt_g = pig.nx2gt(nx_g)
-    return gt_g
-
-
-def graph_tool_to_networkx(gt_g: gt.Graph) -> nx.Graph:
-    nx_g = pig.gt2nx(gt_g)
-    return nx_g
 
 def timer(func):
     @functools.wraps(func)
@@ -55,16 +46,23 @@ def get_blank_graph(name=None) -> nx.Graph:
     return blank_graph
 
 
-def get_graph_from_prob_matrix(p_mat: np.array) -> nx.Graph:
+def get_graph_from_prob_matrix(p_mat: np.array, thresh: float=None) -> nx.Graph:
     """
     Generates a NetworkX graph from probability matrix
     :param p_mat: matrix of edge probabilities
     :return:
     """
     n = p_mat.shape[0]  # number of rows / nodes
-    sampled_mat = np.random.rand(n, n) <= p_mat
+
+    if thresh is not None:
+        rand_mat = np.ones((n, n)) * thresh
+    else:
+        rand_mat = np.random.rand(n, n)
+
+    sampled_mat = rand_mat <= p_mat
     sampled_mat = sampled_mat * sampled_mat.T  # to make sure it is symmetric
     np.fill_diagonal(sampled_mat, False)  # zero out the diagonals
+
     sampled_mat = sampled_mat.astype(int)
 
     g = nx.from_numpy_array(sampled_mat, create_using=nx.Graph())

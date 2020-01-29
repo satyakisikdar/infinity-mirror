@@ -26,6 +26,7 @@ dependencies:
   - gettext=0.19.8.1
   - glib=2.58.3
   - gmp=6.1.2
+  - graph-tool=2.29
   - icu=64.2
   - idna=2.8
   - igraph=0.7.1
@@ -98,7 +99,10 @@ dependencies:
   - xz=5.2.4
   - zlib=1.2.11
   - pip:
-    - tensorflow==1.15
+<<<<<<< HEAD
+=======
+    - tensorflow==1.15.2
+>>>>>>> d215719a548eed730f6afb146d1176adea31a403
     - anytree==2.7.3
     - pyintergraph==1.1.2
     - scikit-learn==0.22.1

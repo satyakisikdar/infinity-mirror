@@ -50,6 +50,9 @@ def parse_args():
     parser.add_argument('-c', '--cores', help='#cores to use', default=[1], nargs=1, metavar='', type=int)
 
     parser.add_argument('-t', '--trials', help='#trials', nargs=1, metavar='', type=int, required=True)
+
+    parser.add_argument('-r', '--rewire', help='edge rewire prob', nargs=1, default=[0], metavar='', type=float)
+
     return parser.parse_args()
 
 
@@ -60,6 +63,7 @@ def process_args(args) -> Any:
     :return:
     """
     possible_extensions = {'.g', '.gml', '.txt', '.gml', '.mat'}
+
     graph_names = {fname[: fname.find(ext)].split('/')[-1]
                    for ext in possible_extensions
                    for fname in glob.glob(f'./input/*{ext}')}
@@ -70,7 +74,9 @@ def process_args(args) -> Any:
         kind = args.input[0]  # kind of synthetic graph
         assert kind in SyntheticGraph.implemented_methods, f'{kind} not implemented in SyntheticGraph class'
 
-        kwd_args = {}
+        r = float(args.rewire[0])
+        kwd_args = {'r': r}
+
         for param, val in zip(SyntheticGraph.implemented_methods[kind], args.input[1:]):
             kwd_args[param] = ast.literal_eval(val)
 

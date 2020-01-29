@@ -10,14 +10,13 @@ from itertools import combinations
 from time import time
 from typing import List, Dict, Any, Union, Set, Tuple
 
-import graph_tool.all as gt
 import networkx as nx
 import numpy as np
 
 from src.graph_stats import GraphStats
 from src.utils import ColorPrint as CP
-from src.utils import check_file_exists, load_pickle, delete_files, get_blank_graph, get_graph_from_prob_matrix, \
-    networkx_to_graph_tool, graph_tool_to_networkx
+from src.utils import check_file_exists, load_pickle, delete_files, get_blank_graph, get_graph_from_prob_matrix
+from src.graph_io import networkx_to_graphtool, graphtool_to_networkx
 
 __all__ = ['BaseGraphModel', 'ErdosRenyi', 'UniformRandom', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker',
            'GraphAE', 'GraphVAE', 'SBM', 'GraphForge']
@@ -408,7 +407,7 @@ class CNRG(BaseGraphModel):
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
         assert 'grammar' in self.params, 'Improper params. Grammar object is missing.'
         from src.cnrg.runner import generate_graph
-        light_g = generate_graph(target_n=self.input_graph.order(), rule_dict=self.params['grammar'].rule_dict)
+        light_g = generate_graph(target_n=self.input_graph.order(), rule_dict=self.params['grammar'].rule_dict, tolerance_bounds=0)  # exact generation
         g = nx.Graph()
         g.add_edges_from(light_g.edges())
         g.name = gname
@@ -605,18 +604,22 @@ class SBM(BaseGraphModel):
         return
 
     def _fit(self) -> None:
-        gt_g = networkx_to_graph_tool(self.input_graph)  # convert to graphtool obj
+        import graph_tool.all as gt  # local import
+
+        gt_g = networkx_to_graphtool(self.input_graph)  # convert to graphtool obj
         state = gt.minimize_blockmodel_dl(gt_g)  # run SBM fit
         self.params['state'] = state
         return
 
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
+        import graph_tool.all as gt  # local import
+
         assert 'state' in self.params, 'missing parameter: state for SBM'
         state = self.params['state']
 
         gen_gt_g = gt.generate_sbm(state.b.a,
                                    gt.adjacency(state.get_bg(), state.get_ers()).T)  # returns a graphtool graph
-        g = graph_tool_to_networkx(gen_gt_g)
+        g = graphtool_to_networkx(gen_gt_g)
         g.name = gname
         g.gen_id = gen_id
 

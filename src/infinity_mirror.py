@@ -101,11 +101,7 @@ class InfinityMirror:
         for metric, stats in sorted_scores.items():
             rankings[metric] = list(map(lambda item: item.id, stats))
 
-        # if all the scores are the same, do not include that metric in the ranking
-        for metric in self._metrics:
-            if len(set(item.score for item in scores[metric])) == 1:  # all the metrics have the same ranking
-                rankings[metric] = []
-
+        # if all the scores across all the metrics are the same, best, median, and worst are the same graph
         if sum(len(lst) for lst in rankings.values()) == 0:  # empty ranking
             return None
 
@@ -147,8 +143,6 @@ class InfinityMirror:
             generated_graphs = self.model.generate(num_graphs=self.num_graphs,
                                                    gen_id=level)  # generate a new set of graphs
 
-            # TODO: insert failure check
-
             graph_stats = self._get_representative_graph_stat(generated_graphs=generated_graphs)
 
             if graph_stats is None:
@@ -163,7 +157,7 @@ class InfinityMirror:
 
         pbar.close()
         CP.print_green(f'Root object is pickled at "{self.root_pickle_path + pickle_ext}"')
-        pickle.dump(self.root, open(self.root_pickle_path + pickle_ext, 'wb'))
+        pickle.dump(self.root, open(self.root_pickle_path + pickle_ext, 'wb'), protocol=-1)  # use highest possible protocol
         return
 
     def write_timing_stats(self, time_taken) -> None:
