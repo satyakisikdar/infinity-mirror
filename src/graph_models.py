@@ -19,7 +19,7 @@ from src.utils import check_file_exists, load_pickle, delete_files, get_blank_gr
 from src.graph_io import networkx_to_graphtool, graphtool_to_networkx
 
 __all__ = ['BaseGraphModel', 'ErdosRenyi', 'UniformRandom', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker',
-           'GraphAE', 'GraphVAE', 'SBM', 'GraphForge']
+           'GraphAE', 'GraphVAE', 'SBM', 'GraphForge', 'NetGAN']
 
 
 class BaseGraphModel:
@@ -693,6 +693,29 @@ class GraphForge(BaseGraphModel):
 
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
         g = nx.spectral_graph_forge(self.input_graph, alpha=0.5)
+        g.name = gname
+        g.gen_id = gen_id
+        return g
+
+class NetGAN(BaseGraphModel):
+    def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
+        super().__init__(model_name='NetGAN', input_graph=input_graph, run_id=run_id)
+        return
+
+    def _fit(self) -> None:
+        from src.netgan.fit import fit
+        sparse_adj = nx.to_scipy_sparse_matrix(self.input_graph)
+        scores, tg_sum = fit(sparse_adj)
+        self.params['scores'] = scores
+        self.params['tg_sum'] = tg_sum
+        return
+
+    def _gen(self, gname: str, gen_id: int) -> nx.Graph:
+        from src.netgan.fit import gen
+        assert 'scores' in self.params
+        assert 'tg_sum' in self.params
+        gen_mat = gen(self.params['scores'], self.params['tg_sum'])
+        g = nx.from_scipy_sparse_matrix(gen_mat)
         g.name = gname
         g.gen_id = gen_id
         return g
