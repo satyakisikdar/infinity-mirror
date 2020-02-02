@@ -331,8 +331,12 @@ class GraphStats:
 
                 output_data = pipe.stdout.decode()
 
-            except (sub.TimeoutExpired, sub.CalledProcessError):
-                CP.print_blue('PGD timed out')
+            except sub.TimeoutExpired:
+                CP.print_blue('PGD timeout!')
+                graphlet_counts = {}
+
+            except sub.CalledProcessError:
+                CP.print_blue('PGD error')
                 graphlet_counts = {}
 
             else:  # pgd is successfully run
