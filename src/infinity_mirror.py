@@ -45,7 +45,9 @@ class InfinityMirror:
         self._metrics: List[str] = ['deltacon0', 'lambda_dist', 'pagerank_cvm', 'node_diff', 'edge_diff', 'pgd_pearson',
                                     'pgd_spearman', 'degree_cvm']  # list of metrics  ## GCD is removed
         self.rewire = int(r * 100)
-        self.root_pickle_path: str = f'./output/pickles/{self.initial_graph.name}/{self.model.model_name}/{self.selection}_{self.num_generations}_{self.run_id}_{self.rewire}'
+        self.root_pickle_path: str = f'./output/pickles/{self.initial_graph.name}/{self.model.model_name}/{self.selection}_{self.num_generations}_{self.run_id}'
+        if r != 0:
+            self.root_pickle_path += f'_{r}'
         return
 
     def __str__(self) -> str:
