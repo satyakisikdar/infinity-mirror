@@ -721,7 +721,7 @@ class NetGAN(BaseGraphModel):
         assert 'scores' in self.params
         assert 'tg_sum' in self.params
         gen_mat = gen(self.params['scores'], self.params['tg_sum'])
-        g = nx.from_scipy_sparse_matrix(gen_mat)
+        g = nx.from_numpy_array(gen_mat)
         g.name = gname
         g.gen_id = gen_id
         return g
