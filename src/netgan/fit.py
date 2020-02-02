@@ -1,6 +1,6 @@
 from src.netgan.netgan import *
-from src.netgan.netgan import utils
-
+import src.netgan.netgan.utils as utils
+from src.netgan.netgan.netgan import NetGAN
 from sklearn.metrics import roc_auc_score, average_precision_score
 import scipy.sparse as sp
 import os
