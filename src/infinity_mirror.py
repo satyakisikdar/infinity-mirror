@@ -39,8 +39,7 @@ class InfinityMirror:
         self.num_generations: int = num_generations  # number of generations
         self.model: BaseGraphModel = model_obj(input_graph=self.initial_graph,
                                                run_id=self.run_id)  # initialize and fit the model
-        self.initial_graph_stats: GraphStats = GraphStats(run_id=run_id,
-            graph=self.initial_graph)  # initialize graph_stats object for the initial_graph which is the same across generations
+        self.initial_graph_stats: GraphStats = GraphStats(run_id=run_id, graph=self.initial_graph)
         self.root: TreeNode = TreeNode('root', graph=self.initial_graph,
                                        stats={})  # root of the tree with the initial graph and empty stats dictionary
         self._metrics: List[str] = ['deltacon0', 'lambda_dist', 'pagerank_cvm', 'node_diff', 'edge_diff', 'pgd_pearson',
@@ -111,9 +110,11 @@ class InfinityMirror:
             idx = overall_ranking[0] - 1  # all indexing is 1 based
         elif self.selection == 'worst':
             idx = overall_ranking[-1] - 1
-        else:
-            assert self.selection == 'median', f'invalid selection: {self.selection}'
+        elif self.selection == 'median':
             idx = overall_ranking[len(overall_ranking) // 2 - 1] - 1
+        else:
+            assert self.selection == 'fast', f'invalid selection: {self.selection}'
+            idx = overall_ranking[0] - 1
 
         return self._make_graph_stat_double(graph=generated_graphs[idx], idx=idx, scores=scores)
 

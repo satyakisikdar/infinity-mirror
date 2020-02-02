@@ -27,7 +27,7 @@ from src.utils import timer, ColorPrint as CP
 def parse_args():
     model_names = {'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker', 'UniformRandom', 'GraphVAE', 'GraphAE',
                    'SBM', 'GraphForge', 'NetGAN'}
-    selections = {'best', 'worst', 'median', 'all'}
+    selections = {'best', 'worst', 'median', 'all', 'fast'}
 
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)  # formatter class shows defaults in help
@@ -130,6 +130,8 @@ def run_infinity_mirror(args, run_id):
             inf.write_timing_stats(round(toc - tic, 3))
             print(run_id, inf)
     else:
+        if selection == 'fast':
+            num_graphs = 1  # only 1 graph per generation
         inf = InfinityMirror(selection=selection, initial_graph=g, num_generations=num_gens, model_obj=model,
                              num_graphs=num_graphs, run_id=run_id, r=rewire)
         tic = time.perf_counter()
