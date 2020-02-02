@@ -12,11 +12,12 @@ from typing import List, Dict, Any, Union, Set, Tuple
 
 import networkx as nx
 import numpy as np
+from scipy import sparse
 
+from src.graph_io import networkx_to_graphtool, graphtool_to_networkx
 from src.graph_stats import GraphStats
 from src.utils import ColorPrint as CP
 from src.utils import check_file_exists, load_pickle, delete_files, get_blank_graph, get_graph_from_prob_matrix
-from src.graph_io import networkx_to_graphtool, graphtool_to_networkx
 
 __all__ = ['BaseGraphModel', 'ErdosRenyi', 'UniformRandom', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker',
            'GraphAE', 'GraphVAE', 'SBM', 'GraphForge', 'NetGAN']
@@ -349,10 +350,11 @@ class BTER(BaseGraphModel):
                 node2block[node] = block_id  # assign node to block
 
                 if block_id not in block_members:  # update block_members data structure
-                    block_members[block_id] = deg, set()  # first item is the expected degree, second is the set of members
+                    block_members[
+                        block_id] = deg, set()  # first item is the expected degree, second is the set of members
                 block_members[block_id][1].add(node)
 
-            block_id += 1 # update block id
+            block_id += 1  # update block id
             idx += deg + 1  # skip deg + 1 nodes
 
         # phase 1
@@ -361,7 +363,7 @@ class BTER(BaseGraphModel):
 
         for block_id, (exp_deg, members) in block_members.items():
             clustering_coeff = avg_cc_by_deg[exp_deg]
-            prob = math.pow(clustering_coeff, 1/3)
+            prob = math.pow(clustering_coeff, 1 / 3)
             for u, v in combinations(members, 2):
                 r = random.random()
                 if r <= prob:
@@ -375,7 +377,8 @@ class BTER(BaseGraphModel):
         excess_degs = {node: max(0, assigned_deg[node] - g.degree(node))
                        for node in g.nodes()}  # dictionary of excess degs
 
-        if sum(excess_degs.values()) % 2 != 0:  # excess degs do not sum to even degrees, decrease the node with max degree by 1
+        if sum(
+                excess_degs.values()) % 2 != 0:  # excess degs do not sum to even degrees, decrease the node with max degree by 1
             max_deg_node, max_deg = max(excess_degs.items(), key=lambda x, y: y)
             excess_degs[max_deg_node] -= 1  # decrease it by 1 to make the sum even
 
@@ -407,7 +410,8 @@ class CNRG(BaseGraphModel):
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
         assert 'grammar' in self.params, 'Improper params. Grammar object is missing.'
         from src.cnrg.runner import generate_graph
-        light_g = generate_graph(target_n=self.input_graph.order(), rule_dict=self.params['grammar'].rule_dict, tolerance_bounds=0.01)  # exact generation
+        light_g = generate_graph(target_n=self.input_graph.order(), rule_dict=self.params['grammar'].rule_dict,
+                                 tolerance_bounds=0.01)  # exact generation
         g = nx.Graph()
         g.add_edges_from(light_g.edges())
         g.name = gname
@@ -639,7 +643,7 @@ class GraphVAE(BaseGraphModel):
         from src.gae.fit import fit_vae
         adj_mat = nx.adjacency_matrix(self.input_graph)  # converts the graph into a sparse adj mat
         prob_mat = fit_vae(adj_matrix=adj_mat)
-        self.params['prob_mat'] = prob_mat
+        self.params['prob_mat'] = sparse.csr_matrix(prob_mat)  # turn this into a sparse CSR matrix
 
         return
 
@@ -684,6 +688,7 @@ class GraphForge(BaseGraphModel):
     Spectral Graph Forge by Baldesi et al
     Copy 50% of the original
     """
+
     def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
         super().__init__(model_name='GraphForge', input_graph=input_graph, run_id=run_id)
         return
@@ -696,6 +701,7 @@ class GraphForge(BaseGraphModel):
         g.name = gname
         g.gen_id = gen_id
         return g
+
 
 class NetGAN(BaseGraphModel):
     def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
