@@ -327,7 +327,7 @@ class GraphStats:
                 bash_script = f'{pgd_path}/pgd_{self.run_id} -w 1 -f {dummy_path} -c {dummy_path}'
 
                 pipe = sub.run(bash_script, shell=True, capture_output=True, input=edgelist.encode(), check=True,
-                               timeout=10)  # timeout of 10s
+                               timeout=30)  # timeout of 10s
 
                 output_data = pipe.stdout.decode()
 
