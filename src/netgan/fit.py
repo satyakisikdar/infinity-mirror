@@ -57,18 +57,14 @@ def fit(adj):
     max_iters = 4
 
     # train the model
-    print('hi')
     log_dict = model.train(A_orig=adj, val_ones=val_ones, val_zeros=val_zeros, \
             stopping=stopping, eval_every=eval_every, max_patience=5, max_iters=max_iters)
-    print('hello')
 
     sample_walks = model.generate_discrete(10000, reuse=True)
 
     samples = []
     for x in range(60):
         samples.append(sample_walks.eval({model.tau: 0.5}))
-        #if (x + 1) % 10 == 0:
-        #    print(x + 1)
 
     random_walks = np.array(samples).reshape([-1, rw_len])
     scores_matrix = utils.score_matrix_from_random_walks(random_walks, n).tocsr()
