@@ -18,6 +18,7 @@ def fit(adj):
         output:
             model (?): the trained model
     '''
+    tf.reset_default_graph()
     lcc = utils.largest_connected_components(adj)
     adj = adj[lcc,:][:,lcc]
     n = adj.shape[0]
