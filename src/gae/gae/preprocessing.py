@@ -113,7 +113,7 @@ def old_mask_test_edges(adj):
     return adj_train, train_edges, val_edges, val_edges_false, test_edges, test_edges_false
 
 
-def mask_test_edges(adj, val_perc=20., test_perc=10.):
+def mask_test_edges(adj, val_perc=5., test_perc=10.):
     # Function to build test set with 10% positive links
     # NOTE: Splits are randomized and results might slightly deviate from reported numbers in the paper.
 
