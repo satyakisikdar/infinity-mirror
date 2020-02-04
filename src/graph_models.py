@@ -738,7 +738,6 @@ class GraphRNN(BaseGraphModel):
             graphs.append(self.input_graph)
         args, dataset_loader, model, output = fit(graphs)
         self.params['args'] = args
-        self.params['dataset_loader'] = dataset_loader
         self.params['model'] = model
         self.params['output'] = output
         return
@@ -746,10 +745,9 @@ class GraphRNN(BaseGraphModel):
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
         from src.graphrnn.fit import gen
         assert 'args' in self.params
-        assert 'dataset_loader' in self.params
         assert 'model' in self.params
         assert 'output' in self.params
-        gen_graphs = gen(self.params['args'], self.params['dataset_loader'], self.params['model'], self.params['output'])
+        gen_graphs = gen(args=self.params['args'], model=self.params['model'], output=self.params['output'])
         g.name = gname
         g.gen_id = gen_id
         return gen_graphs
