@@ -1,8 +1,8 @@
 import networkx as nx
 import numpy as np
 
-from utils import *
-from data import *
+from src.graphrnn.utils import *
+from src.graphrnn.data import *
 
 def create(args):
 ### load datasets
