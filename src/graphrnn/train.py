@@ -513,7 +513,7 @@ def train_rnn_epoch(epoch, args, rnn, output, data_loader,
                 epoch, args.epochs,loss.item(), args.graph_type, args.num_layers, args.hidden_size_rnn))
 
         # logging
-        log_value('loss_'+args.fname, loss.item(), epoch*args.batch_ratio+batch_idx)
+        # log_value('loss_'+args.fname, loss.item(), epoch*args.batch_ratio+batch_idx) # SS: tensorboard
         feature_dim = y.size(1)*y.size(2)
         loss_sum += loss.item()*feature_dim
     return loss_sum/(batch_idx+1)
@@ -694,29 +694,30 @@ def train(args, dataset_train, rnn, output):
                     elif 'GraphRNN_RNN' in args.note:
                         G_pred_step = test_rnn_epoch(epoch, args, rnn, output, test_batch_size=args.test_batch_size)
                     G_pred.extend(G_pred_step)
-                # save graphs
-                fname = args.graph_save_path + args.fname_pred + str(epoch) +'_'+str(sample_time) + '.dat'
-                # EXPERIMENTAL: generation
-                #for graph in G_pred:
-                #    A = nx.adjacency_matrix(graph)
-                #    print(A.todense())
-                #    print(A.todense().shape)
-                # /EXPERIMENTAL
-                save_graph_list(G_pred, fname)
+                # save graphs  not  needed
+
+                # fname = args.graph_save_path + args.fname_pred + str(epoch) +'_'+str(sample_time) + '.dat'
+                # # EXPERIMENTAL: generation
+                # #for graph in G_pred:
+                # #    A = nx.adjacency_matrix(graph)
+                # #    print(A.todense())
+                # #    print(A.todense().shape)
+                # # /EXPERIMENTAL
+                # save_graph_list(G_pred, fname)
                 if 'GraphRNN_RNN' in args.note:
                     break
             print('test done, graphs saved')
 
 
-        # save model checkpoint
-        if args.save:
-            if epoch % args.epochs_save == 0:
-                fname = args.model_save_path + args.fname + 'lstm_' + str(epoch) + '.dat'
-                torch.save(rnn.state_dict(), fname)
-                fname = args.model_save_path + args.fname + 'output_' + str(epoch) + '.dat'
-                torch.save(output.state_dict(), fname)
+        # # save model checkpoint not needed
+        # if args.save:
+        #     if epoch % args.epochs_save == 0:
+        #         fname = args.model_save_path + args.fname + 'lstm_' + str(epoch) + '.dat'
+        #         torch.save(rnn.state_dict(), fname)
+        #         fname = args.model_save_path + args.fname + 'output_' + str(epoch) + '.dat'
+        #         torch.save(output.state_dict(), fname)
         epoch += 1
-    np.save(args.timing_save_path+args.fname,time_all)
+    # np.save(args.timing_save_path+args.fname,time_all)
 
 
 ########### for graph completion task
