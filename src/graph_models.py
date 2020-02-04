@@ -725,3 +725,31 @@ class NetGAN(BaseGraphModel):
         g.name = gname
         g.gen_id = gen_id
         return g
+
+class GraphRNN(BaseGraphModel):
+    def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
+        super().__init__(model_name='NetGAN', input_graph=input_graph, run_id=run_id)
+        return
+
+    def _fit(self) -> None:
+        from src.graphrnn.fit import fit
+        graphs = []
+        for _ in range(100):
+            graphs.append(self.input_graph)
+        args, dataset_loader, model, output = fit(graphs)
+        self.params['args'] = args
+        self.params['dataset_loader'] = dataset_loader
+        self.params['model'] = model
+        self.params['output'] = output
+        return
+
+    def _gen(self, gname: str, gen_id: int) -> nx.Graph:
+        from src.graphrnn.fit import gen
+        assert 'args' in self.params
+        assert 'dataset_loader' in self.params
+        assert 'model' in self.params
+        assert 'output' in self.params
+        gen_graphs = gen(self.params['args'], self.params['dataset_loader'], self.params['model'], self.params['output'])
+        g.name = gname
+        g.gen_id = gen_id
+        return gen_graphs

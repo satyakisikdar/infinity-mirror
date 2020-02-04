@@ -14,7 +14,7 @@ import community
 import pickle
 import re
 
-import data
+import src.graphrnn.data
 
 def citeseer_ego():
     _, _, G = data.Graph_load(dataset='citeseer')

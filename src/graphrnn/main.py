@@ -1,6 +1,6 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-from train import *
+from src.graphrnn.train import *
 
 if __name__ == '__main__':
     # All necessary arguments are defined in args.py

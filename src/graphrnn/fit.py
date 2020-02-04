@@ -1,6 +1,6 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-from train import *
+from src.graphrnn.train import *
 
 def fit(graphs):
     ''' performs GraphRNN model training on a specified list of graphs

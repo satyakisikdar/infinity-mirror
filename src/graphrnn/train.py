@@ -21,11 +21,11 @@ from tensorboard_logger import configure, log_value
 import scipy.misc
 import time as tm
 
-from utils import *
-from model import *
-from data import *
-from args import Args
-import create_graphs
+from src.graphrnn.utils import *
+from src.graphrnn.model import *
+from src.graphrnn.data import *
+from src.graphrnn.args import Args
+import src.graphrnn.create_graphs
 
 
 def train_vae_epoch(epoch, args, rnn, output, data_loader,

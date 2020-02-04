@@ -4,10 +4,10 @@ import os
 import re
 from random import shuffle
 
-import eval.stats
-import utils
+import src.graphrnn.eval.stats
+import src.graphrnn.utils
 # import main.Args
-from baselines.baseline_simple import *
+from src.graphrnn.baselines.baseline_simple import *
 
 class Args_evaluate():
     def __init__(self):

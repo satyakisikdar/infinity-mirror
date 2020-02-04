@@ -14,8 +14,8 @@ import random
 import shutil
 import os
 import time
-from model import *
-from utils import *
+from src.graphrnn.model import *
+from src.graphrnn.utils import *
 
 
 
