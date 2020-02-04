@@ -1,8 +1,7 @@
+import pickle
 import os
-
-from src.graphrnn import create_graphs
-
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
 from src.graphrnn.train import *
 
 def fit(graphs):
@@ -51,49 +50,26 @@ def fit(graphs):
 
     # initialize the model
     if 'GraphRNN_VAE_conditional' in args.note:
-        rnn = GRU_plain(input_size=args.max_prev_node, embedding_size=args.embedding_size_rnn,
+        model = GRU_plain(input_size=args.max_prev_node, embedding_size=args.embedding_size_rnn,
                         hidden_size=args.hidden_size_rnn, num_layers=args.num_layers,
                         has_input=True, has_output=False).cuda()
         output = MLP_VAE_conditional_plain(h_size=args.hidden_size_rnn, embedding_size=args.embedding_size_output, y_size=args.max_prev_node).cuda()
     elif 'GraphRNN_MLP' in args.note:
-        rnn = GRU_plain(input_size=args.max_prev_node, embedding_size=args.embedding_size_rnn,
+        model = GRU_plain(input_size=args.max_prev_node, embedding_size=args.embedding_size_rnn,
                         hidden_size=args.hidden_size_rnn, num_layers=args.num_layers,
                         has_input=True, has_output=False).cuda()
         output = MLP_plain(h_size=args.hidden_size_rnn, embedding_size=args.embedding_size_output, y_size=args.max_prev_node).cuda()
     elif 'GraphRNN_RNN' in args.note:
-        print('woah:', args.max_prev_node)
-        rnn = GRU_plain(input_size=args.max_prev_node, embedding_size=args.embedding_size_rnn,
+        model = GRU_plain(input_size=args.max_prev_node, embedding_size=args.embedding_size_rnn,
                         hidden_size=args.hidden_size_rnn, num_layers=args.num_layers,
                         has_input=True, has_output=True, output_size=args.hidden_size_rnn_output).cuda()
         output = GRU_plain(input_size=1, embedding_size=args.embedding_size_rnn_output,
                            hidden_size=args.hidden_size_rnn_output, num_layers=args.num_layers,
                            has_input=True, has_output=True, output_size=1).cuda()
 
-    train(args, dataset_loader, rnn, output)
+    train(args, dataset_loader, model, output)
 
-    return args, rnn, output
+    with open('./src/graphrnn/dump/fit.p', 'wb') as f:
+        pickle.dump((args, model, output), f)
 
-def gen(args, model, output, gen_num=10):
-    raise NotImplementedError('Take a look at it Dan!')
-    # G_pred = []
-    # while len(G_pred) < gen_num:
-    #     G_pred_step = test_rnn_epoch(0, args, model, output, test_batch_size=16)
-    #     G_pred.extend(G_pred_step)
-    # return G_pred[: gen_num]
-
-def main():
-    args = Args()
-    graphs = create_graphs.create(args)
-    print('----------graphs made----------')
-
-    args, dataset_loader, rnn, output = fit(graphs)
-    print('==========model fit==========')
-
-    generated = gen(args, rnn, output, gen_num=10)
-    print('**********graphs generated**********')
-    print(generated)
-    print(len(generated))
-
-    return 0
-
-main()
+    return args, model, output
