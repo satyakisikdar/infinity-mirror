@@ -1,4 +1,7 @@
 import os
+
+from src.graphrnn import create_graphs
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from src.graphrnn.train import *
 
@@ -14,19 +17,19 @@ def fit(graphs):
     args = Args()
     args.max_prev_node=40
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.cuda)
-    if args.clean_tensorboard:
-        if os.path.isdir("tensorboard"):
-            shutil.rmtree("tensorboard")
-    configure("tensorboard/run"+time, flush_secs=5)
+    # if args.clean_tensorboard:  # SS: Tensorboard not necessary?
+    #     if os.path.isdir("tensorboard"):
+    #         shutil.rmtree("tensorboard")
+    # configure("tensorboard/run"+time, flush_secs=5)
     # /maybe not necessary?
 
     # compute the train/test/val split
     split = 0.8
     shuffle(graphs)
     graphs_len = len(graphs)
-    graphs_test = graphs[int(split*graphs_len):]
-    graphs_train = graphs[0:int(split*graphs_len)]
-    graphs_validate = graphs[0:int((1 - split)*graphs_len)]
+    graphs_test = graphs[int(split*graphs_len): ]
+    graphs_train = graphs[0: int(split*graphs_len)]
+    graphs_validate = graphs[0: int((1 - split)*graphs_len)]
 
     graph_test_len = 0
     for graph in graphs_test:
@@ -68,14 +71,15 @@ def fit(graphs):
 
     train(args, dataset_loader, rnn, output)
 
-    return args, dataset_loader, rnn, output
+    return args, rnn, output
 
-def gen(args, rnn, output, gen_num=10):
-    G_pred = []
-    while len(G_pred) < gen_num:
-        G_pred_step = test_rnn_epoch(0, args, rnn, output, test_batch_size=16)
-        G_pred.extend(G_pred_step)
-    return G_pred
+def gen(args, model, output, gen_num=10):
+    raise NotImplementedError('Take a look at it Dan!')
+    # G_pred = []
+    # while len(G_pred) < gen_num:
+    #     G_pred_step = test_rnn_epoch(0, args, model, output, test_batch_size=16)
+    #     G_pred.extend(G_pred_step)
+    # return G_pred[: gen_num]
 
 def main():
     args = Args()
