@@ -3,6 +3,7 @@ Container for different graph models
 """
 import abc
 import math
+import os
 import platform
 import random
 import subprocess as sub
@@ -706,25 +707,57 @@ class GraphForge(BaseGraphModel):
 class NetGAN(BaseGraphModel):
     def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
         super().__init__(model_name='NetGAN', input_graph=input_graph, run_id=run_id)
+        self.prep_environment()
+        return
+
+    def prep_environment(self) -> None:
+        proc = sub.run('conda init bash; . ~/.bashrc; conda activate netgan', shell=True)
+        os.makedirs('./src/netgan/dumps', exist_ok=True)  # make the directory to store the dumps
+        if proc.returncode == 0:  # conda environment exists
+            return
+
+        CP.print_blue('Making conda environment for NetGAN')
+        proc = sub.run('conda env create -f ./envs/netgan.yml', shell=True, stdout=None)  # create and activate environment
+
+        assert proc.returncode == 0, 'Error while creating env for NetGAN'
         return
 
     def _fit(self) -> None:
-        from src.netgan.fit import fit
-        sparse_adj = nx.to_scipy_sparse_matrix(self.input_graph)
-        scores, tg_sum = fit(sparse_adj)
-        self.params['scores'] = scores
-        self.params['tg_sum'] = tg_sum
+        dump = f'./src/netgan/dumps'
+        gname = f'{self.input_graph.name}_{self.run_id}'
+        path = f'{dump}/{gname}.g'
+        nx.write_edgelist(self.input_graph, path, data=False)
+
+        proc = sub.run(f'conda init bash; . ~/.bashrc; conda activate netgan; python src/netgan/fit.py {gname} {path}; conda deactivate',
+                       shell=True)
+        assert proc.returncode == 0, 'NetGAN fit did not work'
+        assert check_file_exists(f'{dump}/{gname}.pkl.gz'), 'pickle not found'
         return
 
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
-        from src.netgan.fit import gen
-        assert 'scores' in self.params
-        assert 'tg_sum' in self.params
-        gen_mat = gen(self.params['scores'], self.params['tg_sum'])
-        g = nx.from_numpy_array(gen_mat)
-        g.name = gname
-        g.gen_id = gen_id
-        return g
+        pass  # NetGAN can generate multiple graphs at once
+
+    def generate(self, num_graphs: int, gen_id: int) -> List[nx.Graph]:
+
+        dump = f'./src/netgan/dumps'
+        gname = f'{self.input_graph.name}_{self.run_id}'
+        pickle_path = f'{dump}/{gname}.pkl.gz'
+
+        proc = sub.run(f'conda init bash; . ~/.bashrc; conda activate netgan; python src/netgan/gen.py {gname} {pickle_path} {num_graphs}',
+                       shell=True)
+
+        assert proc.returncode == 0, 'error in NetGAN generate'
+        output_pickle_path = f'{dump}/{gname}_graphs.pkl.gz'
+
+        generated_graphs = []
+        for i, gen_graph in enumerate(load_pickle(output_pickle_path)):
+            gen_graph.name = f'{self.input_graph.name}_{self.run_id}_{i + 1}'  # adding the number of graph
+            gen_graph.gen_id = gen_id
+            generated_graphs.append(gen_graph)
+
+        delete_files(output_pickle_path)
+        return generated_graphs
+
 
 class GraphRNN(BaseGraphModel):
     def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
