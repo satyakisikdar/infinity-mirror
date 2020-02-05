@@ -1,4 +1,4 @@
-name: infinity-mirror
+name: netgan
 channels:
   - ostrokach-forge
   - conda-forge
@@ -120,5 +120,4 @@ dependencies:
     - tensorboard==1.15.0
     - tensorflow==1.15.2
     - tensorflow-estimator==1.15.1
-prefix: /home/danielgonzalez/miniconda3/envs/infinity-mirror
 
