@@ -1,3 +1,5 @@
+import pickle
+
 from src.netgan.netgan import *
 import src.netgan.netgan.utils as utils
 from src.netgan.netgan.netgan import NetGAN
@@ -7,6 +9,8 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
 import numpy as np
+from sys import argv
+import networkx as nx
 import time
 
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
@@ -72,8 +76,25 @@ def fit(adj):
 
     return scores_matrix, train_graph.sum()
 
-def gen(scores, tg_sum):
-    return utils.graph_from_scores(scores, tg_sum)
+
+
+def main():
+    if len(argv) < 2:
+        print('Needs graph name and path to edgelist')
+        exit(1)
+
+    gname = argv[1]
+    path = argv[2]
+
+    g = nx.read_edgelist(path, create_using=nx.Graph(), nodetype=int)
+    adj = nx.to_scipy_sparse_matrix(g)
+    scores, tg_sum = fit(adj)
+
+    pickle.dump((scores, tg_sum), open(f'./src/netgan/dumps/{gname}.pkl.gz', 'wb'))
+
+if __name__ == '__main__':
+    main()
+
 #
 #def main():
 #    A, _X_obs, _z_obs = utils.load_npz('data/cora_ml.npz')
