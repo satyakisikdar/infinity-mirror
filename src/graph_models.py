@@ -20,7 +20,7 @@ from src.graph_stats import GraphStats
 from src.utils import ColorPrint as CP
 from src.utils import check_file_exists, load_pickle, delete_files, get_blank_graph, get_graph_from_prob_matrix
 
-__all__ = ['BaseGraphModel', 'ErdosRenyi', 'UniformRandom', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker',
+__all__ = ['BaseGraphModel', 'ErdosRenyi', 'UniformRandom', 'ChungLu', 'BTER', '_BTER', 'CNRG', 'HRG', 'Kronecker',
            'GraphAE', 'GraphVAE', 'SBM', 'GraphForge', 'NetGAN']
 
 
@@ -711,13 +711,13 @@ class NetGAN(BaseGraphModel):
         return
 
     def prep_environment(self) -> None:
-        proc = sub.run('conda init bash; . ~/.bashrc; conda activate netgan', shell=True)
+        proc = sub.run('conda init bash; . ~/.bashrc; conda activate netgan', shell=True, stdout=sub.DEVNULL)
         os.makedirs('./src/netgan/dumps', exist_ok=True)  # make the directory to store the dumps
         if proc.returncode == 0:  # conda environment exists
             return
 
         CP.print_blue('Making conda environment for NetGAN')
-        proc = sub.run('conda env create -f ./envs/netgan.yml', shell=True, stdout=None)  # create and activate environment
+        proc = sub.run('conda env create -f ./envs/netgan.yml', shell=True, stdout=sub.DEVNULL)  # create and activate environment
 
         assert proc.returncode == 0, 'Error while creating env for NetGAN'
         return
@@ -729,7 +729,7 @@ class NetGAN(BaseGraphModel):
         nx.write_edgelist(self.input_graph, path, data=False)
 
         proc = sub.run(f'conda init bash; . ~/.bashrc; conda activate netgan; python src/netgan/fit.py {gname} {path}; conda deactivate',
-                       shell=True)
+                       shell=True, stderr=sub.DEVNULL)#, stdout=sub.DEVNULL)
         assert proc.returncode == 0, 'NetGAN fit did not work'
         assert check_file_exists(f'{dump}/{gname}.pkl.gz'), 'pickle not found'
         return
@@ -744,7 +744,7 @@ class NetGAN(BaseGraphModel):
         pickle_path = f'{dump}/{gname}.pkl.gz'
 
         proc = sub.run(f'conda init bash; . ~/.bashrc; conda activate netgan; python src/netgan/gen.py {gname} {pickle_path} {num_graphs}',
-                       shell=True)
+                       shell=True)#, stdout=sub.DEVNULL)
 
         assert proc.returncode == 0, 'error in NetGAN generate'
         output_pickle_path = f'{dump}/{gname}_graphs.pkl.gz'
