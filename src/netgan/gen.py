@@ -1,10 +1,9 @@
 import pickle
 
-import src.netgan.netgan.utils as utils
+import netgan.utils as utils
 from sys import argv
 import networkx as nx
 import os
-from src.utils import load_pickle
 
 def generate(scores, tg_sum, num_graphs):
     graphs = []
@@ -21,11 +20,10 @@ def main():
         print('Needs gname, path to pickle scores and tg_sum, number of graphs')
         exit(1)
 
-    gname = argv[1]
-    path = argv[2]
+    gname, path = argv[1: 3]
     num_graphs = int(argv[3])
 
-    scores, tg_sum = load_pickle(path)
+    scores, tg_sum = utils.load_pickle(path)
     graphs = generate(scores, tg_sum, num_graphs)
 
     os.makedirs('./src/netgan/dumps', exist_ok=True)

@@ -729,9 +729,9 @@ class NetGAN(BaseGraphModel):
         nx.write_edgelist(self.input_graph, path, data=False)
 
         proc = sub.run(f'conda init bash; . ~/.bashrc; conda activate netgan; python src/netgan/fit.py {gname} {path}; conda deactivate',
-                       shell=True, stderr=sub.DEVNULL)#, stdout=sub.DEVNULL)
+                       shell=True)#, stderr=sub.DEVNULL)#, stdout=sub.DEVNULL)
         assert proc.returncode == 0, 'NetGAN fit did not work'
-        assert check_file_exists(f'{dump}/{gname}.pkl.gz'), 'pickle not found'
+        assert check_file_exists(f'{dump}/{gname}.pkl.gz'), f'pickle not found at {dump}/{gname}.pkl.gz'
         return
 
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
@@ -761,7 +761,8 @@ class NetGAN(BaseGraphModel):
 
 class GraphRNN(BaseGraphModel):
     def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
-        super().__init__(model_name='NetGAN', input_graph=input_graph, run_id=run_id)
+        super().__init__(model_name='GraphRNN', input_graph=input_graph, run_id=run_id)
+        os.makedirs('./src/graphrnn/dumps', exist_ok=True)  # make the directory to store the dumps
         return
 
     def _fit(self) -> None:
@@ -776,7 +777,7 @@ class GraphRNN(BaseGraphModel):
         return
 
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
-        from src.graphrnn.fit import gen
+        from src.graphrnn.gen import gen
         assert 'args' in self.params
         assert 'model' in self.params
         assert 'output' in self.params
