@@ -560,6 +560,8 @@ class NetGAN:
         #### Training completed.
         log_dict = {"disc_losses": disc_losses, 'gen_losses': gen_losses, 'val_performances': val_performances,
                     'edge_overlaps': eo, 'generated_graphs': graphs}
+
+        self.session.close()  # close the interactive session
         return log_dict
 
 
