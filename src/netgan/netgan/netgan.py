@@ -14,7 +14,7 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()
-from src.netgan.netgan import utils
+import src.netgan.netgan.utils as utils
 import time
 import numpy as np
 from sklearn.metrics import roc_auc_score, average_precision_score
