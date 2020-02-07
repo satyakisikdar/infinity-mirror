@@ -714,7 +714,7 @@ class NetGAN(BaseGraphModel):
         sparse_adj = nx.to_scipy_sparse_matrix(self.input_graph)
         try:
             scores, tg_sum = fit(sparse_adj)
-        except (IndexError, AssertionError):
+        except (IndexError, AssertionError, AttributeError):
             CP.print_orange('NetGAN fit failed')
             scores, tg_sum = None, None
 
