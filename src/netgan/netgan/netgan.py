@@ -424,15 +424,15 @@ class NetGAN:
         if not os.path.isdir(save_directory):
             os.makedirs(save_directory)
 
-        if model_name is None:
-            # Find the file corresponding to the lowest vacant model number to store the snapshots into.
-            model_number = 0
-            while os.path.exists("{}/model_best_{}.ckpt".format(save_directory, model_number)):
-                model_number += 1
-            save_file = "{}/model_best_{}.ckpt".format(save_directory, model_number)
-            open(save_file, 'a').close()  # touch file
-        else:
-            save_file = "{}/{}_best.ckpt".format(save_directory, model_name)
+        # if model_name is None:
+        #     # Find the file corresponding to the lowest vacant model number to store the snapshots into.
+        #     model_number = 0
+        #     while os.path.exists("{}/model_best_{}.ckpt".format(save_directory, model_number)):
+        #         model_number += 1
+        #     save_file = "{}/model_best_{}.ckpt".format(save_directory, model_number)
+        #     open(save_file, 'a').close()  # touch file
+        # else:
+        #     save_file = "{}/{}_best.ckpt".format(save_directory, model_name)
         #print("**** Saving snapshots into {} ****".format(save_file))
 
         if not continue_training:
@@ -466,7 +466,7 @@ class NetGAN:
         print("**** Starting training. ****")
 
         for _it in range(max_iters):
-            print(_it)
+            print(_it, end=' ')
             if _it > 0 and _it % (2500) == 0:
                 t = time.time() - starting_time
                 print('{:<7}/{:<8} training iterations, took {} seconds so far...'.format(_it, max_iters, int(t)))
