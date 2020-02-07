@@ -200,7 +200,7 @@ class NetGAN:
             )
         else:
             gpu_options = tf.GPUOptions(visible_device_list='{}'.format(gpu_id), allow_growth=True)
-            config = tf.ConfigProto(gpu_options=gpu_options)
+            config = tf.ConfigProto(gpu_options=gpu_options, intra_op_parallelism_threads=3, inter_op_parallelism_threads=3)
 
         self.session = tf.InteractiveSession(config=config)
         self.init_op = tf.global_variables_initializer()
@@ -466,7 +466,8 @@ class NetGAN:
         print("**** Starting training. ****")
 
         for _it in range(max_iters):
-            print(_it, end=' ', flush=True)
+            if _it % 50 == 0:
+                print(_it, end=' ', flush=True)
             if _it > 0 and _it % (2500) == 0:
                 t = time.time() - starting_time
                 print('{:<7}/{:<8} training iterations, took {} seconds so far...'.format(_it, max_iters, int(t)))

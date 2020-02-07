@@ -1,3 +1,6 @@
+import pickle
+from pathlib import Path
+
 import networkx as nx
 import scipy.sparse as sp
 import numpy as np
@@ -7,6 +10,26 @@ import warnings
 import igraph
 import powerlaw
 from numba import jit
+
+def check_file_exists(path):
+    """
+    Checks if file exists at path
+    :param path:
+    :return:
+    """
+    if isinstance(path, str):
+        path = Path(path)
+    return path.exists()
+
+
+def load_pickle(path):
+    """
+    Loads a pickle from the path
+    :param path:
+    :return:
+    """
+    assert check_file_exists(path), f'"{path}" does not exist'
+    return pickle.load(open(path, 'rb'))
 
 def load_npz(file_name):
     """Load a SparseGraph from a Numpy binary file.
