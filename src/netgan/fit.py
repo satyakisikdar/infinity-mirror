@@ -66,10 +66,8 @@ def fit(adj):
     else:
         stopping = None
 
-    # eval_every = 2_000
-    eval_every = 10
-    # max_iters = 30_000
-    max_iters = 30
+    eval_every = 2_000
+    max_iters = 200_000
 
     # train the model
     model.train(A_orig=adj, val_ones=val_ones, val_zeros=val_zeros, stopping=stopping, eval_every=eval_every,
