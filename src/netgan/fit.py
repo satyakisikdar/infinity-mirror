@@ -79,6 +79,8 @@ def fit(adj):
     for x in range(60):
         samples.append(sample_walks.eval({model.tau: 0.5}))
 
+    model.session.close()  # close the interactive session to free up resources
+
     random_walks = np.array(samples).reshape([-1, rw_len])
     scores_matrix = utils.score_matrix_from_random_walks(random_walks, n).tocsr()
 
