@@ -68,8 +68,4 @@ def fit(graphs):
                            has_input=True, has_output=True, output_size=1).cuda()
 
     train(args, dataset_loader, model, output)
-
-    with open('./src/graphrnn/dump/fit.p', 'wb') as f:
-        pickle.dump((args, model, output), f)
-
     return args, model, output

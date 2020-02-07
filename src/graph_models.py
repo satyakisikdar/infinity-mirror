@@ -714,7 +714,7 @@ class NetGAN(BaseGraphModel):
         sparse_adj = nx.to_scipy_sparse_matrix(self.input_graph)
         try:
             scores, tg_sum = fit(sparse_adj)
-        except (IndexError, ):
+        except (IndexError, AssertionError):
             CP.print_orange('NetGAN fit failed')
             scores, tg_sum = None, None
 
@@ -804,7 +804,7 @@ class GraphRNN(BaseGraphModel):
         graphs = []
         for _ in range(100):
             graphs.append(self.input_graph)
-        args, dataset_loader, model, output = fit(graphs)
+        args, model, output = fit(graphs)
         self.params['args'] = args
         self.params['model'] = model
         self.params['output'] = output
@@ -817,6 +817,7 @@ class GraphRNN(BaseGraphModel):
         assert 'output' in self.params
 
         gen_graphs = gen(args=self.params['args'], model=self.params['model'], output=self.params['output'])
+        g = gen_graphs[0]  # gen_graphs is a list of graphs
         g.name = gname
         g.gen_id = gen_id
-        return gen_graphs
+        return g
