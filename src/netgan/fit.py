@@ -3,8 +3,8 @@ import pickle
 
 import scipy.sparse as sp
 
-import netgan.utils as utils
-from netgan.netgan import NetGAN
+import src.netgan.netgan.utils as utils
+from src.netgan.netgan.netgan import NetGAN
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
@@ -35,7 +35,7 @@ def fit(adj):
     # split the graph into train/test/validation
     train_ones, val_ones, \
     val_zeros, test_ones, test_zeros = utils.train_val_test_split_adjacency(adj, val_share, test_share, undirected=True,
-                                                                            connected=True, asserts=True)
+                                                                            connected=False, asserts=True)
     # set connected=False to prevent the MST business
     print(f'n: {adj.shape[0]} m: {adj.sum() // 2}, tr1: {len(train_ones)}, v0: {len(val_zeros)}, v1: {len(val_ones)}, te0: {len(test_zeros)}, te1: {len(test_ones)}')
 

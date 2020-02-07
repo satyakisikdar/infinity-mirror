@@ -707,6 +707,40 @@ class GraphForge(BaseGraphModel):
 class NetGAN(BaseGraphModel):
     def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
         super().__init__(model_name='NetGAN', input_graph=input_graph, run_id=run_id)
+        return
+
+    def _fit(self) -> None:
+        from src.netgan.fit import fit
+        sparse_adj = nx.to_scipy_sparse_matrix(self.input_graph)
+        try:
+            scores, tg_sum = fit(sparse_adj)
+        except (IndexError, ):
+            CP.print_orange('NetGAN fit failed')
+            scores, tg_sum = None, None
+
+        self.params['scores'] = scores
+        self.params['tg_sum'] = tg_sum
+
+        return
+
+    def _gen(self, gname: str, gen_id: int) -> nx.Graph:
+        from src.netgan.netgan.utils import graph_from_scores
+        assert 'scores' in self.params
+        assert 'tg_sum' in self.params
+        if self.params['scores'] is None or self.params['tg_sum'] is None:
+            CP.print_orange('NetGAN gen failed')
+            g = get_blank_graph(gname)
+        else:
+            gen_mat = graph_from_scores(self.params['scores'], self.params['tg_sum'])
+            g = nx.from_numpy_array(gen_mat, create_using=nx.Graph())
+            g.name = gname
+        g.gen_id = gen_id
+        return g
+
+
+class _NetGAN(BaseGraphModel):
+    def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
+        super().__init__(model_name='NetGAN', input_graph=input_graph, run_id=run_id)
         self.prep_environment()
         return
 
@@ -781,6 +815,7 @@ class GraphRNN(BaseGraphModel):
         assert 'args' in self.params
         assert 'model' in self.params
         assert 'output' in self.params
+
         gen_graphs = gen(args=self.params['args'], model=self.params['model'], output=self.params['output'])
         g.name = gname
         g.gen_id = gen_id
