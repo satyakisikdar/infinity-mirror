@@ -454,7 +454,7 @@ class NetGAN:
         temperature = self.params['temp_start']
 
         starting_time = time.time()
-        saver = tf.train.Saver()
+        # saver = tf.train.Saver()
 
         transitions_per_walk = self.rw_len - 1
         # Sample lots of random walks, used for evaluation of model.
@@ -466,7 +466,7 @@ class NetGAN:
         print("**** Starting training. ****")
 
         for _it in range(max_iters):
-            print(_it, end=' ')
+            print(_it, end=' ', flush=True)
             if _it > 0 and _it % (2500) == 0:
                 t = time.time() - starting_time
                 print('{:<7}/{:<8} training iterations, took {} seconds so far...'.format(_it, max_iters, int(t)))
@@ -526,7 +526,7 @@ class NetGAN:
                         # New "best" model
                         best_performance = np.sum(val_performances[-1])
                         patience = max_patience
-                        _ = saver.save(self.session, save_file)
+                        # _ = saver.save(self.session, save_file)
                     else:
                         patience -= 1
 
@@ -554,7 +554,8 @@ class NetGAN:
         #plt.legend()
         #plt.show()
         if stopping is None:
-            saver.restore(self.session, save_file)
+            # saver.restore(self.session, save_file)
+            pass
         #### Training completed.
         log_dict = {"disc_losses": disc_losses, 'gen_losses': gen_losses, 'val_performances': val_performances,
                     'edge_overlaps': eo, 'generated_graphs': graphs}
