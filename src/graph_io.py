@@ -127,7 +127,7 @@ class SyntheticGraph:
 
     implemented_methods = {'chain': ('n',), 'tree': ('r', 'h'), 'ladder': ('n',), 'circular_ladder': ('n',),
                            'ring': ('n',), 'clique_ring': ('n', 'k'), 'grid': ('m', 'n'),
-                           'erdos_renyi': ('n', 'p', 'seed'), 'ring_lattice': ('n',), 'BA': ('n', 'm'),
+                           'erdos_renyi': ('n', 'p', 'seed'), 'ring_lattice': ('n',), 'BA': ('n', 'm', 'seed'),
                            'cycle': ('n',)}
 
     def __init__(self, kind, **kwargs):
