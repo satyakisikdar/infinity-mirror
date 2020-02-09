@@ -802,7 +802,7 @@ class GraphRNN(BaseGraphModel):
     def _fit(self) -> None:
         from src.graphrnn.fit import fit
         graphs = []
-        for _ in range(100):
+        for _ in range(10):
             graphs.append(self.input_graph)
         args, model, output = fit(graphs)
         self.params['args'] = args
