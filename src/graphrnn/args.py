@@ -90,7 +90,7 @@ class Args():
 
         self.load = False # if load model, default lr is very low
         self.load_epoch = 3000
-        self.save = True
+        self.save = False
 
 
         ### baseline config
