@@ -667,6 +667,8 @@ def train(args, dataset_train, rnn, output):
     time_all = np.zeros(args.epochs)
     while epoch<=args.epochs:
         time_start = tm.time()
+        if epoch % 5 == 0:
+            print(epoch, end=' ', flush=True)
         # train
         if 'GraphRNN_VAE' in args.note:
             train_vae_epoch(epoch, args, rnn, output, dataset_train,
