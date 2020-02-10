@@ -104,7 +104,7 @@ def fit_ae(adj_matrix, epochs=200):
         outs = sess.run([opt.opt_op, opt.cost, opt.accuracy, opt.preds_sub], feed_dict=feed_dict)
 
     probs = sess.run(tf.nn.sigmoid(outs[3])).reshape(adj_matrix.shape)
-
+    sess.close()
     return probs
 
 def fit_vae(adj_matrix, epochs=200):
@@ -182,5 +182,5 @@ def fit_vae(adj_matrix, epochs=200):
         outs = sess.run([opt.opt_op, opt.cost, opt.accuracy, opt.preds_sub], feed_dict=feed_dict)
 
     probs = sess.run(tf.nn.sigmoid(outs[3])).reshape(adj_matrix.shape)
-
+    sess.close()
     return probs
