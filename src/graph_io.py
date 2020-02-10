@@ -172,6 +172,7 @@ class SyntheticGraph:
             name = f"clique-ring-{self.args['n']}-{self.args['k']}"
         elif self.kind == 'grid':
             g = nx.grid_2d_graph(self.args['m'], self.args['n'])
+            g = nx.convert_node_labels_to_integers(g, first_label=0)  # renumber node labels in grid - default labels are (x,y)
             name = f"grid-{self.args['m']}-{self.args['n']}"
         elif self.kind == 'erdos_renyi':
             seed = self.args['seed']
