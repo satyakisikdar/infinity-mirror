@@ -155,15 +155,15 @@ def grow_exact_size_hrg_graphs_from_prod_rules (prod_rules, gname, n, runs=1):
 
 	hstars_lst = []
 	print "	",
-	for i in range(0, runs):
+	i = 0
+	while i != runs:
 		print '>',
 		rule_list = g.sample(num_nodes)
 		hstar = phrg.grow(rule_list, g)[0]
-		if hstar.order() != n:
-			print('HRG exact generation failed! {}'.format(hstar.order()))
-			continue
-		hstars_lst.append(hstar)
-
+		if n * 0.99 <= hstar.order() <= n*1.01:
+			hstars_lst.append(hstar)
+			i += 1
+	assert len(hstars_lst) == runs
 	return hstars_lst
 
 
