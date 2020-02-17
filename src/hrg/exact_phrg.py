@@ -156,14 +156,24 @@ def grow_exact_size_hrg_graphs_from_prod_rules (prod_rules, gname, n, runs=1):
 	hstars_lst = []
 	print "	",
 	i = 0
+	max_tries = 10000
+	tries = 0
+	failed = False
 	while i != runs:
+		tries += 1
+		if tries > max_tries:
+			failed = True
+			break
 		print '>',
 		rule_list = g.sample(num_nodes)
 		hstar = phrg.grow(rule_list, g)[0]
 		if n * 0.99 <= hstar.order() <= n*1.01:
 			hstars_lst.append(hstar)
 			i += 1
-	assert len(hstars_lst) == runs
+	if len(hstars_lst) != runs or failed:
+		print('HRG failed')
+		return None
+
 	return hstars_lst
 
 

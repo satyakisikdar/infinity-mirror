@@ -146,6 +146,11 @@ class InfinityMirror:
             generated_graphs = self.model.generate(num_graphs=self.num_graphs,
                                                    gen_id=level)  # generate a new set of graphs
 
+            if generated_graphs is None:
+                CP.print_blue('Infinity mirror failed')
+                self.root_pickle_path += f'_failed-{level}'  # append the failed to filename
+                break
+
             graph_stats = self._get_representative_graph_stat(generated_graphs=generated_graphs)
 
             if graph_stats is None:

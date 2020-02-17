@@ -484,7 +484,7 @@ class HRG(BaseGraphModel):
 
         completed_process = sub.run(
             f'. ./envs/hrg/bin/activate; cd src/hrg; python2 exact_phrg.py --orig {self.initial_gname}_{self.run_id}.g --trials {num_graphs}; deactivate;',
-            shell=True, stdout=sub.DEVNULL)
+            shell=True)#, stdout=sub.DEVNULL)
 
         if completed_process.returncode != 0:
             CP.print_blue(f'Error in HRG: "{self.input_graph.name}"')
@@ -496,15 +496,21 @@ class HRG(BaseGraphModel):
 
         else:
             generated_graphs = []
-            for i, gen_graph in enumerate(load_pickle(output_pickle_path)):
+            gen_graphs = load_pickle(output_pickle_path)
+            if not isinstance(gen_graphs, list) or len(gen_graphs) != num_graphs:
+                print('HRG failed')
+                return None
+
+            for i, gen_graph in enumerate(gen_graphs):
                 gen_graph = self._make_graph(gen_graph)
                 gen_graph.name = f'{self.input_graph.name}_{self.run_id}_{i + 1}'  # adding the number of graph
                 gen_graph.gen_id = gen_id
 
                 generated_graphs.append(gen_graph)
 
-            assert isinstance(generated_graphs, list) and len(generated_graphs) == num_graphs, \
-                'Failed to generate graphs'
+            if not isinstance(generated_graphs, list) or len(generated_graphs) != num_graphs:
+                print('HRG failed')
+                return None
 
         delete_files(edgelist_path, output_pickle_path)
         return generated_graphs
