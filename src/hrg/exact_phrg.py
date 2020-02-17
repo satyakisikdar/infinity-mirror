@@ -433,7 +433,7 @@ def get_hrg_production_rules (edgelist_data_frame, graph_name, tw=False, trials=
 	original graph
 	'''
 	hStars = grow_exact_size_hrg_graphs_from_prod_rules(rules, graph_name, G.number_of_nodes(), trials)
-	print '... hStart graphs:', len(hStars)
+	# print '... hStart graphs:', len(hStars)
 
 	if not os.path.exists(r"Results/"): os.makedirs(r"Results/")
 
