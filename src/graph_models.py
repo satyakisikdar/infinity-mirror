@@ -484,7 +484,7 @@ class HRG(BaseGraphModel):
 
         completed_process = sub.run(
             f'. ./envs/hrg/bin/activate; cd src/hrg; python2 exact_phrg.py --orig {self.initial_gname}_{self.run_id}.g --trials {num_graphs}; deactivate;',
-            shell=True)#, stdout=sub.DEVNULL)
+            shell=True, stdout=sub.DEVNULL)
 
         if completed_process.returncode != 0:
             CP.print_blue(f'Error in HRG: "{self.input_graph.name}"')
