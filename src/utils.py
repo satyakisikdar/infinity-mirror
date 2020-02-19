@@ -60,11 +60,11 @@ def get_graph_from_prob_matrix(p_mat: np.array, thresh: float=None) -> nx.Graph:
         rand_mat = np.random.rand(n, n)
 
     sampled_mat = rand_mat <= p_mat
-    sampled_mat = sampled_mat * sampled_mat.T  # to make sure it is symmetric
-    np.fill_diagonal(sampled_mat, False)  # zero out the diagonals
+    # sampled_mat = sampled_mat * sampled_mat.T  # to make sure it is symmetric
+
 
     sampled_mat = sampled_mat.astype(int)
-
+    np.fill_diagonal(sampled_mat, 0)  # zero out the diagonals
     g = nx.from_numpy_array(sampled_mat, create_using=nx.Graph())
     return g
 
