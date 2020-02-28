@@ -73,7 +73,7 @@ def naive_generate(naive_model):
             done = apply_rule_to_node(G, node, rule, original_size)
 
     G = zero_indexed_graph(G)
-    print(sorted(list(G.edges())))
+    # print(sorted(list(G.edges())))
     return G
 
 def generate(model):
@@ -97,7 +97,7 @@ def generate(model):
             else:
                 print("Generation failed to find a node the rule can apply to! Skipping to next step.")
     G = zero_indexed_graph(G)
-    print(sorted(list(G.edges())))
+    # print(sorted(list(G.edges())))
     return G
 
 def zero_indexed_graph(G):

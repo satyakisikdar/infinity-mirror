@@ -446,11 +446,12 @@ class FullApproximateRuleMiner(RuleMinerBase):
             rule_edges_string = str(rule_graph.edges())
             rule_edges_string = rule_edges_string.replace(","," ")
             # Column headers are rule_id, collapses, edges_approx, total_cost, rule_details
-            print("%s, %s, %s, %s, %s" % (rule_id, collapses, edges_approx, self.total_cost, rule_edges_string))
+            # print("%s, %s, %s, %s, %s" % (rule_id, collapses, edges_approx, self.total_cost, rule_edges_string))
         else:
-            print("Made %s collapses with rule %s, \tincurring a total of %s approximated edges." % (collapses, rule_id, edges_approx))
-            print("The rule's details are: %s" % rule_graph.edges())
-            print("The total cost in bits thus far is %s\n" % self.total_cost)
+            # print("Made %s collapses with rule %s, \tincurring a total of %s approximated edges." % (collapses, rule_id, edges_approx))
+            # print("The rule's details are: %s" % rule_graph.edges())
+            # print("The total cost in bits thus far is %s\n" % self.total_cost)
+            pass
         sys.stdout.flush()
         self.draw = False
         if self.draw:
