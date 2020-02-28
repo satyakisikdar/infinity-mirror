@@ -1,0 +1,13 @@
+rule_id, collapses, edges_approx, total_cost, rule_details
+45, 829, 0, 12137, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  149)  ('type_1'  'type_1')  ('type_1'  974)  (403  149)  (403  493)  (974  403)  (974  2858)  (2858  3747)  (2858  4025)]
+29, 5, 0, 12037, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  974)  ('type_1'  'type_1')  ('type_1'  974)  (403  149)  (403  493)  (974  403)]
+21, 2, 0, 12030, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  2986)  ('type_1'  'type_1')  ('type_1'  2175)  (2175  3694)  (3694  2986)  (2986  4993)]
+87, 1, 0, 12059, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  974)  ('type_1'  'type_1')  ('type_1'  974)  (403  149)  (974  403)]
+4169, 1, 0, 12088, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  1)  ('type_0'  1761)  ('type_1'  'type_1')  (1761  1)  (1761  2)]
+Basic edge list: 75011 bits
+Final compression: 12088 bits (16.114969804428682 percent)
+Best compression: 12030 bits (16.037647811654292 percent) occurred with 4995 of 5000 nodes compressed (99.9 percent)
+
+real	9m6.059s
+user	9m3.940s
+sys	0m2.232s

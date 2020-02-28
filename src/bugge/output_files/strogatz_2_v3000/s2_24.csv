@@ -1,0 +1,10 @@
+rule_id, collapses, edges_approx, total_cost, rule_details
+12, 999, 1000, 29155, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  2089)  ('type_1'  'type_1')  ('type_1'  2191)  (1099  2089)  (1302  1099)  (1302  2089)  (2191  1099)  (2191  1302)]
+68, 1, 0, 29144, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_1'  'type_1')  (0  2063)  (0  2299)  (2063  0)  (2063  2299)  (2299  0)]
+Basic edge list: 81023 bits
+Final compression: 29144 bits (35.97003320044926 percent)
+Best compression: 29144 bits (35.97003320044926 percent) occurred with 2999 of 3000 nodes compressed (99.96666666666667 percent)
+
+real	3m41.627s
+user	3m42.707s
+sys	0m1.744s

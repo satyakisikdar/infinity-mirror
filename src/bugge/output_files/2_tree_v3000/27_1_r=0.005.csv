@@ -1,0 +1,21 @@
+rule_id, collapses, edges_approx, total_cost, rule_details
+33, 428, 0, 11748, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  896)  ('type_1'  'type_1')  ('type_1'  448)  (448  896)  (448  897)  (896  1792)  (896  1793)  (897  1794)  (897  1795)]
+30, 51, 2, 8934, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  897)  ('type_1'  'type_1')  ('type_1'  448)  (448  896)  (448  897)  (896  1792)  (896  1793)  (897  1794)]
+76, 8, 0, 8755, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  448)  ('type_1'  'type_1')  ('type_1'  448)  (448  896)  (896  1792)  (896  1793)]
+1, 14, 0, 8588, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  384)  ('type_1'  'type_1')  ('type_1'  192)  (192  384)  (192  385)]
+6, 16, 8, 8002, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  768)  ('type_1'  'type_1')  ('type_1'  192)  (192  384)  (192  385)  (384  768)  (385  770)]
+1, 2, 0, 7984, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  384)  ('type_1'  'type_1')  ('type_1'  192)  (192  384)  (192  385)]
+6, 3, 3, 7879, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  768)  ('type_1'  'type_1')  ('type_1'  192)  (192  384)  (192  385)  (384  768)  (385  770)]
+0, 6, 0, 7906, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  384)  ('type_1'  'type_1')  ('type_1'  192)  (192  384)]
+77, 4, 3, 7852, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  179)  ('type_1'  'type_1')  ('type_1'  357)  (89  178)  (89  179)  (178  357)]
+1, 1, 0, 7849, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  384)  ('type_1'  'type_1')  ('type_1'  192)  (192  384)  (192  385)]
+0, 3, 1, 7860, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  384)  ('type_1'  'type_1')  ('type_1'  192)  (192  384)]
+1, 1, 0, 7857, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  384)  ('type_1'  'type_1')  ('type_1'  192)  (192  384)  (192  385)]
+21227, 1, 0, 7885, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  634)  ('type_0'  15)  ('type_1'  'type_1')  ('type_1'  634)  ('type_1'  1268)  ('type_1'  15)  (15  1268)  (634  1268)]
+Basic edge list: 42010 bits
+Final compression: 7885 bits (18.769340633182576 percent)
+Best compression: 7849 bits (18.683646750773626 percent) occurred with 2975 of 3000 nodes compressed (99.16666666666667 percent)
+
+real	127m55.940s
+user	127m55.162s
+sys	0m2.936s

@@ -1,0 +1,18 @@
+Percent of connections that are bidirected: 0.005466416966138584
+rule_id, collapses, edges_approx, total_cost, rule_details
+Traceback (most recent call last):
+  File "test.py", line 74, in <module>
+    rm.contract_valid_tuples(best_rule)
+  File "/home/jhibshma/ThreePartsTree/full_approximate_rule_miner.py", line 431, in contract_valid_tuples
+    self.collapse_rule(full_rule_details)
+  File "/home/jhibshma/ThreePartsTree/full_approximate_rule_miner.py", line 330, in collapse_rule
+    self.update_rules_for_tuples(rules_affected, to_check)
+  File "/home/jhibshma/ThreePartsTree/full_approximate_rule_miner.py", line 213, in update_rules_for_tuples
+    rules = self.utils.cheapest_rules_for_tuple([self.out_sets, self.in_sets], tuple(node_stack_copy))
+  File "/home/jhibshma/ThreePartsTree/approximate_rule_utils.py", line 284, in cheapest_rules_for_tuple
+    current_cost += min(len(matches), len(keep_nodes) - len(matches))
+KeyboardInterrupt
+
+real	5654m32.134s
+user	5647m26.251s
+sys	3m19.991s

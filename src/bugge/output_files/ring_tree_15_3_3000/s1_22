@@ -1,0 +1,22 @@
+rule_id, collapses, edges_approx, total_cost, rule_details
+0, 2565, 0, 42102, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  2082)  ('type_1'  'type_1')  ('type_1'  546)  (546  2082)]
+5, 176, 0, 39671, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  152)  ('type_1'  'type_1')  ('type_1'  152)  (152  1083)  (1083  152)]
+1, 110, 0, 39594, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  1705)  ('type_1'  'type_1')  ('type_1'  1705)  (1705  2725)]
+0, 35, 0, 39571, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  2082)  ('type_1'  'type_1')  ('type_1'  546)  (546  2082)]
+1, 25, 0, 39558, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  1705)  ('type_1'  'type_1')  ('type_1'  1705)  (1705  2725)]
+5, 17, 0, 39332, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  152)  ('type_1'  'type_1')  ('type_1'  152)  (152  1083)  (1083  152)]
+0, 12, 0, 39332, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  2082)  ('type_1'  'type_1')  ('type_1'  546)  (546  2082)]
+1, 31, 0, 39313, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  1705)  ('type_1'  'type_1')  ('type_1'  1705)  (1705  2725)]
+0, 4, 0, 39321, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  2082)  ('type_1'  'type_1')  ('type_1'  546)  (546  2082)]
+5, 6, 0, 39249, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  152)  ('type_1'  'type_1')  ('type_1'  152)  (152  1083)  (1083  152)]
+1, 13, 0, 39248, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  1705)  ('type_1'  'type_1')  ('type_1'  1705)  (1705  2725)]
+0, 3, 0, 39257, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  2082)  ('type_1'  'type_1')  ('type_1'  546)  (546  2082)]
+5, 1, 0, 39255, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  152)  ('type_1'  'type_1')  ('type_1'  152)  (152  1083)  (1083  152)]
+1, 1, 0, 39266, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  1705)  ('type_1'  'type_1')  ('type_1'  1705)  (1705  2725)]
+Basic edge list: 44610 bits
+Final compression: 39266 bits (88.02062317865949 percent)
+Best compression: 39248 bits (87.98027348128223 percent) occurred with 2994 of 3000 nodes compressed (99.8 percent)
+
+real	0m11.474s
+user	0m12.709s
+sys	0m1.755s

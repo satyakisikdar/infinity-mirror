@@ -1,0 +1,48 @@
+rule_id, collapses, edges_approx, total_cost, rule_details
+15, 622, 112, 58317, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  567)  ('type_1'  'type_1')  ('type_1'  3126)  (2957  567)  (2957  1574)  (5225  1231)  (5225  3054)  (3126  2957)  (3126  5225)]
+155, 64, 0, 53557, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  5691)  ('type_1'  'type_1')  ('type_1'  5691)  (5576  1205)  (5576  1540)  (4942  1910)  (2983  4942)  (2983  5576)  (5691  2983)]
+13, 103, 0, 47361, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  5225)  ('type_1'  'type_1')  ('type_1'  3126)  (2957  567)  (2957  1574)  (3126  2957)  (3126  5225)  (5225  3054)]
+282, 35, 0, 45313, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  1796)  ('type_1'  'type_1')  ('type_1'  3783)  (2468  555)  (2468  4470)  (1796  2468)  (3783  1796)  (3783  5687)]
+67, 70, 38, 42317, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  2957)  ('type_1'  'type_1')  ('type_1'  3126)  (2957  567)  (3126  2957)  (3126  5225)  (5225  3054)]
+56, 55, 25, 39959, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  1365)  ('type_1'  'type_1')  ('type_1'  1365)  (2957  567)  (2957  1574)  (1365  3126)  (3126  2957)]
+155, 2, 0, 39820, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  5691)  ('type_1'  'type_1')  ('type_1'  5691)  (5576  1205)  (5576  1540)  (4942  1910)  (2983  4942)  (2983  5576)  (5691  2983)]
+29, 10, 0, 39164, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  3126)  ('type_1'  'type_1')  ('type_1'  3126)  (2957  567)  (2957  1574)  (5225  1231)  (5225  3054)  (3126  2957)  (3126  5225)]
+7, 55, 0, 37514, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  3126)  ('type_1'  'type_1')  ('type_1'  3126)  (2957  567)  (2957  1574)  (3126  2957)]
+106, 21, 0, 36918, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  661)  ('type_1'  'type_1')  ('type_1'  5918)  (5146  661)  (5918  1660)  (5918  5146)]
+67, 4, 0, 36747, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  2957)  ('type_1'  'type_1')  ('type_1'  3126)  (2957  567)  (3126  2957)  (3126  5225)  (5225  3054)]
+106, 6, 0, 36574, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  661)  ('type_1'  'type_1')  ('type_1'  5918)  (5146  661)  (5918  1660)  (5918  5146)]
+161, 62, 43, 34836, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  3759)  ('type_1'  'type_1')  ('type_1'  312)  (312  974)  (312  3759)  (3759  434)]
+68, 73, 54, 32790, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  1365)  ('type_1'  'type_1')  ('type_1'  1365)  (2957  567)  (1365  3126)  (3126  2957)]
+13, 2, 0, 32681, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  5225)  ('type_1'  'type_1')  ('type_1'  3126)  (2957  567)  (2957  1574)  (3126  2957)  (3126  5225)  (5225  3054)]
+7, 6, 0, 32508, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  3126)  ('type_1'  'type_1')  ('type_1'  3126)  (2957  567)  (2957  1574)  (3126  2957)]
+67, 2, 0, 32429, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  2957)  ('type_1'  'type_1')  ('type_1'  3126)  (2957  567)  (3126  2957)  (3126  5225)  (5225  3054)]
+2, 94, 0, 30970, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  567)  ('type_1'  'type_1')  ('type_1'  2957)  (2957  567)  (2957  1574)]
+502, 10, 0, 30715, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  3163)  ('type_1'  'type_1')  ('type_1'  4409)  (4409  3156)  (4409  3163)  (6029  3156)]
+364, 9, 0, 30491, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  4154)  ('type_1'  'type_1')  ('type_1'  4154)  (4409  3156)  (6029  3156)  (4154  6029)]
+161, 3, 0, 30411, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  3759)  ('type_1'  'type_1')  ('type_1'  312)  (312  974)  (312  3759)  (3759  434)]
+68, 2, 0, 30362, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  1365)  ('type_1'  'type_1')  ('type_1'  1365)  (2957  567)  (1365  3126)  (3126  2957)]
+136, 35, 13, 29886, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  4217)  ('type_1'  'type_1')  ('type_1'  3935)  (1217  4217)  (3935  1217)]
+106, 3, 0, 29806, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  661)  ('type_1'  'type_1')  ('type_1'  5918)  (5146  661)  (5918  1660)  (5918  5146)]
+161, 2, 0, 29757, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  3759)  ('type_1'  'type_1')  ('type_1'  312)  (312  974)  (312  3759)  (3759  434)]
+Traceback (most recent call last):
+  File "test.py", line 77, in <module>
+    rm.contract_valid_tuples(best_rule)
+  File "/home/jhibshma/ThreePartsTree/full_approximate_rule_miner.py", line 431, in contract_valid_tuples
+    self.collapse_rule(full_rule_details)
+  File "/home/jhibshma/ThreePartsTree/full_approximate_rule_miner.py", line 330, in collapse_rule
+    self.update_rules_for_tuples(rules_affected, to_check)
+  File "/home/jhibshma/ThreePartsTree/full_approximate_rule_miner.py", line 213, in update_rules_for_tuples
+    rules = self.utils.cheapest_rules_for_tuple([self.out_sets, self.in_sets], tuple(node_stack_copy))
+  File "/home/jhibshma/ThreePartsTree/approximate_rule_utils.py", line 333, in cheapest_rules_for_tuple
+    rule_id = self.rule_lib.add_rule(self.edge_type_interpreter.make_rule_graph(edge_types, t, keep_nodes_by_edge_type))
+  File "/home/jhibshma/ThreePartsTree/rule_lib.py", line 23, in add_rule
+    gm = isomorphism.DiGraphMatcher(rules[i][0], graph)
+  File "/home/jhibshma/virtual_envs/three_parts_tree/lib/python3.6/site-packages/networkx/algorithms/isomorphism/vf2userfunc.py", line 161, in __init__
+    vf2.DiGraphMatcher.__init__(self, G1, G2)
+  File "/home/jhibshma/virtual_envs/three_parts_tree/lib/python3.6/site-packages/networkx/algorithms/isomorphism/isomorphvf2.py", line 502, in __init__
+    super(DiGraphMatcher, self).__init__(G1, G2)
+  File "/home/jhibshma/virtual_envs/three_parts_tree/lib/python3.6/site-packages/networkx/algorithms/isomorphism/isomorphvf2.py", line 173, in __init__
+    self.G2_nodes = set(G2.nodes())
+  File "/home/jhibshma/virtual_envs/three_parts_tree/lib/python3.6/site-packages/networkx/classes/graph.py", line 754, in nodes
+    nodes = NodeView(self)
+KeyboardInterrupt

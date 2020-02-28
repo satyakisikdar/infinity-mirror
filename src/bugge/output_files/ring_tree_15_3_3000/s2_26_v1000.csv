@@ -1,0 +1,14 @@
+rule_id, collapses, edges_approx, total_cost, rule_details
+4, 130, 0, 6354, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  868)  ('type_1'  'type_1')  ('type_1'  213)  (116  865)  (307  116)  (865  814)  (213  307)  (814  868)]
+248, 62, 0, 2715, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  699)  ('type_1'  'type_1')  ('type_1'  699)  (29  39)  (39  123)  (471  29)  (699  29)  (123  111)  (111  471)]
+4, 2, 0, 2627, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  868)  ('type_1'  'type_1')  ('type_1'  213)  (116  865)  (307  116)  (865  814)  (213  307)  (814  868)]
+248, 3, 0, 2457, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  699)  ('type_1'  'type_1')  ('type_1'  699)  (29  39)  (39  123)  (471  29)  (699  29)  (123  111)  (111  471)]
+1, 1, 0, 2483, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  865)  ('type_1'  'type_1')  ('type_1'  307)  (116  865)  (307  116)]
+579, 1, 0, 2498, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_1'  'type_1')  ('type_1'  1)  ('type_1'  84)  ('type_1'  481)  (1  84)  (84  481)  (481  1)]
+Basic edge list: 12623 bits
+Final compression: 2498 bits (19.78927354828488 percent)
+Best compression: 2457 bits (19.464469618949536 percent) occurred with 985 of 999 nodes compressed (98.5985985985986 percent)
+
+real	3m1.507s
+user	3m2.292s
+sys	0m1.865s

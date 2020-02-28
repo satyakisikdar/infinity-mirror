@@ -1,0 +1,25 @@
+rule_id, collapses, edges_approx, total_cost, rule_details
+1, 1172, 0, 27097, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  774)  ('type_1'  'type_1')  ('type_1'  2149)  (590  774)  (2149  590)]
+21, 175, 0, 22240, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  23)  ('type_1'  'type_1')  ('type_1'  19)  (19  23)  (23  1920)  (1920  19)]
+1, 19, 0, 21967, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  774)  ('type_1'  'type_1')  ('type_1'  2149)  (590  774)  (2149  590)]
+21, 16, 0, 21531, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  23)  ('type_1'  'type_1')  ('type_1'  19)  (19  23)  (23  1920)  (1920  19)]
+12, 40, 0, 20974, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  2435)  ('type_1'  'type_1')  ('type_1'  2435)  (2435  1145)  (2435  2803)]
+3, 30, 0, 20567, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  1268)  ('type_1'  'type_1')  ('type_1'  1268)  (1626  697)  (1268  1626)]
+1, 8, 3, 20468, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  774)  ('type_1'  'type_1')  ('type_1'  2149)  (590  774)  (2149  590)]
+21, 6, 0, 20312, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  23)  ('type_1'  'type_1')  ('type_1'  19)  (19  23)  (23  1920)  (1920  19)]
+3, 5, 0, 20249, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  1268)  ('type_1'  'type_1')  ('type_1'  1268)  (1626  697)  (1268  1626)]
+12, 6, 0, 20171, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  2435)  ('type_1'  'type_1')  ('type_1'  2435)  (2435  1145)  (2435  2803)]
+3, 9, 0, 20048, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  1268)  ('type_1'  'type_1')  ('type_1'  1268)  (1626  697)  (1268  1626)]
+12, 4, 0, 20000, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  2435)  ('type_1'  'type_1')  ('type_1'  2435)  (2435  1145)  (2435  2803)]
+3, 2, 0, 19982, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  1268)  ('type_1'  'type_1')  ('type_1'  1268)  (1626  697)  (1268  1626)]
+1, 2, 0, 19964, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  774)  ('type_1'  'type_1')  ('type_1'  2149)  (590  774)  (2149  590)]
+21, 2, 0, 19920, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  23)  ('type_1'  'type_1')  ('type_1'  19)  (19  23)  (23  1920)  (1920  19)]
+1, 2, 0, 19902, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  774)  ('type_1'  'type_1')  ('type_1'  2149)  (590  774)  (2149  590)]
+0, 1, 0, 19934, [('type_0'  'type_0')  ('type_0'  'type_1')  ('type_0'  1119)  ('type_1'  'type_1')  ('type_1'  1486)  (1486  1119)]
+Basic edge list: 44610 bits
+Final compression: 19934 bits (44.685048195471865 percent)
+Best compression: 19902 bits (44.613315400134496 percent) occurred with 2996 of 3000 nodes compressed (99.86666666666666 percent)
+
+real	0m41.426s
+user	0m42.373s
+sys	0m1.502s
