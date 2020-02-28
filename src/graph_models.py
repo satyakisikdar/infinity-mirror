@@ -10,6 +10,7 @@ import subprocess as sub
 from itertools import combinations
 from time import time
 from typing import List, Dict, Any, Union, Set, Tuple
+from tqdm import tqdm
 
 import networkx as nx
 import numpy as np
@@ -21,7 +22,7 @@ from src.utils import ColorPrint as CP
 from src.utils import check_file_exists, load_pickle, delete_files, get_blank_graph, get_graph_from_prob_matrix
 
 __all__ = ['BaseGraphModel', 'ErdosRenyi', 'UniformRandom', 'ChungLu', 'BTER', '_BTER', 'CNRG', 'HRG', 'Kronecker',
-           'GraphAE', 'GraphVAE', 'SBM', 'GraphForge', 'NetGAN']
+           'GraphAE', 'GraphVAE', 'SBM', 'GraphForge', 'NetGAN', 'BUGGE']
 
 
 class BaseGraphModel:
@@ -93,6 +94,35 @@ class BaseGraphModel:
 
     def __repr__(self) -> str:
         return str(self)
+
+
+class BUGGE(BaseGraphModel):
+    def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
+        super().__init__(model_name='BUGGE', input_graph=input_graph, run_id=run_id)
+        self.rule_min = 2
+        self.rule_max = 5
+        CP.print_blue(f'Rule sizes: min: {self.rule_min}, max: {self.rule_max}')
+        return
+
+    def _fit(self) -> None:
+        from src.bugge.generation import fit
+
+        input_graph = nx.DiGraph(self.input_graph)  # BUGGE needs a directed graph
+        model = fit(input_graph, rule_min=self.rule_min, rule_max=self.rule_max)
+
+        self.params['model'] = model
+        return
+
+    def _gen(self, gname: str, gen_id: int) -> nx.Graph:
+        from src.bugge.generation import generate
+        assert 'model' in self.params, 'BUGGE model is not trained'
+
+        g = generate(model=self.params['model'])
+        g = nx.Graph(g)
+
+        g.name = gname
+        g.gen_id = gen_id
+        return g
 
 
 class ErdosRenyi(BaseGraphModel):
@@ -173,7 +203,6 @@ class ChungLu(BaseGraphModel):
 
     def _fit(self) -> None:
         self.params['degree_seq'] = sorted([d for n, d in self.input_graph.degree()], reverse=True)  # degree sequence
-
         return
 
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
@@ -502,6 +531,8 @@ class HRG(BaseGraphModel):
                 return None
 
             for i, gen_graph in enumerate(gen_graphs):
+                if gen_graph is None:
+                    continue
                 gen_graph = self._make_graph(gen_graph)
                 gen_graph.name = f'{self.input_graph.name}_{self.run_id}_{i + 1}'  # adding the number of graph
                 gen_graph.gen_id = gen_id
@@ -512,7 +543,7 @@ class HRG(BaseGraphModel):
                 print('HRG failed')
                 return None
 
-        delete_files(edgelist_path, output_pickle_path)
+        # delete_files(edgelist_path, output_pickle_path)
         return generated_graphs
 
 
@@ -656,10 +687,10 @@ class GraphVAE(BaseGraphModel):
 
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
         assert 'prob_mat' in self.params, 'Improper params. Prob matrix object is missing.'
-        g = get_graph_from_prob_matrix(self.params['prob_mat'])
+        g = get_graph_from_prob_matrix(self.params['prob_mat'], thresh=0.5)
         g.name = gname
         g.gen_id = gen_id
-
+        print(f'{gname}, {gen_id}, {g.order(), g.size()}')
         return g
 
 
@@ -757,7 +788,8 @@ class _NetGAN(BaseGraphModel):
             return
 
         CP.print_blue('Making conda environment for NetGAN')
-        proc = sub.run('conda env create -f ./envs/netgan.yml', shell=True, stdout=sub.DEVNULL)  # create and activate environment
+        proc = sub.run('conda env create -f ./envs/netgan.yml', shell=True,
+                       stdout=sub.DEVNULL)  # create and activate environment
 
         assert proc.returncode == 0, 'Error while creating env for NetGAN'
         return
@@ -768,8 +800,9 @@ class _NetGAN(BaseGraphModel):
         path = f'{dump}/{gname}.g'
         nx.write_edgelist(self.input_graph, path, data=False)
 
-        proc = sub.run(f'conda init bash; . ~/.bashrc; conda activate netgan; python src/netgan/fit.py {gname} {path}; conda deactivate',
-                       shell=True)#, stderr=sub.DEVNULL)#, stdout=sub.DEVNULL)
+        proc = sub.run(
+            f'conda init bash; . ~/.bashrc; conda activate netgan; python src/netgan/fit.py {gname} {path}; conda deactivate',
+            shell=True)  # , stderr=sub.DEVNULL)#, stdout=sub.DEVNULL)
         assert proc.returncode == 0, 'NetGAN fit did not work'
         assert check_file_exists(f'{dump}/{gname}.pkl.gz'), f'pickle not found at {dump}/{gname}.pkl.gz'
         return
@@ -783,8 +816,9 @@ class _NetGAN(BaseGraphModel):
         gname = f'{self.input_graph.name}_{self.run_id}'
         pickle_path = f'{dump}/{gname}.pkl.gz'
 
-        proc = sub.run(f'conda init bash; . ~/.bashrc; conda activate netgan; python src/netgan/gen.py {gname} {pickle_path} {num_graphs}',
-                       shell=True)#, stdout=sub.DEVNULL)
+        proc = sub.run(
+            f'conda init bash; . ~/.bashrc; conda activate netgan; python src/netgan/gen.py {gname} {pickle_path} {num_graphs}',
+            shell=True)  # , stdout=sub.DEVNULL)
 
         assert proc.returncode == 0, 'error in NetGAN generate'
         output_pickle_path = f'{dump}/{gname}_graphs.pkl.gz'

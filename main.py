@@ -26,7 +26,7 @@ from src.utils import timer, ColorPrint as CP
 
 def parse_args():
     model_names = {'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker', 'UniformRandom', 'GraphVAE', 'GraphAE',
-                   'SBM', 'GraphForge', 'NetGAN', 'GraphRNN', '_BTER'}
+                   'SBM', 'GraphForge', 'NetGAN', 'GraphRNN', '_BTER', 'BUGGE'}
     selections = {'best', 'worst', 'median', 'all', 'fast'}
 
     parser = argparse.ArgumentParser(
@@ -144,15 +144,13 @@ def run_infinity_mirror(args, run_id):
 
 @timer
 def main():
-    CP.print_orange('GCD is disabled')
-
     args = parse_args()
     num_jobs, num_trials = int(args.cores[0]), int(args.trials[0])
 
     CP.print_green(f'Running infinity mirror on {num_jobs} cores for {num_trials} trials')
 
     Parallel(n_jobs=num_jobs, backend='multiprocessing')(
-        delayed(run_infinity_mirror)(run_id=i + 1, args=args)
+        delayed(run_infinity_mirror)(run_id=i+1, args=args)
         for i in range(num_trials)
     )
 
