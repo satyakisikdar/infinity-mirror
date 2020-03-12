@@ -4,4 +4,6 @@
 *.idea/
 __pycache__/
 *.g
+input/*
+src/cnrg/src/tmp/*.g
 output/pickles/
