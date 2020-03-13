@@ -25,8 +25,9 @@ from src.utils import timer, ColorPrint as CP
 
 
 def parse_args():
-    model_names = {'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker', 'UniformRandom', 'GraphVAE', 'GraphAE',
-                   'SBM', 'GraphForge', 'NetGAN', 'GraphRNN', '_BTER', 'BUGGE'}
+    model_names = {'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker', 'UniformRandom', 'GCN_AE', 
+                   'GCN_VAE', 'Linear_AE', 'Linear_VAE', 'Deep_GCN_AE', 'Deep_GCN_VAE', 'SBM', 'GraphForge', 
+                   'NetGAN', 'GraphRNN', '_BTER', 'BUGGE'}
     selections = {'best', 'worst', 'median', 'all', 'fast'}
 
     parser = argparse.ArgumentParser(
@@ -86,13 +87,15 @@ def process_args(args) -> Any:
         r = 0
 
     model_name = args.model[0]
+    if model_name in ('GCN_AE', 'GCN_VAE', 'Linear_AE', 'Linear_VAE', 'Deep_GCN_AE', 'Deep_GCN_VAE'):
+        model_name = 'GraphAutoEncoder'  # one class for all autoencoder business
     module = importlib.import_module(f'src.graph_models')
     model_obj = getattr(module, model_name)
 
     return args.sel[0], g, model_obj, int(args.gens[0]), args.pickle, int(args.num_graphs[0]), r
 
 
-def make_dirs(gname, model):
+def make_dirs(gname, model) -> None:
     """
     Makes input and output directories if they do not exist already
     :return:
@@ -101,9 +104,10 @@ def make_dirs(gname, model):
                     f'output/pickles/{gname}/{model}'):
         if not Path(f'./{dirname}').exists():
             os.makedirs(f'./{dirname}', exist_ok=True)
+    return 
 
 
-def run_infinity_mirror(args, run_id):
+def run_infinity_mirror(args, run_id) -> None:
     """
     Creates and runs infinity mirror
     :return:
@@ -113,15 +117,22 @@ def run_infinity_mirror(args, run_id):
     # process args returns the Class and not an object
     empty_g = nx.empty_graph(1)
     empty_g.name = 'empty'  # create an empty graph as a placeholder
-    model_obj = model(
-        input_graph=empty_g,
-        run_id=run_id)  # this is a roundabout way to ensure the name of GraphModel object is correct
+    
 
+    if args.model[0] in ('GCN_AE', 'GCN_VAE', 'Linear_AE', 'Linear_VAE', 'Deep_GCN_AE', 'Deep_GCN_VAE'):
+        model_obj = model(
+                input_graph=empty_g, 
+                run_id=run_id,
+                kind=args.model[0])
+    else:
+        model_obj = model(
+                input_graph=empty_g,
+                run_id=run_id)  # this is a roundabout way to ensure the name of GraphModel object is correct
     make_dirs(g.name, model=model_obj.model_name)
 
     if selection == 'all':
         for sel in 'best', 'median', 'worst':
-            inf = InfinityMirror(selection=sel, initial_graph=g, num_generations=num_gens, model_obj=model,
+            inf = InfinityMirror(selection=sel, initial_graph=g, num_generations=num_gens, model_obj=model_obj,
                                  num_graphs=num_graphs, run_id=run_id, r=rewire)
             tic = time.perf_counter()
             inf.run(use_pickle=use_pickle)
@@ -132,7 +143,7 @@ def run_infinity_mirror(args, run_id):
     else:
         if selection == 'fast':
             num_graphs = 1  # only 1 graph per generation
-        inf = InfinityMirror(selection=selection, initial_graph=g, num_generations=num_gens, model_obj=model,
+        inf = InfinityMirror(selection=selection, initial_graph=g, num_generations=num_gens, model_obj=model_obj,
                              num_graphs=num_graphs, run_id=run_id, r=rewire)
         tic = time.perf_counter()
         inf.run(use_pickle=use_pickle)
@@ -140,10 +151,10 @@ def run_infinity_mirror(args, run_id):
 
         inf.write_timing_stats(round(toc - tic, 3))
         print(run_id, inf)
-
+        return 
 
 @timer
-def main():
+def main() -> None:
     args = parse_args()
     num_jobs, num_trials = int(args.cores[0]), int(args.trials[0])
 
