@@ -23,9 +23,6 @@ GraphStatTriple = namedtuple('GraphStatTriple',
 class InfinityMirror:
     """
     Class for InfinityMirror
-    For each generation, store 3 graphs - best, worst, and the 50^th percentile -
-        use ranked choice voting for deciding the winner from 10 graphs <- borda list
-        store the three graphs into a tree
     """
     __slots__ = ('initial_graph', 'num_generations', 'num_graphs', 'model', 'initial_graph_stats', 'root',
                  '_metrics', 'root_pickle_path', 'selection', 'run_id', 'rewire')
@@ -37,8 +34,11 @@ class InfinityMirror:
         self.initial_graph: nx.Graph = initial_graph  # the initial starting point H_0
         self.num_graphs: int = num_graphs  # number of graphs per generation
         self.num_generations: int = num_generations  # number of generations
-        self.model: BaseGraphModel = model_obj(input_graph=self.initial_graph,
-                                               run_id=self.run_id)  # initialize and fit the model
+        
+        self.model = model_obj# (input_graph=self.initial_graph, run_id=self.run_id)
+        self.model.input_graph = self.initial_graph
+        self.model.run_id = run_id# initialize and fit the model
+        
         self.initial_graph_stats: GraphStats = GraphStats(run_id=run_id, graph=self.initial_graph)
         self.root: TreeNode = TreeNode('root', graph=self.initial_graph,
                                        stats={})  # root of the tree with the initial graph and empty stats dictionary
