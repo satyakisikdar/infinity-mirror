@@ -39,8 +39,14 @@ def fit_model(g, model_name):
         if FLAGS.task == 'link_prediction' :
             print("Masking test edges...")
             # Edge Masking for Link Prediction: compute Train/Validation/Test set
-            adj, val_edges, val_edges_false, test_edges, test_edges_false = \
-            mask_test_edges(adj_init, FLAGS.prop_test, FLAGS.prop_val)
+            while True:
+                try:
+                    adj, val_edges, val_edges_false, test_edges, test_edges_false = \
+                        mask_test_edges(adj_init, FLAGS.prop_test, FLAGS.prop_val)
+                except Exception:
+                    continue
+                else:
+                    break
         else:
             raise ValueError('Undefined task!')
     
