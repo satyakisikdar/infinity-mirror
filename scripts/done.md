@@ -1,0 +1,11 @@
+/home/danielgonzalez/repos/infinity-mirror/output/pickles/
+    clique-ring-25-4
+        BTER
+        Chung-Lu
+        CNRG
+        Erdos-Renyi
+        GraphAE
+        GraphVAE
+        HRG
+        NetGAN
+        SBM
