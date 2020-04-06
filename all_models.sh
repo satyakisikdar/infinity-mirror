@@ -7,3 +7,5 @@ do
     echo python3 main.py -i $graph -m $model -t 50 -n 20 -c 10 -s fast -p      
     python3 main.py -i $graph -m $model -t 50 -n 20 -c 10 -s fast -p
 done
+
+# output pickles are stored in infinity-mirror/output/pickles directory
