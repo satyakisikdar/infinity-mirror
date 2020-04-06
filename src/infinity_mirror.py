@@ -34,11 +34,11 @@ class InfinityMirror:
         self.initial_graph: nx.Graph = initial_graph  # the initial starting point H_0
         self.num_graphs: int = num_graphs  # number of graphs per generation
         self.num_generations: int = num_generations  # number of generations
-        
+
         self.model = model_obj# (input_graph=self.initial_graph, run_id=self.run_id)
         self.model.input_graph = self.initial_graph
         self.model.run_id = run_id# initialize and fit the model
-        
+
         self.initial_graph_stats: GraphStats = GraphStats(run_id=run_id, graph=self.initial_graph)
         self.root: TreeNode = TreeNode('root', graph=self.initial_graph,
                                        stats={})  # root of the tree with the initial graph and empty stats dictionary
