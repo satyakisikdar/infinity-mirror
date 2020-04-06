@@ -1,11 +1,16 @@
 /home/danielgonzalez/repos/infinity-mirror/output/pickles/
+    3-comm
+    └── not enough stats??
+
     clique-ring-25-4
-        BTER
-        Chung-Lu
-        CNRG
-        Erdos-Renyi
-        GraphAE
-        GraphVAE
-        HRG
-        NetGAN
-        SBM
+    └── plotted
+
+    clique-ring-100-4
+    └── empty??
+
+    dolphins
+    karate
+    ladder-50
+    ring-10
+
+# TODO
