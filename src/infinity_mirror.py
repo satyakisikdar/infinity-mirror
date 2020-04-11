@@ -35,13 +35,13 @@ class InfinityMirror:
         self.num_graphs: int = num_graphs  # number of graphs per generation
         self.num_generations: int = num_generations  # number of generations
 
-        self.model = model_obj# (input_graph=self.initial_graph, run_id=self.run_id)
+        self.model = model_obj # (input_graph=self.initial_graph, run_id=self.run_id)
         self.model.input_graph = self.initial_graph
-        self.model.run_id = run_id# initialize and fit the model
+        self.model.run_id = run_id # initialize and fit the model
 
         self.initial_graph_stats: GraphStats = GraphStats(run_id=run_id, graph=self.initial_graph)
         self.root: TreeNode = TreeNode('root', graph=self.initial_graph,
-                                       stats={})  # root of the tree with the initial graph and empty stats dictionary
+                                       stats={}, stats_seq={})  # root of the tree with the initial graph and empty stats dictionary
         self._metrics: List[str] = ['deltacon0', 'lambda_dist', 'pagerank_cvm', 'node_diff', 'edge_diff', 'pgd_pearson',
                                     'pgd_spearman', 'degree_cvm']  # list of metrics  ## GCD is removed
         self.rewire = int(r * 100)
