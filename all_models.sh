@@ -1,17 +1,36 @@
 # eucore:
+    # BTER              done
     # BUGGE             done
-    # GraphForge        ignore
-    # GraphAE           ?
-    # GraphVAE          ?
-    # GCN_AE
-    # GCN_VAE
-    # Kronecker
-    # Linear_AE
-    # Linear_VAE
-    # Deep_GCN_AE
-    # Deep_GCN_VAE
-    # UniformRandom     ignore
-models="Kronecker"  # space separated names of models, find the whole list in main.py
+    # Chung-Lu          done
+    # CNRG              done
+    # Deep_GCN_AE       ...
+    # Deep_GCN_VAE      ...
+    # Erdos-Renyi       done
+    # GCN_AE            done
+    # GCN_VAE           done
+    # HRG               done
+    # Kronecker         done <-> 28 trials
+    # Linear_AE         done
+    # Linear_VAE        ... in progress
+    # NetGAN            done
+    # SBM               done
+# clique-ring-500-4
+    # BTER              ...
+    # BUGGE             ...
+    # Chung-Lu          ...
+    # CNRG              ...
+    # Deep_GCN_AE       ...
+    # Deep_GCN_VAE      ...
+    # Erdos-Renyi       ...
+    # GCN_AE            ...
+    # GCN_VAE           ...
+    # HRG               ...
+    # Kronecker         ...
+    # Linear_AE         ...
+    # Linear_VAE        ...
+    # NetGAN            ...
+    # SBM               ...
+models="Linear_AE Linear_VAE Deep_GCN_AE Deep_GCN_VAE"  # space separated names of models, find the whole list in main.py
 graph='input/eucore.g'  # external edge list 
 # graph='clique_ring 500 4'  # for synthetic graphs - find list in Synthetic Graph class in src/graphio.py 
 for model in $models
@@ -20,8 +39,7 @@ do
     # -c: number of cores
     # -s: selection strategy
     # -p: use pickles to prevent repeated computations
-    echo python3 main.py -i $graph -m $model -t 50 -n 20 -c 15 -s fast -p      
-    python3 main.py -i $graph -m $model -t 50 -n 20 -c 15 -s fast -p
+    echo python3 main.py -i $graph -m $model -t 50 -n 20 -c 1 -s fast -p      
+    python3 main.py -i $graph -m $model -t 50 -n 20 -c 1 -s fast -p
 done
-
 # output pickles are stored in infinity-mirror/output/pickles directory
