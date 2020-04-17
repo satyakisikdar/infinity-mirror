@@ -4,7 +4,7 @@
     # BUGGE             done                done
     # Chung-Lu          done                done
     # CNRG              done                done
-    # Deep_GCN_AE       done                ... in progress
+    # Deep_GCN_AE       done                done
     # Deep_GCN_VAE      ... in progress     ...
     # Erdos-Renyi       done                done
     # GCN_AE            done                done
