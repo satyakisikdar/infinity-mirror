@@ -5,7 +5,7 @@
     # Chung-Lu          done                            done
     # CNRG              done                            done
     # Deep_GCN_AE       done                            done
-    # Deep_GCN_VAE      done                            ... in progress
+    # Deep_GCN_VAE      done                            ...  in progress (workstation)
     # Erdos-Renyi       done                            done
     # GCN_AE            done                            done
     # GCN_VAE           done                            done
