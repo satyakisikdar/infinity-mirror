@@ -21,8 +21,8 @@
 |      <i></i>      | BUGGE             | done                              | done                              |                   |
 |      <i></i>      | Chung-Lu          | done                              | done                              |                   |
 |      <i></i>      | CNRG              | done                              | done                              |                   |
-|      <i></i>      | Deep GCN AE       | ...                               | ...                               |                   |
-|      <i></i>      | Deep GCN VAE      | ...                               | ...                               |                   |
+|      <i></i>      | Deep GCN AE       | ...  on hold (workstation)        | ...                               |                   |
+|      <i></i>      | Deep GCN VAE      | ...  on hold (workstation)        | ...                               |                   |
 |      <i></i>      | Erdos-Renyi       | done                              | done                              |                   |
 |      <i></i>      | GCN AE            | ...  on hold (workstation)        | ...                               |                   |
 |      <i></i>      | GCN VAE           | ...  on hold (workstation)        | ...                               |                   |
