@@ -1,33 +1,35 @@
-#                       absolute                        sequential
-# eucore:
-    # BTER              done                            done
-    # BUGGE             done                            done
-    # Chung-Lu          done                            done
-    # CNRG              done                            done
-    # Deep_GCN_AE       done                            done
-    # Deep_GCN_VAE      done                            done
-    # Erdos-Renyi       done                            done
-    # GCN_AE            done                            done
-    # GCN_VAE           done                            done
-    # HRG               done                            done
-    # Kronecker         done                            done    (28 trials)
-    # Linear_AE         done                            done
-    # Linear_VAE        done                            done
-    # NetGAN            done                            done
-    # SBM               done                            done
-# clique-ring-500-4
-    # BTER              done                            done
-    # BUGGE             done                            done
-    # Chung-Lu          done                            done
-    # CNRG              done                            done
-    # Deep_GCN_AE       ...  on hold   (workstation)    ...
-    # Deep_GCN_VAE      ...  on hold   (workstation)    ...
-    # Erdos-Renyi       done                            done
-    # GCN_AE            ...  on hold   (workstation)    ...
-    # GCN_VAE           ...  on hold   (workstation)    ...
-    # HRG               done                            done    (lots of fails)
-    # Kronecker         ...  in progress (dsg3)         ...
-    # Linear_AE         ...  on hold   (workstation)    ...
-    # Linear_VAE        ...  on hold   (workstation)    ...
-    # NetGAN            done                            done
-    # SBM               done                            done
+|    dataset        |        model      |   absolute                        |   sequential                      |       notes       |
+| ----------------- |:-----------------:|:---------------------------------:|:---------------------------------:|:-----------------:|
+| eucore            | BTER              | done                              | done                              |                   |
+|      <i></i>      | BUGGE             | done                              | done                              |                   |
+|      <i></i>      | Chung-Lu          | done                              | done                              |                   |
+|      <i></i>      | CNRG              | done                              | done                              |                   |
+|      <i></i>      | Deep GCN AE       | done                              | done                              |                   |
+|      <i></i>      | Deep GCN VAE      | done                              | done                              |                   |
+|      <i></i>      | Erdos-Renyi       | done                              | done                              |                   |
+|      <i></i>      | GCN AE            | done                              | done                              |                   |
+|      <i></i>      | GCN VAE           | done                              | done                              |                   |
+|      <i></i>      | GraphRNN          | done                              | done                              |                   |
+|      <i></i>      | HRG               | done                              | done                              |                   |
+|      <i></i>      | Kronecker         | done                              | done                              | 28 trials         |
+|      <i></i>      | Linear AE         | done                              | done                              |                   |
+|      <i></i>      | Linear VAE        | done                              | done                              |                   |
+|      <i></i>      | NetGAN            | done                              | done                              |                   |
+|      <i></i>      | SBM               | done                              | done                              |                   |
+| ----------------- |:-----------------:|:---------------------------------:|:---------------------------------:|:-----------------:|
+| eucore            | BTER              | done                              | done                              |                   |
+|      <i></i>      | BUGGE             | done                              | done                              |                   |
+|      <i></i>      | Chung-Lu          | done                              | done                              |                   |
+|      <i></i>      | CNRG              | done                              | done                              |                   |
+|      <i></i>      | Deep GCN AE       | ...                               | ...                               |                   |
+|      <i></i>      | Deep GCN VAE      | ...                               | ...                               |                   |
+|      <i></i>      | Erdos-Renyi       | done                              | done                              |                   |
+|      <i></i>      | GCN AE            | ...  on hold (workstation)        | ...                               |                   |
+|      <i></i>      | GCN VAE           | ...  on hold (workstation)        | ...                               |                   |
+|      <i></i>      | GraphRNN          | ...  in progress (workstation)    | ...                               |                   |
+|      <i></i>      | HRG               | done                              | done                              | lots of fails     |
+|      <i></i>      | Kronecker         | ...  in progress (dsg3)           | ...                               |                   |
+|      <i></i>      | Linear AE         | ...  on hold (workstation)        | ...                               |                   |
+|      <i></i>      | Linear VAE        | ...  on hold (workstation)        | ...                               |                   |
+|      <i></i>      | NetGAN            | done                              | done                              |                   |
+|      <i></i>      | SBM               | done                              | done                              |                   |
