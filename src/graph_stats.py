@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import seaborn as sns
+import leidenalg as la
+import igraph as ig 
 
 from src.utils import check_file_exists, ColorPrint as CP
 
@@ -102,6 +104,43 @@ class GraphStats:
         plt.ylabel(ylabel)
         plt.legend(loc='best')
         return ax
+
+    def _calculate_robustness_measures(self) -> None:
+        """
+        Calls the Leiden comms and frac of nodes in giant component methods
+        """
+        print('Calling number of components, frac of nodes in giant component, leiden alg')
+        print('Populates "num_components", "giant_frac", "num_clusters", "modularity" in self.stats')
+        self.stats['num_components'] = nx.number_connected_components(self.graph)
+        self.giant_component_frac()
+        self.leiden_communities()
+        self.giant_component_frac()
+        return 
+
+    def leiden_communities(self) -> Tuple[int, float]:
+        """
+        Use Leiden alg to find (a) the number of communities and (b) modularity
+        """
+        nx_g = nx.convert_node_labels_to_integers(self.graph, label_attribute='old_label')
+        old_label = nx.get_node_attributes(nx_g, 'old_label')
+        
+        ig_g = ig.Graph(directed=False)
+        ig_g.add_vertices(nx_g.order())
+        ig_g.add_edges(nx_g.edges())
+        
+        partition = la.find_partition(ig_g, partition_type=la.ModularityVertexPartition)
+        self.stats['num_clusters'] = len(partition)
+        self.stats['modularity'] = partition.modularity
+        return len(partition), partition.modularity
+
+    def giant_component_frac(self):
+        """
+        returns the fraction of nodes in the giant connected component 
+        """
+        lcc = max(nx.connected_components(self.graph), key=len)
+        frac = len(lcc) / self.graph.order() 
+        self.stats['giant_frac'] = frac 
+        return frac
 
     def adj_eigenvalues(self):
         """
@@ -348,3 +387,10 @@ class GraphStats:
         self.stats['pgd_graphlet_counts'] = graphlet_counts
 
         return graphlet_counts
+
+
+if __name__ == '__main__':
+    g = nx.karate_club_graph()
+    gs = GraphStats(graph=g, run_id=-1)
+    gs._calculate_robustness_measures()
+    print(gs.stats)
