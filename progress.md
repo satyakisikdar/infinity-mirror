@@ -16,8 +16,8 @@
 |      <i></i>      | Linear VAE        | done                              | done                              |                   |
 |      <i></i>      | NetGAN            | done                              | done                              |                   |
 |      <i></i>      | SBM               | done                              | done                              |                   |
-| ----------------- |:-----------------:|:---------------------------------:|:---------------------------------:|:-----------------:|
-| eucore            | BTER              | done                              | done                              |                   |
+|      <i></i>      |                   |                                   |                                   |                   |
+| clique-ring-500-4 | BTER              | done                              | done                              |                   |
 |      <i></i>      | BUGGE             | done                              | done                              |                   |
 |      <i></i>      | Chung-Lu          | done                              | done                              |                   |
 |      <i></i>      | CNRG              | done                              | done                              |                   |
@@ -33,3 +33,4 @@
 |      <i></i>      | Linear VAE        | ...  on hold (workstation)        | ...                               |                   |
 |      <i></i>      | NetGAN            | done                              | done                              |                   |
 |      <i></i>      | SBM               | done                              | done                              |                   |
+|      <i></i>      |                   |                                   |                                   |                   |
