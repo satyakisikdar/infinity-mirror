@@ -25,8 +25,8 @@ from src.utils import timer, ColorPrint as CP
 
 
 def parse_args():
-    model_names = {'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker', 'UniformRandom', 'GCN_AE', 
-                   'GCN_VAE', 'Linear_AE', 'Linear_VAE', 'Deep_GCN_AE', 'Deep_GCN_VAE', 'SBM', 'GraphForge', 
+    model_names = {'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker', 'UniformRandom', 'GCN_AE',
+                   'GCN_VAE', 'Linear_AE', 'Linear_VAE', 'Deep_GCN_AE', 'Deep_GCN_VAE', 'SBM', 'GraphForge',
                    'NetGAN', 'GraphRNN', '_BTER', 'BUGGE'}
     selections = {'best', 'worst', 'median', 'all', 'fast'}
 
@@ -104,7 +104,7 @@ def make_dirs(gname, model) -> None:
                     f'output/pickles/{gname}/{model}'):
         if not Path(f'./{dirname}').exists():
             os.makedirs(f'./{dirname}', exist_ok=True)
-    return 
+    return
 
 
 def run_infinity_mirror(args, run_id) -> None:
@@ -117,11 +117,10 @@ def run_infinity_mirror(args, run_id) -> None:
     # process args returns the Class and not an object
     empty_g = nx.empty_graph(1)
     empty_g.name = 'empty'  # create an empty graph as a placeholder
-    
 
     if args.model[0] in ('GCN_AE', 'GCN_VAE', 'Linear_AE', 'Linear_VAE', 'Deep_GCN_AE', 'Deep_GCN_VAE'):
         model_obj = model(
-                input_graph=empty_g, 
+                input_graph=empty_g,
                 run_id=run_id,
                 kind=args.model[0])
     else:
@@ -151,7 +150,8 @@ def run_infinity_mirror(args, run_id) -> None:
 
         inf.write_timing_stats(round(toc - tic, 3))
         print(run_id, inf)
-        return 
+        return
+
 
 @timer
 def main() -> None:
