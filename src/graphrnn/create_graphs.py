@@ -1,8 +1,8 @@
 import networkx as nx
 import numpy as np
 
-from src.graphrnn.utils import *
-from src.graphrnn.data import *
+from utils import *
+from data import *
 
 def create(args):
 ### load datasets
@@ -74,13 +74,6 @@ def create(args):
             for j in range(10,20):
                 graphs.append(nx.grid_2d_graph(i,j))
         args.max_prev_node = 40
-        '''
-        graphs = []
-        for i in range(10,20):
-            for j in range(10,20):
-                graphs.append(nx.grid_2d_graph(20,20))
-        args.max_prev_node = 40
-        '''
     elif args.graph_type=='grid_small':
         graphs = []
         for i in range(2,5):
@@ -107,7 +100,18 @@ def create(args):
             for j in range(36, 46):
                 graphs.append(nx.grid_2d_graph(i, j))
         args.max_prev_node = 90
-
+    elif args.graph_type=='karate':
+        graphs = [nx.karate_club_graph() for _ in range(10)]
+        args.max_prev_node = 40
+    elif args.graph_type == 'grid_100':
+        graphs = [nx.grid_2d_graph(10, 10) for _ in range(1_024)]
+        args.max_prev_node = 40
+    elif args.graph_type == 'clique_ring_25_4':
+        graphs = [nx.ring_of_cliques(25, 4) for _ in range(1_024)]
+        args.max_prev_node = 40
+    elif args.graph_type == 'grid_100_1k':
+        graphs = [nx.grid_2d_graph(10, 10) for _ in range(1_000)]
+        args.max_prev_node = 40
     elif 'barabasi_noise' in args.graph_type:
         graphs = []
         for i in range(100,101):

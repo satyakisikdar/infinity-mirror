@@ -5,12 +5,9 @@ import string
 import re
 import random
 
-import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
+from torch.autograd import *
 from torch import optim
 import torch.nn.functional as F
 import torch.nn.init as init
@@ -46,11 +43,11 @@ def binary_cross_entropy_weight(y_pred, y,has_weight=False, weight_length=1, wei
 def sample_tensor(y,sample=True, thresh=0.5):
     # do sampling
     if sample:
-        y_thresh = Variable(torch.rand(y.size())).cuda()
+        y_thresh = (torch.rand(y.size())).cuda()
         y_result = torch.gt(y,y_thresh).float()
     # do max likelihood based on some threshold
     else:
-        y_thresh = Variable(torch.ones(y.size())*thresh).cuda()
+        y_thresh = (torch.ones(y.size())*thresh).cuda()
         y_result = torch.gt(y, y_thresh).float()
     return y_result
 
@@ -66,14 +63,14 @@ def gumbel_softmax(logits, temperature, eps=1e-9):
     noise = torch.rand(logits.size())
     noise.add_(eps).log_().neg_()
     noise.add_(eps).log_().neg_()
-    noise = Variable(noise).cuda()
+    noise = (noise).cuda()
 
     x = (logits + noise) / temperature
     x = F.softmax(x)
     return x
 
 # for i in range(10):
-#     x = Variable(torch.randn(1,10)).cuda()
+#     x = (torch.randn(1,10)).cuda()
 #     y = gumbel_softmax(x, temperature=0.01)
 #     print(x)
 #     print(y)
@@ -92,13 +89,13 @@ def gumbel_sigmoid(logits, temperature):
     # get gumbel noise
     noise = torch.rand(logits.size()) # uniform(0,1)
     noise_logistic = torch.log(noise)-torch.log(1-noise) # logistic(0,1)
-    noise = Variable(noise_logistic).cuda()
+    noise = (noise_logistic).cuda()
 
     x = (logits + noise) / temperature
-    x = F.sigmoid(x)
+    x = torch.sigmoid(x)
     return x
 
-# x = Variable(torch.randn(100)).cuda()
+# x = (torch.randn(100)).cuda()
 # y = gumbel_sigmoid(x,temperature=0.01)
 # print(x)
 # print(y)
@@ -114,27 +111,27 @@ def sample_sigmoid(y, sample, thresh=0.5, sample_time=2):
     '''
 
     # do sigmoid first
-    y = F.sigmoid(y)
+    y = torch.sigmoid(y)
     # do sampling
     if sample:
         if sample_time>1:
-            y_result = Variable(torch.rand(y.size(0),y.size(1),y.size(2))).cuda()
+            y_result = (torch.rand(y.size(0),y.size(1),y.size(2))).cuda()
             # loop over all batches
             for i in range(y_result.size(0)):
                 # do 'multi_sample' times sampling
                 for j in range(sample_time):
-                    y_thresh = Variable(torch.rand(y.size(1), y.size(2))).cuda()
+                    y_thresh = (torch.rand(y.size(1), y.size(2))).cuda()
                     y_result[i] = torch.gt(y[i], y_thresh).float()
                     if (torch.sum(y_result[i]).data>0).any():
                         break
                     # else:
                     #     print('all zero',j)
         else:
-            y_thresh = Variable(torch.rand(y.size(0),y.size(1),y.size(2))).cuda()
+            y_thresh = (torch.rand(y.size(0),y.size(1),y.size(2))).cuda()
             y_result = torch.gt(y,y_thresh).float()
     # do max likelihood based on some threshold
     else:
-        y_thresh = Variable(torch.ones(y.size(0), y.size(1), y.size(2))*thresh).cuda()
+        y_thresh = (torch.ones(y.size(0), y.size(1), y.size(2))*thresh).cuda()
         y_result = torch.gt(y, y_thresh).float()
     return y_result
 
@@ -151,15 +148,15 @@ def sample_sigmoid_supervised(y_pred, y, current, y_len, sample_time=2):
     '''
 
     # do sigmoid first
-    y_pred = F.sigmoid(y_pred)
+    y_pred = torch.sigmoid(y_pred)
     # do sampling
-    y_result = Variable(torch.rand(y_pred.size(0), y_pred.size(1), y_pred.size(2))).cuda()
+    y_result = (torch.rand(y_pred.size(0), y_pred.size(1), y_pred.size(2))).cuda()
     # loop over all batches
     for i in range(y_result.size(0)):
         # using supervision
         if current<y_len[i]:
             while True:
-                y_thresh = Variable(torch.rand(y_pred.size(1), y_pred.size(2))).cuda()
+                y_thresh = (torch.rand(y_pred.size(1), y_pred.size(2))).cuda()
                 y_result[i] = torch.gt(y_pred[i], y_thresh).float()
                 # print('current',current)
                 # print('y_result',y_result[i].data)
@@ -171,7 +168,7 @@ def sample_sigmoid_supervised(y_pred, y, current, y_len, sample_time=2):
         else:
             # do 'multi_sample' times sampling
             for j in range(sample_time):
-                y_thresh = Variable(torch.rand(y_pred.size(1), y_pred.size(2))).cuda()
+                y_thresh = (torch.rand(y_pred.size(1), y_pred.size(2))).cuda()
                 y_result[i] = torch.gt(y_pred[i], y_thresh).float()
                 if (torch.sum(y_result[i]).data>0).any():
                     break
@@ -189,9 +186,9 @@ def sample_sigmoid_supervised_simple(y_pred, y, current, y_len, sample_time=2):
     '''
 
     # do sigmoid first
-    y_pred = F.sigmoid(y_pred)
+    y_pred = torch.sigmoid(y_pred)
     # do sampling
-    y_result = Variable(torch.rand(y_pred.size(0), y_pred.size(1), y_pred.size(2))).cuda()
+    y_result = (torch.rand(y_pred.size(0), y_pred.size(1), y_pred.size(2))).cuda()
     # loop over all batches
     for i in range(y_result.size(0)):
         # using supervision
@@ -201,7 +198,7 @@ def sample_sigmoid_supervised_simple(y_pred, y, current, y_len, sample_time=2):
         else:
             # do 'multi_sample' times sampling
             for j in range(sample_time):
-                y_thresh = Variable(torch.rand(y_pred.size(1), y_pred.size(2))).cuda()
+                y_thresh = (torch.rand(y_pred.size(1), y_pred.size(2))).cuda()
                 y_result[i] = torch.gt(y_pred[i], y_thresh).float()
                 if (torch.sum(y_result[i]).data>0).any():
                     break
@@ -250,8 +247,8 @@ class LSTM_plain(nn.Module):
                 m.weight.data = init.xavier_uniform(m.weight.data, gain=nn.init.calculate_gain('relu'))
 
     def init_hidden(self, batch_size):
-        return (Variable(torch.zeros(self.num_layers, batch_size, self.hidden_size)).cuda(),
-                Variable(torch.zeros(self.num_layers, batch_size, self.hidden_size)).cuda())
+        return ((torch.zeros(self.num_layers, batch_size, self.hidden_size)).cuda(),
+                (torch.zeros(self.num_layers, batch_size, self.hidden_size)).cuda())
 
     def forward(self, input_raw, pack=False, input_len=None):
         if self.has_input:
@@ -297,15 +294,15 @@ class GRU_plain(nn.Module):
 
         for name, param in self.rnn.named_parameters():
             if 'bias' in name:
-                nn.init.constant(param, 0.25)
+                nn.init.constant_(param, 0.25)
             elif 'weight' in name:
-                nn.init.xavier_uniform(param,gain=nn.init.calculate_gain('sigmoid'))
+                nn.init.xavier_uniform_(param,gain=nn.init.calculate_gain('sigmoid'))
         for m in self.modules():
             if isinstance(m, nn.Linear):
-                m.weight.data = init.xavier_uniform(m.weight.data, gain=nn.init.calculate_gain('relu'))
+                m.weight.data = init.xavier_uniform_(m.weight.data, gain=nn.init.calculate_gain('relu'))
 
     def init_hidden(self, batch_size):
-        return Variable(torch.zeros(self.num_layers, batch_size, self.hidden_size)).cuda()
+        return (torch.zeros(self.num_layers, batch_size, self.hidden_size)).cuda()
 
     def forward(self, input_raw, pack=False, input_len=None):
         if self.has_input:
@@ -337,7 +334,7 @@ class MLP_plain(nn.Module):
 
         for m in self.modules():
             if isinstance(m, nn.Linear):
-                m.weight.data = init.xavier_uniform(m.weight.data, gain=nn.init.calculate_gain('relu'))
+                m.weight.data = init.xavier_uniform_(m.weight.data, gain=nn.init.calculate_gain('relu'))
 
     def forward(self, h):
         y = self.deterministic_output(h)
@@ -388,7 +385,7 @@ class MLP_VAE_plain(nn.Module):
         z_lsgms = self.encode_12(h)
         # reparameterize
         z_sgm = z_lsgms.mul(0.5).exp_()
-        eps = Variable(torch.randn(z_sgm.size())).cuda()
+        eps = (torch.randn(z_sgm.size())).cuda()
         z = eps*z_sgm + z_mu
         # decoder
         y = self.decode_1(z)
@@ -417,7 +414,7 @@ class MLP_VAE_conditional_plain(nn.Module):
         z_lsgms = self.encode_12(h)
         # reparameterize
         z_sgm = z_lsgms.mul(0.5).exp_()
-        eps = Variable(torch.randn(z_sgm.size(0), z_sgm.size(1), z_sgm.size(2))).cuda()
+        eps = (torch.randn(z_sgm.size(0), z_sgm.size(1), z_sgm.size(2))).cuda()
         z = eps * z_sgm + z_mu
         # decoder
         y = self.decode_1(torch.cat((h,z),dim=2))
@@ -488,7 +485,7 @@ def message_passing(node_neighbor, node_embedding, model):
             message = torch.sum(model.m_uv_1(torch.cat((node_self, node_self_neighbor), dim=1)), dim=0, keepdim=True)
             node_embedding_new.append(model.f_n_1(message, node_embedding[i]))
         else:
-            message_null = Variable(torch.zeros((node_embedding[i].size(0),node_embedding[i].size(1)*2))).cuda()
+            message_null = (torch.zeros((node_embedding[i].size(0),node_embedding[i].size(1)*2))).cuda()
             node_embedding_new.append(model.f_n_1(message_null, node_embedding[i]))
     node_embedding = node_embedding_new
     node_embedding_new = []
@@ -500,7 +497,7 @@ def message_passing(node_neighbor, node_embedding, model):
             message = torch.sum(model.m_uv_1(torch.cat((node_self, node_self_neighbor), dim=1)), dim=0, keepdim=True)
             node_embedding_new.append(model.f_n_1(message, node_embedding[i]))
         else:
-            message_null = Variable(torch.zeros((node_embedding[i].size(0), node_embedding[i].size(1) * 2))).cuda()
+            message_null = (torch.zeros((node_embedding[i].size(0), node_embedding[i].size(1) * 2))).cuda()
             node_embedding_new.append(model.f_n_1(message_null, node_embedding[i]))
     return node_embedding_new
 
@@ -602,7 +599,7 @@ class Graph_RNN_structure(nn.Module):
         # GRU based output, output a single edge prediction at a time
         # self.gru_output = nn.GRU(input_size=1, hidden_size=hidden_size, num_layers=num_layers, batch_first=True)
         # use a list to keep all generated hidden vectors, each hidden has size batch*hidden_dim*1, and the list size is expanding
-        # when using convolution to compute attention weight, we need to first concat the list into a pytorch variable: batch*hidden_dim*current_num_nodes
+        # when using convolution to compute attention weight, we need to first concat the list into a pytorch : batch*hidden_dim*current_num_nodes
         self.hidden_all = []
 
         ## initialize
@@ -631,11 +628,11 @@ class Graph_RNN_structure(nn.Module):
 
     def init_hidden(self,len=None):
         if len is None:
-            return Variable(torch.ones(self.batch_size, self.hidden_size, 1)).cuda()
+            return (torch.ones(self.batch_size, self.hidden_size, 1)).cuda()
         else:
             hidden_list = []
             for i in range(len):
-                hidden_list.append(Variable(torch.ones(self.batch_size, self.hidden_size, 1)).cuda())
+                hidden_list.append((torch.ones(self.batch_size, self.hidden_size, 1)).cuda())
             return hidden_list
 
     # only run a single forward step
@@ -647,9 +644,9 @@ class Graph_RNN_structure(nn.Module):
         # print('hidden_all', self.hidden_all[-1*self.output_size:])
         # hidden_all_cat = torch.cat(self.hidden_all[-1*self.output_size:], dim=2)
 
-        # # # add BPTT, detach the first variable
+        # # # add BPTT, detach the first 
         # if bptt:
-        #     self.hidden_all[0] = Variable(self.hidden_all[0].data).cuda()
+        #     self.hidden_all[0] = (self.hidden_all[0].data).cuda()
 
         hidden_all_cat = torch.cat(self.hidden_all, dim=2)
         # print(hidden_all_cat.size())
@@ -674,14 +671,14 @@ class Graph_RNN_structure(nn.Module):
         #     y_pred = self.linear_output(y_pred)
         # else:
         #     # when validating, we need to sampling at each time step
-        #     y_pred = Variable(torch.zeros(x.size(0), x.size(1), x.size(2))).cuda()
-        #     y_pred_long = Variable(torch.zeros(x.size(0), x.size(1), x.size(2))).cuda()
+        #     y_pred = (torch.zeros(x.size(0), x.size(1), x.size(2))).cuda()
+        #     y_pred_long = (torch.zeros(x.size(0), x.size(1), x.size(2))).cuda()
         #     x_step = x[:, 0:1, :]
         #     for i in range(x.size(1)):
         #         y_step,_ = self.gru_output(x_step)
         #         y_step = self.linear_output(y_step)
         #         y_pred[:, i, :] = y_step
-        #         y_step = F.sigmoid(y_step)
+        #         y_step = torch.sigmoid(y_step)
         #         x_step = sample(y_step, sample=True, thresh=0.45)
         #         y_pred_long[:, i, :] = x_step
         #     pass
@@ -690,9 +687,9 @@ class Graph_RNN_structure(nn.Module):
         # 3 then update self.hidden_all list
         # i.e., model will use ground truth to update new node
         # x_pred_sample = gumbel_sigmoid(x_pred, temperature=temperature)
-        x_pred_sample = sample_tensor(F.sigmoid(x_pred),sample=True)
+        x_pred_sample = sample_tensor(torch.sigmoid(x_pred),sample=True)
         thresh = 0.5
-        x_thresh = Variable(torch.ones(x_pred_sample.size(0), x_pred_sample.size(1), x_pred_sample.size(2)) * thresh).cuda()
+        x_thresh = (torch.ones(x_pred_sample.size(0), x_pred_sample.size(1), x_pred_sample.size(2)) * thresh).cuda()
         x_pred_sample_long = torch.gt(x_pred_sample, x_thresh).long()
         if teacher_forcing:
             # first mask previous hidden states
@@ -741,7 +738,7 @@ class Graph_RNN_structure(nn.Module):
 # for i in range(4):
 #     generator.hidden_all.append(generator.init_hidden())
 #
-# x = Variable(torch.rand(batch_size,1,output_size)).cuda()
+# x = (torch.rand(batch_size,1,output_size)).cuda()
 # x_pred = generator(x,teacher_forcing=True, sample=True)
 # print(x_pred)
 
@@ -771,7 +768,7 @@ class Graph_generator_LSTM(nn.Module):
             if isinstance(m, nn.Linear):
                 m.weight.data = init.xavier_uniform(m.weight.data,gain=nn.init.calculate_gain('relu'))
     def init_hidden(self):
-        return (Variable(torch.zeros(self.num_layers,self.batch_size, self.hidden_size)).cuda(), Variable(torch.zeros(self.num_layers,self.batch_size, self.hidden_size)).cuda())
+        return ((torch.zeros(self.num_layers,self.batch_size, self.hidden_size)).cuda(), (torch.zeros(self.num_layers,self.batch_size, self.hidden_size)).cuda())
 
 
     def forward(self, input_raw, pack=False,len=None):
@@ -917,8 +914,8 @@ class GCN_encoder_graph(nn.Module):
         # print(out)
         return output
 
-# x = Variable(torch.rand(1,8,10)).cuda()
-# adj = Variable(torch.rand(1,8,8)).cuda()
+# x = (torch.rand(1,8,10)).cuda()
+# adj = (torch.rand(1,8,8)).cuda()
 # model = GCN_encoder_graph(10,10,10).cuda()
 # y = model(x,adj)
 # print(y.size())
@@ -931,7 +928,7 @@ def preprocess(A):
     degrees = torch.sum(A, dim=2)
 
     # Create diagonal matrix D from the degrees of the nodes
-    D = Variable(torch.zeros(A.size(0),A.size(1),A.size(2))).cuda()
+    D = (torch.zeros(A.size(0),A.size(1),A.size(2))).cuda()
     for i in range(D.size(0)):
         D[i, :, :] = torch.diag(torch.pow(degrees[i,:], -0.5))
     # Cholesky decomposition of D
@@ -963,8 +960,8 @@ class GCN_generator(nn.Module):
         # x: batch * node_num * feature
         batch_num = x.size(0)
         node_num = x.size(1)
-        adj = Variable(torch.eye(node_num).view(1,node_num,node_num).repeat(batch_num,1,1)).cuda()
-        adj_output = Variable(torch.eye(node_num).view(1,node_num,node_num).repeat(batch_num,1,1)).cuda()
+        adj = (torch.eye(node_num).view(1,node_num,node_num).repeat(batch_num,1,1)).cuda()
+        adj_output = (torch.eye(node_num).view(1,node_num,node_num).repeat(batch_num,1,1)).cuda()
 
         # do GCN n times
         # todo: try if residual connections are plausible
@@ -993,7 +990,7 @@ class GCN_generator(nn.Module):
             adj_output[:,0:i,i] = prob.clone()
             # 2 update adj
             if teacher_force:
-                adj = Variable(torch.eye(node_num).view(1, node_num, node_num).repeat(batch_num, 1, 1)).cuda()
+                adj = (torch.eye(node_num).view(1, node_num, node_num).repeat(batch_num, 1, 1)).cuda()
                 adj[:,0:i+1,0:i+1] = adj_real[:,0:i+1,0:i+1].clone()
             else:
                 adj[:, i, 0:i] = prob.permute(0,2,1).clone()
@@ -1011,8 +1008,8 @@ class GCN_generator(nn.Module):
             x = self.act(x)
 
             # x = x / torch.norm(x, p=2, dim=2, keepdim=True)
-        # one = Variable(torch.ones(adj_output.size(0), adj_output.size(1), adj_output.size(2)) * 1.00).cuda().float()
-        # two = Variable(torch.ones(adj_output.size(0), adj_output.size(1), adj_output.size(2)) * 2.01).cuda().float()
+        # one = (torch.ones(adj_output.size(0), adj_output.size(1), adj_output.size(2)) * 1.00).cuda().float()
+        # two = (torch.ones(adj_output.size(0), adj_output.size(1), adj_output.size(2)) * 2.01).cuda().float()
         # adj_output = (adj_output + one) / two
         # print(adj_output.max().data[0], adj_output.min().data[0])
         return adj_output
@@ -1031,8 +1028,8 @@ class GCN_generator(nn.Module):
 #         for batch in [1,10,100]:
 #             start = time.time()
 #             torch.manual_seed(123)
-#             x = Variable(torch.rand(batch,i,4)).cuda()
-#             adj = Variable(torch.eye(i).view(1,i,i).repeat(batch,1,1)).cuda()
+#             x = (torch.rand(batch,i,4)).cuda()
+#             adj = (torch.eye(i).view(1,i,i).repeat(batch,1,1)).cuda()
 #             # print('x', x)
 #             # print('adj', adj)
 #
@@ -1334,7 +1331,7 @@ class CNN_decoder_attention(nn.Module):
 
 
 #### test code ####
-# x = Variable(torch.randn(1, 256, 1)).cuda()
+# x = (torch.randn(1, 256, 1)).cuda()
 # decoder = CNN_decoder(256, 16).cuda()
 # y = decoder(x)
 
@@ -1396,7 +1393,7 @@ class Graphsage_Encoder(nn.Module):
 
         # 3-hop feature
         # nodes original features to representations
-        nodes_list[0] = Variable(nodes_list[0]).cuda()
+        nodes_list[0] = (nodes_list[0]).cuda()
         nodes_list[0] = self.linear_projection(nodes_list[0])
         nodes_features = self.linear_3_0(nodes_list[0])
         nodes_features = self.bn_3_0(nodes_features.view(-1,nodes_features.size(2),nodes_features.size(1)))
@@ -1406,7 +1403,7 @@ class Graphsage_Encoder(nn.Module):
         nodes_count = nodes_count_list[0]
         # print(nodes_count,nodes_count.size())
         # aggregated representations placeholder, feature dim * 2
-        nodes_features_farther = Variable(torch.Tensor(nodes_features.size(0), nodes_count.size(1), nodes_features.size(2))).cuda()
+        nodes_features_farther = (torch.Tensor(nodes_features.size(0), nodes_count.size(1), nodes_features.size(2))).cuda()
         i = 0
         for j in range(nodes_count.size(1)):
             # mean pooling for each father node
@@ -1422,7 +1419,7 @@ class Graphsage_Encoder(nn.Module):
         # nodes count from previous hop
         nodes_count = nodes_count_list[1]
         # aggregated representations placeholder, feature dim * 2
-        nodes_features_farther = Variable(torch.Tensor(nodes_features.size(0), nodes_count.size(1), nodes_features.size(2))).cuda()
+        nodes_features_farther = (torch.Tensor(nodes_features.size(0), nodes_count.size(1), nodes_features.size(2))).cuda()
         i = 0
         for j in range(nodes_count.size(1)):
             # mean pooling for each father node
@@ -1441,7 +1438,7 @@ class Graphsage_Encoder(nn.Module):
 
         # 2-hop feature
         # nodes original features to representations
-        nodes_list[1] = Variable(nodes_list[1]).cuda()
+        nodes_list[1] = (nodes_list[1]).cuda()
         nodes_list[1] = self.linear_projection(nodes_list[1])
         nodes_features = self.linear_2_0(nodes_list[1])
         nodes_features = self.bn_2_0(nodes_features.view(-1,nodes_features.size(2),nodes_features.size(1)))
@@ -1450,7 +1447,7 @@ class Graphsage_Encoder(nn.Module):
         # nodes count from previous hop
         nodes_count = nodes_count_list[1]
         # aggregated representations placeholder, feature dim * 2
-        nodes_features_farther = Variable(torch.Tensor(nodes_features.size(0), nodes_count.size(1), nodes_features.size(2))).cuda()
+        nodes_features_farther = (torch.Tensor(nodes_features.size(0), nodes_count.size(1), nodes_features.size(2))).cuda()
         i = 0
         for j in range(nodes_count.size(1)):
             # mean pooling for each father node
@@ -1469,7 +1466,7 @@ class Graphsage_Encoder(nn.Module):
 
         # 1-hop feature
         # nodes original features to representations
-        nodes_list[2] = Variable(nodes_list[2]).cuda()
+        nodes_list[2] = (nodes_list[2]).cuda()
         nodes_list[2] = self.linear_projection(nodes_list[2])
         nodes_features = self.linear_1_0(nodes_list[2])
         nodes_features = self.bn_1_0(nodes_features.view(-1,nodes_features.size(2),nodes_features.size(1)))
@@ -1481,7 +1478,7 @@ class Graphsage_Encoder(nn.Module):
 
 
         # own feature
-        nodes_list[3] = Variable(nodes_list[3]).cuda()
+        nodes_list[3] = (nodes_list[3]).cuda()
         nodes_list[3] = self.linear_projection(nodes_list[3])
         nodes_features = self.linear_0_0(nodes_list[3])
         nodes_features = self.bn_0_0(nodes_features.view(-1, nodes_features.size(2), nodes_features.size(1)))

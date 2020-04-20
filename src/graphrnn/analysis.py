@@ -1,5 +1,5 @@
 # this file is used to plot images
-from src.graphrnn.main import *
+from main import *
 
 args = Args()
 print(args.graph_type, args.note)

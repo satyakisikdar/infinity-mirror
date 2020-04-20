@@ -14,8 +14,8 @@ import random
 import shutil
 import os
 import time
-from src.graphrnn.model import *
-from src.graphrnn.utils import *
+from model import *
+from utils import *
 
 
 
@@ -283,21 +283,22 @@ def test_encode_decode_adj():
     G = nx.karate_club_graph()
     G = nx.connected_caveman_graph(2,3)
     print(G.number_of_nodes())
-
+    
     adj = np.asarray(nx.to_numpy_matrix(G))
     G = nx.from_numpy_matrix(adj)
     #
     start_idx = np.random.randint(adj.shape[0])
     x_idx = np.array(bfs_seq(G, start_idx))
     adj = adj[np.ix_(x_idx, x_idx)]
-
+    
     print('adj\n',adj)
     adj_output = encode_adj(adj,max_prev_node=5)
     print('adj_output\n',adj_output)
     adj_recover = decode_adj(adj_output,max_prev_node=5)
     print('adj_recover\n',adj_recover)
     print('error\n',np.amin(adj_recover-adj),np.amax(adj_recover-adj))
-
+    
+    
     adj_output = encode_adj_flexible(adj)
     for i in range(len(adj_output)):
         print(len(adj_output[i]))

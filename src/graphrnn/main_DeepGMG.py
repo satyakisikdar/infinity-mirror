@@ -1,5 +1,5 @@
 # an implementation for "Learning Deep Generative Models of Graphs"
-from src.graphrnn.main import *
+from main import *
 
 class Args_DGMG():
     def __init__(self):
