@@ -159,15 +159,17 @@ def main():
     # INVARIANTS
     graphs = ['eucore', 'clique-ring-500-4']
     generators = ['BTER', 'BUGGE', 'Chung-Lu', 'CNRG', \
-                'Erdos-Renyi', 'HRG', 'SBM']
+                  'Erdos-Renyi', 'HRG', 'SBM']
     kronecker = ['Kronecker']
-    autoencoders = ['Deep_GCN_AE', 'Deep_GCN_VAE', 'GCN_AE', 'GCN_VAE', 'Linear_AE', 'Linear_VAE']
+    autoencoders = ['Deep_GCN_AE', 'Deep_GCN_VAE', \
+                    'GCN_AE', 'GCN_VAE', \
+                    'Linear_AE', 'Linear_VAE']
     neural = ['NetGAN'] # add GraphRNN when it's ready
 
     # VARIANTS
     data_path = '/Users/akira/repos/infinity-mirror/output'
-    models = kronecker
-    graph = graphs[0]
+    models = neural
+    graph = graphs[1]
     sel = 'fast'
     cols = ['graph', 'type', 'orig_n', 'orig_m', 'orig_graph_obj', \
             'model', 'sel', 'trial_id', \
