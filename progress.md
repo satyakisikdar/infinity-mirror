@@ -1,21 +1,21 @@
 |    dataset        |        model      |              absolute             |             sequential            |             robustness            |       notes       |
 |:----------------- |:----------------- |:--------------------------------- |:--------------------------------- |:--------------------------------- |:----------------- |
-| eucore            | BTER              | done                              | done                              | ... in progress (workstation)     |                   |
-|      <i></i>      | BUGGE             | done                              | done                              | ... scheduled (workstation)       |                   |
-|      <i></i>      | Chung-Lu          | done                              | done                              | ... scheduled (workstation)       |                   |
-|      <i></i>      | CNRG              | done                              | done                              | ... scheduled (workstation)       |                   |
-|      <i></i>      | Deep GCN AE       | done                              | done                              | ... scheduled (workstation)       |                   |
-|      <i></i>      | Deep GCN VAE      | done                              | done                              | ... scheduled (workstation)       |                   |
-|      <i></i>      | Erdos-Renyi       | done                              | done                              | ... scheduled (workstation)       |                   |
-|      <i></i>      | GCN AE            | done                              | done                              | ... scheduled (workstation)       |                   |
-|      <i></i>      | GCN VAE           | done                              | done                              | ... scheduled (workstation)       |                   |
-|      <i></i>      | GraphRNN          | done                              | done                              | ... scheduled (workstation)       |                   |
-|      <i></i>      | HRG               | done                              | done                              | ... scheduled (workstation)       |                   |
-|      <i></i>      | Kronecker         | done                              | ...  in progress (workstation)    | ... scheduled (workstation)       | 28 trials         |
-|      <i></i>      | Linear AE         | done                              | done                              | ... scheduled (workstation)       |                   |
-|      <i></i>      | Linear VAE        | done                              | done                              | ... scheduled (workstation)       |                   |
-|      <i></i>      | NetGAN            | done                              | done                              | ... scheduled (workstation)       |                   |
-|      <i></i>      | SBM               | done                              | done                              | ... scheduled (workstation)       |                   |
+| eucore            | BTER              | done                              | done                              | done                              |                   |
+|      <i></i>      | BUGGE             | done                              | done                              | done                              |                   |
+|      <i></i>      | Chung-Lu          | done                              | done                              | ...  in progress (workstation)    |                   |
+|      <i></i>      | CNRG              | done                              | done                              | ...  scheduled (workstation)      |                   |
+|      <i></i>      | Deep GCN AE       | done                              | done                              | ...  scheduled (workstation)      |                   |
+|      <i></i>      | Deep GCN VAE      | done                              | done                              | ...  scheduled (workstation)      |                   |
+|      <i></i>      | Erdos-Renyi       | done                              | done                              | ...  scheduled (workstation)      |                   |
+|      <i></i>      | GCN AE            | done                              | done                              | ...  scheduled (workstation)      |                   |
+|      <i></i>      | GCN VAE           | done                              | done                              | ...  scheduled (workstation)      |                   |
+|      <i></i>      | GraphRNN          | done                              | done                              | ...  scheduled (workstation)      |                   |
+|      <i></i>      | HRG               | done                              | done                              | ...  scheduled (workstation)      |                   |
+|      <i></i>      | Kronecker         | done                              | ...  in progress (workstation)    | ...  scheduled (workstation)      | 28 trials         |
+|      <i></i>      | Linear AE         | done                              | done                              | ...  scheduled (workstation)      |                   |
+|      <i></i>      | Linear VAE        | done                              | done                              | ...  scheduled (workstation)      |                   |
+|      <i></i>      | NetGAN            | done                              | done                              | ...  scheduled (workstation)      |                   |
+|      <i></i>      | SBM               | done                              | done                              | ...  scheduled (workstation)      |                   |
 |      <i></i>      |      <i></i>      |              <i></i>              |              <i></i>              |              <i></i>              |      <i></i>      |
 | clique-ring-500-4 | BTER              | done                              | done                              | ...                               |                   |
 |      <i></i>      | BUGGE             | done                              | done                              | ...                               |                   |
