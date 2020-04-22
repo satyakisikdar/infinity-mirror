@@ -8,8 +8,8 @@
 |      <i></i>      | Deep GCN VAE      | done                              | done                              | done                              |                   |
 |      <i></i>      | Erdos-Renyi       | done                              | done                              | done                              |                   |
 |      <i></i>      | GCN AE            | done                              | done                              | done                              |                   |
-|      <i></i>      | GCN VAE           | done                              | done                              | ...  in progress (workstation)    |                   |
-|      <i></i>      | GraphRNN          | done                              | done                              | ...  scheduled (workstation)      |                   |
+|      <i></i>      | GCN VAE           | done                              | done                              | ...  on hold - weird error        |                   |
+|      <i></i>      | GraphRNN          | done                              | done                              | ...  in progress (workstation)    |                   |
 |      <i></i>      | HRG               | done                              | done                              | ...  scheduled (workstation)      |                   |
 |      <i></i>      | Kronecker         | done                              | ...  in progress (workstation)    | ...  scheduled (workstation)      | 28 trials         |
 |      <i></i>      | Linear AE         | done                              | done                              | ...  scheduled (workstation)      |                   |
