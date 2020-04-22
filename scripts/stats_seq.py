@@ -13,12 +13,15 @@ from src.utils import load_pickle
 from src.graph_stats import GraphStats
 from src.graph_comparison import GraphPairCompare
 
-graphs = ['3-comm', 'BA-1000-3', 'BA-100-3', 'clique-ring-100-4', 'clique-ring-25-4', 'clique-ring-50-4', 'dolphins', 'eucore', 'flights', 'football', 'grid-100-100', 'grid-10-10', 'karate', 'ladder-10', 'ladder-100', 'ladder-20', 'ladder-4', 'ladder-50', 'ladder-500', 'ring-10', 'ring-100', 'ring-1000', 'ring-20', 'ring-500']
+#graphs = ['3-comm', 'BA-1000-3', 'BA-100-3', 'clique-ring-100-4', 'clique-ring-25-4', 'clique-ring-50-4', 'dolphins', 'eucore', 'flights', 'football', 'grid-100-100', 'grid-10-10', 'karate', 'ladder-10', 'ladder-100', 'ladder-20', 'ladder-4', 'ladder-50', 'ladder-500', 'ring-10', 'ring-100', 'ring-1000', 'ring-20', 'ring-500']
+graphs = ['eucore', 'clique-ring-500-4', 'flights', 'treer1000']
 
-base_path = '/home/danielgonzalez/repos/infinity-mirror/output/pickles/eucore'
-model = 'Linear_AE'
+base_path = '/home/dgonza26/infinity-mirror/output/pickles'
+#base_path = '/data/dgonza26'
+dataset = 'clique-ring-500-4'
+model = 'Kronecker'
 
-path = os.path.join(base_path, model)
+path = os.path.join(base_path, dataset, model)
 
 for subdir, dirs, files in os.walk(path):
     for filename in files:
