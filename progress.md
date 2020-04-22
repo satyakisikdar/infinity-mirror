@@ -2,13 +2,13 @@
 |:----------------- |:----------------- |:--------------------------------- |:--------------------------------- |:--------------------------------- |:----------------- |
 | eucore            | BTER              | done                              | done                              | done                              |                   |
 |      <i></i>      | BUGGE             | done                              | done                              | done                              |                   |
-|      <i></i>      | Chung-Lu          | done                              | done                              | ...  in progress (workstation)    |                   |
-|      <i></i>      | CNRG              | done                              | done                              | ...  scheduled (workstation)      |                   |
-|      <i></i>      | Deep GCN AE       | done                              | done                              | ...  scheduled (workstation)      |                   |
-|      <i></i>      | Deep GCN VAE      | done                              | done                              | ...  scheduled (workstation)      |                   |
-|      <i></i>      | Erdos-Renyi       | done                              | done                              | ...  scheduled (workstation)      |                   |
-|      <i></i>      | GCN AE            | done                              | done                              | ...  scheduled (workstation)      |                   |
-|      <i></i>      | GCN VAE           | done                              | done                              | ...  scheduled (workstation)      |                   |
+|      <i></i>      | Chung-Lu          | done                              | done                              | done                              |                   |
+|      <i></i>      | CNRG              | done                              | done                              | done                              |                   |
+|      <i></i>      | Deep GCN AE       | done                              | done                              | done                              |                   |
+|      <i></i>      | Deep GCN VAE      | done                              | done                              | done                              |                   |
+|      <i></i>      | Erdos-Renyi       | done                              | done                              | done                              |                   |
+|      <i></i>      | GCN AE            | done                              | done                              | done                              |                   |
+|      <i></i>      | GCN VAE           | done                              | done                              | ...  in progress (workstation)    |                   |
 |      <i></i>      | GraphRNN          | done                              | done                              | ...  scheduled (workstation)      |                   |
 |      <i></i>      | HRG               | done                              | done                              | ...  scheduled (workstation)      |                   |
 |      <i></i>      | Kronecker         | done                              | ...  in progress (workstation)    | ...  scheduled (workstation)      | 28 trials         |
@@ -35,19 +35,19 @@
 |      <i></i>      | SBM               | done                              | done                              | ...                               |                   |
 |      <i></i>      |      <i></i>      |              <i></i>              |              <i></i>              |              <i></i>              |      <i></i>      |
 | flights           | BTER              | done                              | ...                               | ...                               |                   |
-|      <i></i>      | BUGGE             | ...  in progress (dsg3)           | ...                               | ...                               |                   |
-|      <i></i>      | Chung-Lu          | ...  scheduled (dsg3)             | ...                               | ...                               |                   |
-|      <i></i>      | CNRG              | ...  scheduled (dsg3)             | ...                               | ...                               |                   |
+|      <i></i>      | BUGGE             | done                              | ...                               | ...                               |                   |
+|      <i></i>      | Chung-Lu          | done                              | ...                               | ...                               |                   |
+|      <i></i>      | CNRG              | done                              | ...                               | ...                               |                   |
 |      <i></i>      | Deep GCN AE       | ...                               | ...                               | ...                               |                   |
 |      <i></i>      | Deep GCN VAE      | ...                               | ...                               | ...                               |                   |
-|      <i></i>      | Erdos-Renyi       | ...  scheduled (dsg3)             | ...                               | ...                               |                   |
+|      <i></i>      | Erdos-Renyi       | done                              | ...                               | ...                               |                   |
 |      <i></i>      | GCN AE            | ...                               | ...                               | ...                               |                   |
 |      <i></i>      | GCN VAE           | ...                               | ...                               | ...                               |                   |
 |      <i></i>      | GraphRNN          | ...                               | ...                               | ...                               |                   |
-|      <i></i>      | HRG               | ...  scheduled (dsg3)             | ...                               | ...                               |                   |
+|      <i></i>      | HRG               | done                              | ...                               | ...                               | lots of fails     |
 |      <i></i>      | Kronecker         | ...                               | ...                               | ...                               |                   |
 |      <i></i>      | Linear AE         | ...                               | ...                               | ...                               |                   |
 |      <i></i>      | Linear VAE        | ...                               | ...                               | ...                               |                   |
-|      <i></i>      | NetGAN            | ...  scheduled (dsg3)             | ...                               | ...                               |                   |
-|      <i></i>      | SBM               | ...  scheduled (dsg3)             | ...                               | ...                               |                   |
+|      <i></i>      | NetGAN            | ...                               | ...                               | ...                               |                   |
+|      <i></i>      | SBM               | done                              | ...                               | ...                               |                   |
 |      <i></i>      |      <i></i>      |              <i></i>              |              <i></i>              |              <i></i>              |      <i></i>      |
