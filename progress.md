@@ -11,7 +11,7 @@
 |      <i></i>      | GCN VAE           | done                              | done                              |                   |
 |      <i></i>      | GraphRNN          | done                              | done                              |                   |
 |      <i></i>      | HRG               | done                              | done                              |                   |
-|      <i></i>      | Kronecker         | done                              | done                              | 28 trials         |
+|      <i></i>      | Kronecker         | done                              | ...  in progress (workstation)    | 28 trials         |
 |      <i></i>      | Linear AE         | done                              | done                              |                   |
 |      <i></i>      | Linear VAE        | done                              | done                              |                   |
 |      <i></i>      | NetGAN            | done                              | done                              |                   |
