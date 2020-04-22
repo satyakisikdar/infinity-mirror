@@ -12,7 +12,7 @@ import networkx as nx
 import numpy as np
 import seaborn as sns
 import leidenalg as la
-import igraph as ig 
+import igraph as ig
 
 from src.utils import check_file_exists, ColorPrint as CP
 
@@ -115,7 +115,7 @@ class GraphStats:
         self.giant_component_frac()
         self.leiden_communities()
         self.giant_component_frac()
-        return 
+        return
 
     def leiden_communities(self) -> Tuple[int, float]:
         """
@@ -123,11 +123,11 @@ class GraphStats:
         """
         nx_g = nx.convert_node_labels_to_integers(self.graph, label_attribute='old_label')
         old_label = nx.get_node_attributes(nx_g, 'old_label')
-        
+
         ig_g = ig.Graph(directed=False)
         ig_g.add_vertices(nx_g.order())
         ig_g.add_edges(nx_g.edges())
-        
+
         partition = la.find_partition(ig_g, partition_type=la.ModularityVertexPartition)
         self.stats['num_clusters'] = len(partition)
         self.stats['modularity'] = partition.modularity
@@ -135,11 +135,11 @@ class GraphStats:
 
     def giant_component_frac(self):
         """
-        returns the fraction of nodes in the giant connected component 
+        returns the fraction of nodes in the giant connected component
         """
         lcc = max(nx.connected_components(self.graph), key=len)
-        frac = len(lcc) / self.graph.order() 
-        self.stats['giant_frac'] = frac 
+        frac = len(lcc) / self.graph.order()
+        self.stats['giant_frac'] = frac
         return frac
 
     def adj_eigenvalues(self):
