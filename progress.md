@@ -67,7 +67,7 @@
 |      <i></i>      | SBM               | done                              | ...                               | ...                               |                   |
 |      <i></i>      |                   |                                   |                                   |                                   |                   |
 |      <i></i>      | GraphRNN          | ...                               | ...                               | ...                               |                   |
-|      <i></i>      | NetGAN            | ...  in progress (ws)             | ...                               | ...                               |                   |
+|      <i></i>      | NetGAN            | done                              | ...                               | ...                               |                   |
 |      <i></i>      |                   |                                   |                                   |                                   |                   |
 |      <i></i>      | Deep GCN AE       | ...                               | ...                               | ...                               |                   |
 |      <i></i>      | Deep GCN VAE      | ...                               | ...                               | ...                               |                   |
