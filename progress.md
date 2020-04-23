@@ -59,11 +59,11 @@
 |      <i></i>      | Chung-Lu          | ... scheduled (dsg3)              | ...                               | ...                               |                   |
 |      <i></i>      | CNRG              | ... scheduled (dsg3)              | ...                               | ...                               |                   |
 |      <i></i>      | Erdos-Renyi       | ... scheduled (dsg3)              | ...                               | ...                               |                   |
-|      <i></i>      | GraphRNN          | ...                               | ...                               | ...                               |                   |
-|      <i></i>      | HRG               | ...                               | ...                               | ...                               |                   |
-|      <i></i>      | Kronecker         | ...                               | ...                               | ...                               |                   |
-|      <i></i>      | NetGAN            | ...                               | ...                               | ...                               |                   |
-|      <i></i>      | SBM               | ...                               | ...                               | ...                               |                   |
+|      <i></i>      | GraphRNN          | ... scheduled (dsg3)              | ...                               | ...                               |                   |
+|      <i></i>      | HRG               | ... scheduled (dsg3)              | ...                               | ...                               |                   |
+|      <i></i>      | Kronecker         | ... scheduled (dsg3)              | ...                               | ...                               |                   |
+|      <i></i>      | NetGAN            | ... scheduled (dsg3)              | ...                               | ...                               |                   |
+|      <i></i>      | SBM               | ... scheduled (dsg3)              | ...                               | ...                               |                   |
 |      <i></i>      |      <i></i>      | ...          <i></i>              |              <i></i>              |              <i></i>              |      <i></i>      |
 |      <i></i>      | Deep GCN AE       | ...                               | ...                               | ...                               |                   |
 |      <i></i>      | Deep GCN VAE      | ...                               | ...                               | ...                               |                   |
