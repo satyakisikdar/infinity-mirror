@@ -6,7 +6,7 @@
 |      <i></i>      | CNRG              | done                              | done                              | done                              |                   |
 |      <i></i>      | Erdos-Renyi       | done                              | done                              | done                              |                   |
 |      <i></i>      | HRG               | done                              | done                              | done                              |                   |
-|      <i></i>      | Kronecker         | done                              | ...  in progress (ws)             | done                              | 28 trials         |
+|      <i></i>      | Kronecker         | done                              | done                              | ...  in progress (ws)             | 28 trials         |
 |      <i></i>      | SBM               | done                              | done                              | done                              |                   |
 |      <i></i>      |                   |                                   |                                   |                                   |                   |
 |      <i></i>      | GraphRNN          | done                              | done                              | done                              |                   |
