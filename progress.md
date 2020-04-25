@@ -41,8 +41,8 @@
 | flights           | BTER              | done                              | done                              | ...                               |                   |
 |      <i></i>      | BUGGE             | done                              | done                              | done                              |                   |
 |      <i></i>      | Chung-Lu          | done                              | done                              | done                              |                   |
-|      <i></i>      | CNRG              | done                              | ...  in progress (ws)             | done                              |                   |
-|      <i></i>      | Erdos-Renyi       | done                              | ...  scheduled (ws)               | done                              |                   |
+|      <i></i>      | CNRG              | done                              | done                              | done                              |                   |
+|      <i></i>      | Erdos-Renyi       | done                              | ...  in progress (ws)             | done                              |                   |
 |      <i></i>      | HRG               | done                              | ...  scheduled (ws)               | done                              | lots of fails     |
 |      <i></i>      | Kronecker         | ...                               | ...                               | ...                               |                   |
 |      <i></i>      | SBM               | done                              | ...  scheduled (ws)               | done                              |                   |
@@ -68,6 +68,25 @@
 |      <i></i>      |                   |                                   |                                   |                                   |                   |
 |      <i></i>      | GraphRNN          | ...                               | ...                               | ...                               |                   |
 |      <i></i>      | NetGAN            | done                              | ...                               | ...                               |                   |
+|      <i></i>      |                   |                                   |                                   |                                   |                   |
+|      <i></i>      | Deep GCN AE       | ...                               | ...                               | ...                               |                   |
+|      <i></i>      | Deep GCN VAE      | ...                               | ...                               | ...                               |                   |
+|      <i></i>      | GCN AE            | ...                               | ...                               | ...                               |                   |
+|      <i></i>      | GCN VAE           | ...                               | ...                               | ...                               |                   |
+|      <i></i>      | Linear AE         | ...                               | ...                               | ...                               |                   |
+|      <i></i>      | Linear VAE        | ...                               | ...                               | ...                               |                   |
+|      <i></i>      |      <i></i>      |              <i></i>              |              <i></i>              |              <i></i>              |      <i></i>      |
+| chess             | BTER              | ...                               | ...                               | ...                               |                   |
+|      <i></i>      | BUGGE             | ...                               | ...                               | ...                               |                   |
+|      <i></i>      | Chung-Lu          | ...                               | ...                               | ...                               |                   |
+|      <i></i>      | CNRG              | ...                               | ...                               | ...                               |                   |
+|      <i></i>      | Erdos-Renyi       | ...                               | ...                               | ...                               |                   |
+|      <i></i>      | HRG               | ...                               | ...                               | ...                               |                   |
+|      <i></i>      | Kronecker         | ...                               | ...                               | ...                               |                   |
+|      <i></i>      | SBM               | ...                               | ...                               | ...                               |                   |
+|      <i></i>      |                   |                                   |                                   |                                   |                   |
+|      <i></i>      | GraphRNN          | ...                               | ...                               | ...                               |                   |
+|      <i></i>      | NetGAN            | ...                               | ...                               | ...                               |                   |
 |      <i></i>      |                   |                                   |                                   |                                   |                   |
 |      <i></i>      | Deep GCN AE       | ...                               | ...                               | ...                               |                   |
 |      <i></i>      | Deep GCN VAE      | ...                               | ...                               | ...                               |                   |
