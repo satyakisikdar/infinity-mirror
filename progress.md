@@ -38,9 +38,9 @@
 |      <i></i>      | Linear AE         | ...                               | ...                               | ...                               |                   |
 |      <i></i>      | Linear VAE        | ...                               | ...                               | ...                               |                   |
 |      <i></i>      |      <i></i>      |              <i></i>              |              <i></i>              |              <i></i>              |      <i></i>      |
-| flights           | BTER              | done                              | ...  in progress (ws)             | ...                               |                   |
-|      <i></i>      | BUGGE             | done                              | ...  scheduled (ws)               | done                              |                   |
-|      <i></i>      | Chung-Lu          | done                              | ...  scheduled (ws)               | done                              |                   |
+| flights           | BTER              | done                              | done                              | ...                               |                   |
+|      <i></i>      | BUGGE             | done                              | done                              | done                              |                   |
+|      <i></i>      | Chung-Lu          | done                              | ...  in progress (ws)             | done                              |                   |
 |      <i></i>      | CNRG              | done                              | ...  scheduled (ws)               | done                              |                   |
 |      <i></i>      | Erdos-Renyi       | done                              | ...  scheduled (ws)               | done                              |                   |
 |      <i></i>      | HRG               | done                              | ...  scheduled (ws)               | done                              | lots of fails     |
