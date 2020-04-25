@@ -40,8 +40,8 @@
 |      <i></i>      |      <i></i>      |              <i></i>              |              <i></i>              |              <i></i>              |      <i></i>      |
 | flights           | BTER              | done                              | done                              | ...                               |                   |
 |      <i></i>      | BUGGE             | done                              | done                              | done                              |                   |
-|      <i></i>      | Chung-Lu          | done                              | ...  in progress (ws)             | done                              |                   |
-|      <i></i>      | CNRG              | done                              | ...  scheduled (ws)               | done                              |                   |
+|      <i></i>      | Chung-Lu          | done                              | done                              | done                              |                   |
+|      <i></i>      | CNRG              | done                              | ...  in progress (ws)             | done                              |                   |
 |      <i></i>      | Erdos-Renyi       | done                              | ...  scheduled (ws)               | done                              |                   |
 |      <i></i>      | HRG               | done                              | ...  scheduled (ws)               | done                              | lots of fails     |
 |      <i></i>      | Kronecker         | ...                               | ...                               | ...                               |                   |
