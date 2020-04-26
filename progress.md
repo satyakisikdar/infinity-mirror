@@ -76,14 +76,14 @@
 |      <i></i>      | Linear AE         | ...                               | ...                               | ...                               |                   |
 |      <i></i>      | Linear VAE        | ...                               | ...                               | ...                               |                   |
 |      <i></i>      |      <i></i>      |              <i></i>              |              <i></i>              |              <i></i>              |      <i></i>      |
-| chess             | BTER              | ...                               | ...                               | ...                               |                   |
-|      <i></i>      | BUGGE             | ...                               | ...                               | ...                               |                   |
-|      <i></i>      | Chung-Lu          | ...                               | ...                               | ...                               |                   |
-|      <i></i>      | CNRG              | ...                               | ...                               | ...                               |                   |
-|      <i></i>      | Erdos-Renyi       | ...                               | ...                               | ...                               |                   |
-|      <i></i>      | HRG               | ...                               | ...                               | ...                               |                   |
-|      <i></i>      | Kronecker         | ...                               | ...                               | ...                               |                   |
-|      <i></i>      | SBM               | ...                               | ...                               | ...                               |                   |
+| chess             | BTER              | ... in progress (dsg3)            | ...                               | ...                               |                   |
+|      <i></i>      | BUGGE             | ... scheduled (dsg3)              | ...                               | ...                               |                   |
+|      <i></i>      | Chung-Lu          | ... scheduled (dsg3)              | ...                               | ...                               |                   |
+|      <i></i>      | CNRG              | ... scheduled (dsg3)              | ...                               | ...                               |                   |
+|      <i></i>      | Erdos-Renyi       | ... scheduled (dsg3)              | ...                               | ...                               |                   |
+|      <i></i>      | HRG               | ... scheduled (dsg3)              | ...                               | ...                               |                   |
+|      <i></i>      | Kronecker         | ... scheduled (dsg3)              | ...                               | ...                               |                   |
+|      <i></i>      | SBM               | ... scheduled (dsg3)              | ...                               | ...                               |                   |
 |      <i></i>      |                   |                                   |                                   |                                   |                   |
 |      <i></i>      | GraphRNN          | ...                               | ...                               | ...                               |                   |
 |      <i></i>      | NetGAN            | ...                               | ...                               | ...                               |                   |
