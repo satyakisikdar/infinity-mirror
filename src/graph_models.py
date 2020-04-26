@@ -576,7 +576,7 @@ class Kronecker(BaseGraphModel):
         edgelist_path = f'src/kronecker/{self.initial_gname}_{self.run_id}.txt'
         nx.write_edgelist(directed_g, edgelist_path, data=False)
 
-        bash_code = f'cd src/kronecker; {self.kronfit_exec} -i:{self.initial_gname}_{self.run_id}.txt -o:{self.initial_gname}_{self.run_id}-fit'
+        bash_code = f'cd src/kronecker; {self.kronfit_exec} -i:{self.initial_gname}_{self.run_id}.txt -o:{self.initial_gname}_{self.run_id}-fit -s:50000'
         completed_process = sub.run(bash_code, shell=True)  # , stdout=sub.PIPE)
 
         if completed_process.returncode != 0:
