@@ -25,7 +25,7 @@
 |      <i></i>      | CNRG              | done                              | done                              | done                              |                   |
 |      <i></i>      | Erdos-Renyi       | done                              | done                              | done                              |                   |
 |      <i></i>      | HRG               | done                              | done                              | done                              | lots of fails     |
-|      <i></i>      | Kronecker         | ...  in progress (dsg3; 8 cores)  | ...                               | ...                               |                   |
+|      <i></i>      | Kronecker         | ...  standby                      | ...                               | ...                               | 5 runs done       |
 |      <i></i>      | SBM               | done                              | done                              | done                              |                   |
 |      <i></i>      |                   |                                   |                                   |                                   |                   |
 |      <i></i>      | GraphRNN          | ...  in progress (ws)             | ...                               | ...                               |                   |
@@ -42,10 +42,10 @@
 |      <i></i>      | BUGGE             | done                              | done                              | done                              |                   |
 |      <i></i>      | Chung-Lu          | done                              | done                              | done                              |                   |
 |      <i></i>      | CNRG              | done                              | done                              | done                              |                   |
-|      <i></i>      | Erdos-Renyi       | done                              | ...  in progress (ws)             | done                              |                   |
-|      <i></i>      | HRG               | done                              | ...  scheduled (ws)               | done                              | lots of fails     |
+|      <i></i>      | Erdos-Renyi       | done                              | done                              | done                              |                   |
+|      <i></i>      | HRG               | done                              | done                              | done                              | lots of fails     |
 |      <i></i>      | Kronecker         | ...                               | ...                               | ...                               |                   |
-|      <i></i>      | SBM               | done                              | ...  scheduled (ws)               | done                              |                   |
+|      <i></i>      | SBM               | done                              | ...  in progress (ws)             | done                              |                   |
 |      <i></i>      |                   |                                   |                                   |                                   |                   |
 |      <i></i>      | GraphRNN          | ...                               | ...                               | ...                               |                   |
 |      <i></i>      | NetGAN            | done                              | done                              | done                              |                   |
