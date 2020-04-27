@@ -6,7 +6,7 @@
 |      <i></i>      | CNRG              | done                      | done                      | done                      |                   |
 |      <i></i>      | Erdos-Renyi       | done                      | done                      | done                      |                   |
 |      <i></i>      | HRG               | done                      | done                      | done                      |                   |
-|      <i></i>      | Kronecker         | done                      | done                      | ...  in progress (ws)     | 28 trials         |
+|      <i></i>      | Kronecker         | done                      | done                      | done                      | 28 trials         |
 |      <i></i>      | SBM               | done                      | done                      | done                      |                   |
 |      <i></i>      |                   |                           |                           |                           |                   |
 |      <i></i>      | GraphRNN          | done                      | done                      | done                      |                   |
@@ -38,14 +38,14 @@
 |      <i></i>      | Linear AE         | ...                       | ...                       | ...                       |                   |
 |      <i></i>      | Linear VAE        | ...                       | ...                       | ...                       |                   |
 |      <i></i>      |      <i></i>      |          <i></i>          |          <i></i>          |          <i></i>          |      <i></i>      |
-| flights           | BTER              | done                      | done                      | ...                       |                   |
+| flights           | BTER              | done                      | done                      | done                      |                   |
 |      <i></i>      | BUGGE             | done                      | done                      | done                      |                   |
 |      <i></i>      | Chung-Lu          | done                      | done                      | done                      |                   |
 |      <i></i>      | CNRG              | done                      | done                      | done                      |                   |
 |      <i></i>      | Erdos-Renyi       | done                      | done                      | done                      |                   |
 |      <i></i>      | HRG               | done                      | done                      | done                      | lots of fails     |
 |      <i></i>      | Kronecker         | ...                       | ...                       | ...                       |                   |
-|      <i></i>      | SBM               | done                      | ...  in progress (ws)     | done                      |                   |
+|      <i></i>      | SBM               | done                      | done                      | done                      |                   |
 |      <i></i>      |                   |                           |                           |                           |                   |
 |      <i></i>      | GraphRNN          | ...                       | ...                       | ...                       |                   |
 |      <i></i>      | NetGAN            | done                      | done                      | done                      |                   |
