@@ -16,11 +16,11 @@ from src.graph_comparison import GraphPairCompare
 graphs = ['eucore', 'clique-ring-500-4', 'flights', 'treer1000']
 
 base_path = '/data/dgonza26'
-dataset = 'eucore'
+dataset = 'tree'
 #model = 'BTER'
-models = ['BUGGE', 'Chung-Lu', 'CNRG', 'Deep_GCN_AE', 'Deep_GCN_VAE', \
-          'Erdos-Renyi', 'GCN_AE', 'GCN_VAE', 'HRG', \
-          'Linear_AE', 'Linear_VAE', 'NetGAN', 'SBM']
+models = ['BTER', 'BUGGE', 'Chung-Lu', 'CNRG', 'Erdos-Renyi', 'HRG', 'NetGAN', 'SBM']
+#models = ['BTER', 'BUGGE', 'Chung-Lu', 'CNRG', 'Erdos-Renyi', 'HRG', 'NetGAN', 'SBM', \
+#          'Kronecker', 'Deep_GCN_AE', 'Deep_GCN_VAE', 'GCN_AE', 'GCN_VAE', 'Linear_AE', 'Linear_VAE']
 
 for model in models:
     print(f'starting {model} ... ')
@@ -30,10 +30,20 @@ for model in models:
         for filename in files:
             string = subdir.split('/')[-2:]
             file = os.path.join(subdir, filename)
+            newfile = file[:-7] + '_augmented.pkl.gz'
             print(f'starting\t{string[-2]}\t{string[-1]}\t{filename} ... ')
             root = load_pickle(file)
-            node = root
-            while len(node.children) > 0:
+
+            try:
+                root.robustness
+            except AttributeError:
+                root = TreeNode(name=root.name, graph=root.graph, stats=root.stats, stats_seq=root.stats_seq, children=root.children)
+            if root.robustness is None or root.robustness == {}:
+                graphstats = GraphStats(graph=root.graph, run_id=0)
+                graphstats._calculate_robustness_measures()
+                root.robustness = graphstats.stats
+
+            for node in root.descendants:
                 try:
                     node.robustness
                 except AttributeError:
@@ -42,7 +52,6 @@ for model in models:
                     graphstats = GraphStats(graph=node.graph, run_id=0)
                     graphstats._calculate_robustness_measures()
                     node.robustness = graphstats.stats
-                    node = node.children[0]
-            with open(file, 'wb') as f:
+            with open(newfile, 'wb') as f:
                 pickle.dump(root, f)
             print('done')
