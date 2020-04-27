@@ -38,12 +38,12 @@
 |      <i></i>      | Linear AE         | ...                       | ...                       | ...                       |                   |
 |      <i></i>      | Linear VAE        | ...                       | ...                       | ...                       |                   |
 |      <i></i>      |      <i></i>      |          <i></i>          |          <i></i>          |          <i></i>          |      <i></i>      |
-| flights           | BTER              | done                      | done                      | ...                       |                   |
-|      <i></i>      | BUGGE             | done                      | done                      | ...                       |                   |
+| flights           | BTER              | done                      | ...                       | done                      |                   |
+|      <i></i>      | BUGGE             | ...  in progress (dsg3)   | ...                       | ...                       |                   |
 |      <i></i>      | Chung-Lu          | done                      | done                      | done                      |                   |
 |      <i></i>      | CNRG              | done                      | done                      | done                      |                   |
 |      <i></i>      | Erdos-Renyi       | done                      | done                      | done                      |                   |
-|      <i></i>      | HRG               | done                      | done                      | ...                       | lots of fails     |
+|      <i></i>      | HRG               | ...  in progress (dsg3)   | ...                       | ...                       |                   |
 |      <i></i>      | Kronecker         | ...                       | ...                       | ...                       |                   |
 |      <i></i>      | SBM               | done                      | done                      | done                      |                   |
 |      <i></i>      |                   |                           |                           |                           |                   |
@@ -57,17 +57,17 @@
 |      <i></i>      | Linear AE         | ...                       | ...                       | ...                       |                   |
 |      <i></i>      | Linear VAE        | ...                       | ...                       | ...                       |                   |
 |      <i></i>      |      <i></i>      |          <i></i>          |          <i></i>          |          <i></i>          |      <i></i>      |
-| tree              | BTER              | done                      | ...                       | ...  in progress (ws)     |                   |
-|      <i></i>      | BUGGE             | done                      | ...                       | ...  scheduled (ws)       |                   |
-|      <i></i>      | Chung-Lu          | done                      | ...                       | ...  scheduled (ws)       |                   |
-|      <i></i>      | CNRG              | done                      | ...                       | ...  scheduled (ws)       |                   |
-|      <i></i>      | Erdos-Renyi       | done                      | ...                       | ...  scheduled (ws)       |                   |
-|      <i></i>      | HRG               | done                      | ...                       | ...  scheduled (ws)       |                   |
-|      <i></i>      | Kronecker         | done                      | ...                       | ...  scheduled (ws)       |                   |
-|      <i></i>      | SBM               | done                      | ...                       | ...  scheduled (ws)       |                   |
+| tree              | BTER              | done                      | ...                       | done                      |                   |
+|      <i></i>      | BUGGE             | done                      | ...                       | done                      |                   |
+|      <i></i>      | Chung-Lu          | done                      | ...                       | done                      |                   |
+|      <i></i>      | CNRG              | done                      | ...                       | done                      |                   |
+|      <i></i>      | Erdos-Renyi       | done                      | ...                       | done                      |                   |
+|      <i></i>      | HRG               | done                      | ...                       | done                      | lots of fails     |
+|      <i></i>      | Kronecker         | done                      | ...                       | done                      |                   |
+|      <i></i>      | SBM               | done                      | ...                       | done                      |                   |
 |      <i></i>      |                   |                           |                           |                           |                   |
 |      <i></i>      | GraphRNN          | ...                       | ...                       | ...                       |                   |
-|      <i></i>      | NetGAN            | done                      | ...                       | ...  scheduled (ws)       |                   |
+|      <i></i>      | NetGAN            | done                      | ...                       | done                      |                   |
 |      <i></i>      |                   |                           |                           |                           |                   |
 |      <i></i>      | Deep GCN AE       | ...                       | ...                       | ...                       |                   |
 |      <i></i>      | Deep GCN VAE      | ...                       | ...                       | ...                       |                   |
