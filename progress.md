@@ -43,12 +43,12 @@
 |      <i></i>      | Chung-Lu          | done                      | done                      | done                      |                   |
 |      <i></i>      | CNRG              | done                      | done                      | done                      |                   |
 |      <i></i>      | Erdos-Renyi       | done                      | done                      | done                      |                   |
-|      <i></i>      | HRG               | ...  in progress (dsg3)   | ...                       | ...                       |                   |
+|      <i></i>      | HRG               | done                      | ...                       | ...                       |                   |
 |      <i></i>      | Kronecker         | ...                       | ...                       | ...                       |                   |
 |      <i></i>      | SBM               | done                      | done                      | done                      |                   |
 |      <i></i>      |                   |                           |                           |                           |                   |
 |      <i></i>      | GraphRNN          | ...                       | ...                       | ...                       |                   |
-|      <i></i>      | NetGAN            | done                      | done                      | ...                       |                   |
+|      <i></i>      | NetGAN            | ...                       | done                      | ...                       |                   |
 |      <i></i>      |                   |                           |                           |                           |                   |
 |      <i></i>      | Deep GCN AE       | ...                       | ...                       | ...                       |                   |
 |      <i></i>      | Deep GCN VAE      | ...                       | ...                       | ...                       |                   |
@@ -76,17 +76,17 @@
 |      <i></i>      | Linear AE         | ...                       | ...                       | ...                       |                   |
 |      <i></i>      | Linear VAE        | ...                       | ...                       | ...                       |                   |
 |      <i></i>      |      <i></i>      |          <i></i>          |          <i></i>          |          <i></i>          |      <i></i>      |
-| chess             | BTER              | ... in progress (dsg3)    | ...                       | ...                       |                   |
-|      <i></i>      | BUGGE             | ... scheduled (dsg3)      | ...                       | ...                       |                   |
-|      <i></i>      | Chung-Lu          | ... scheduled (dsg3)      | ...                       | ...                       |                   |
-|      <i></i>      | CNRG              | ... scheduled (dsg3)      | ...                       | ...                       |                   |
-|      <i></i>      | Erdos-Renyi       | ... scheduled (dsg3)      | ...                       | ...                       |                   |
-|      <i></i>      | HRG               | ... scheduled (dsg3)      | ...                       | ...                       |                   |
-|      <i></i>      | Kronecker         | ... scheduled (dsg3)      | ...                       | ...                       |                   |
-|      <i></i>      | SBM               | ... scheduled (dsg3)      | ...                       | ...                       |                   |
+| chess             | BTER              | done                      | ...                       | ...                       |                   |
+|      <i></i>      | BUGGE             | ...   in progress (dsg3)  | ...                       | ...                       |                   |
+|      <i></i>      | Chung-Lu          | ...   scheduled (dsg3)    | ...                       | ...                       |                   |
+|      <i></i>      | CNRG              | ...   scheduled (dsg3)    | ...                       | ...                       |                   |
+|      <i></i>      | Erdos-Renyi       | ...   scheduled (dsg3)    | ...                       | ...                       |                   |
+|      <i></i>      | HRG               | ...   scheduled (dsg3)    | ...                       | ...                       |                   |
+|      <i></i>      | Kronecker         | ...   scheduled (dsg3)    | ...                       | ...                       |                   |
+|      <i></i>      | SBM               | ...   scheduled (dsg3)    | ...                       | ...                       |                   |
 |      <i></i>      |                   |                           |                           |                           |                   |
 |      <i></i>      | GraphRNN          | ...                       | ...                       | ...                       |                   |
-|      <i></i>      | NetGAN            | ... in progress (ws)      | ...                       | ...                       |                   |
+|      <i></i>      | NetGAN            | done                      | done                      | ...                       |                   |
 |      <i></i>      |                   |                           |                           |                           |                   |
 |      <i></i>      | Deep GCN AE       | ...                       | ...                       | ...                       |                   |
 |      <i></i>      | Deep GCN VAE      | ...                       | ...                       | ...                       |                   |
