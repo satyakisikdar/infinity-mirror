@@ -40,8 +40,7 @@ class InfinityMirror:
         self.model.run_id = run_id # initialize and fit the model
 
         self.initial_graph_stats: GraphStats = GraphStats(run_id=run_id, graph=self.initial_graph)
-        self.root: TreeNode = TreeNode('root', graph=self.initial_graph,
-                                       stats={}, stats_seq={})  # root of the tree with the initial graph and empty stats dictionary
+        self.root: LightTreeNode = LightTreeNode('root', graph=self.initial_graph)  # root of the tree with the initial graph and empty stats dictionary
         self._metrics: List[str] = ['deltacon0', 'lambda_dist', 'pagerank_cvm', 'node_diff', 'edge_diff', 'pgd_pearson',
                                     'pgd_spearman', 'degree_cvm']  # list of metrics  ## GCD is removed
         self.rewire = int(r * 100)
