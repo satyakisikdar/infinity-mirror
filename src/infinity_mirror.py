@@ -6,7 +6,7 @@ from typing import Any, List, Dict, Union
 import networkx as nx
 from tqdm import tqdm
 
-from src.Tree import TreeNode
+from src.Tree import TreeNode, LightTreeNode
 from src.graph_comparison import GraphPairCompare
 from src.graph_models import *
 from src.graph_stats import GraphStats
@@ -120,7 +120,7 @@ class InfinityMirror:
 
         return self._make_graph_stat_double(graph=generated_graphs[idx], idx=idx, scores=scores)
 
-    def run(self, use_pickle: bool) -> None:
+    def old_run(self, use_pickle: bool) -> None:
         """
         New runner - don't expand into three - grow three separate branches
         :param use_pickle:
@@ -165,6 +165,55 @@ class InfinityMirror:
 
         pbar.close()
         CP.print_green(f'Root object is pickled at "{self.root_pickle_path + pickle_ext}"')
+        pickle.dump(self.root, open(self.root_pickle_path + pickle_ext, 'wb'), protocol=-1)  # use highest possible protocol
+        return
+
+    def run(self, use_pickle: bool) -> None:
+        """
+        New runner - uses LightTreeNode objects, so no graph comparison
+        :param use_pickle:
+        :return:
+        """
+        pickle_ext = '.pkl.gz'
+        if use_pickle and check_file_exists(self.root_pickle_path + pickle_ext):
+            CP.print_green(f'Using pickle at "{self.root_pickle_path + pickle_ext}"')
+            root = load_pickle(self.root_pickle_path + pickle_ext)
+            assert isinstance(root, LightTreeNode), 'Invalid TreeNode format, needs to be a LightTreeNode object'
+            self.root = root
+            return
+
+        tqdm.write(
+            f'Running Infinity Mirror on "{self.initial_graph.name}" {self.initial_graph.order(), self.initial_graph.size()} "{self.model.model_name}" {self.num_generations} generations')
+        pbar = tqdm(total=self.num_generations, bar_format='{l_bar}{bar}|[{elapsed}<{remaining}]', ncols=50)
+
+        for i in range(self.num_generations):
+            if i == 0:
+                tnode = self.root  # start with the root
+                curr_graph = self.initial_graph  # current graph is the initial graph
+
+            level = i + 1
+            try:
+                self.model.update(new_input_graph=curr_graph)  # update the model
+            except Exception as e:
+                print(f'Model fit failed {e}')
+                self.root_pickle_path += f'_failed-{level}'  # append the failed to filenam
+                break
+
+            try:
+                generated_graphs = self.model.generate(num_graphs=self.num_graphs,
+                                                       gen_id=level)  # generate a new set of graphs
+            except Exception as e:
+                print(f'Generation failed {e}')
+                self.root_pickle_path += f'_failed-{level}'  # append the failed to filename
+                break
+
+            curr_graph = generated_graphs[0]  # we are only generating one graph
+            curr_graph.name = f'{self.initial_graph.name}_{self.selection}_{level}_{self.run_id}'
+            tnode = LightTreeNode(name=f'{self.selection}_{level}', graph=curr_graph, parent=tnode)
+            pbar.update(1)
+
+        pbar.close()
+        CP.print_green(f'LightTreeNode root object is pickled at "{self.root_pickle_path + pickle_ext}"')
         pickle.dump(self.root, open(self.root_pickle_path + pickle_ext, 'wb'), protocol=-1)  # use highest possible protocol
         return
 
