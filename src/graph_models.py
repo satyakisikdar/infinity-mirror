@@ -83,7 +83,7 @@ class BaseGraphModel:
             self_loops = list(nx.selfloop_edges(g))
             g.remove_edges_from(self_loops)  # remove self loops
             generated_graphs.append(g)
-
+        assert len(generated_graphs) == num_graphs, f'Unable to generate {num_graphs} graphs'
         return generated_graphs
 
     def __str__(self) -> str:
@@ -551,7 +551,6 @@ class Kronecker(BaseGraphModel):
     """
     Kronecker Graph Model from SNAP
     """
-
     def __init__(self, input_graph: nx.Graph, run_id: int, **kwargs) -> None:
         super().__init__(model_name='Kronecker', input_graph=input_graph, run_id=run_id)
         if 'Linux' in platform.platform():
