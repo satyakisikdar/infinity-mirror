@@ -41,11 +41,11 @@
 | flights           | BTER              | done                      | done                      | done                      |                   |
 |      <i></i>      | BUGGE             | ...  on hold (dsg3)       | ...                       | ...                       |                   |
 |      <i></i>      | Chung-Lu          | done                      | done                      | done                      |                   |
-|      <i></i>      | CNRG              | done                      | ...  in progress (ws)     | done                      |                   |
-|      <i></i>      | Erdos-Renyi       | done                      | ...                       | done                      |                   |
+|      <i></i>      | CNRG              | done                      | done                      | done                      |                   |
+|      <i></i>      | Erdos-Renyi       | done                      | done                      | done                      |                   |
 |      <i></i>      | HRG               | done                      | ...                       | ...                       |                   |
 |      <i></i>      | Kronecker         | ...                       | ...                       | ...                       |                   |
-|      <i></i>      | SBM               | done                      | done                      | done                      |                   |
+|      <i></i>      | SBM               | done                      | ...  in progress (ws)     | done                      |                   |
 |      <i></i>      |                   |                           |                           |                           |                   |
 |      <i></i>      | GraphRNN          | ...                       | ...                       | ...                       |                   |
 |      <i></i>      | NetGAN            | ...                       | done                      | ...                       |                   |
@@ -59,9 +59,9 @@
 |      <i></i>      |      <i></i>      |          <i></i>          |          <i></i>          |          <i></i>          |      <i></i>      |
 | tree              | BTER              | done                      | done                      | done                      |                   |
 |      <i></i>      | BUGGE             | done                      | done                      | done                      |                   |
-|      <i></i>      | Chung-Lu          | done                      | ...  in progress (ws)     | done                      |                   |
-|      <i></i>      | CNRG              | done                      | ...                       | done                      |                   |
-|      <i></i>      | Erdos-Renyi       | done                      | ...                       | done                      |                   |
+|      <i></i>      | Chung-Lu          | done                      | done                      | done                      |                   |
+|      <i></i>      | CNRG              | done                      | done                      | done                      |                   |
+|      <i></i>      | Erdos-Renyi       | done                      | ...  in progress (ws)     | done                      |                   |
 |      <i></i>      | HRG               | done                      | ...                       | done                      | lots of fails     |
 |      <i></i>      | Kronecker         | done                      | ...                       | done                      |                   |
 |      <i></i>      | SBM               | done                      | ...                       | done                      |                   |
