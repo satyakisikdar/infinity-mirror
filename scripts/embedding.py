@@ -62,7 +62,7 @@ def main():
                             rows[key].append(val)
                         print('SUCCESS')
                     except ArpackNoConvergence:
-                        print('FAILED')
+                        print('FAILURE')
 
     df = pd.DataFrame(rows)
     df.to_csv(f'{save_path}/{dataset}.csv')
