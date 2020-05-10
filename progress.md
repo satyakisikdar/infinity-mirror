@@ -45,7 +45,7 @@
 |      <i></i>      | Erdos-Renyi       | done                      | done                      | done                      |                   |
 |      <i></i>      | HRG               | done                      | ...                       | ...                       |                   |
 |      <i></i>      | Kronecker         | ...                       | ...                       | ...                       |                   |
-|      <i></i>      | SBM               | done                      | ...  in progress (ws)     | done                      |                   |
+|      <i></i>      | SBM               | done                      | done                      | done                      |                   |
 |      <i></i>      |                   |                           |                           |                           |                   |
 |      <i></i>      | GraphRNN          | ...                       | ...                       | ...                       |                   |
 |      <i></i>      | NetGAN            | ...                       | done                      | ...                       |                   |
@@ -61,7 +61,7 @@
 |      <i></i>      | BUGGE             | done                      | done                      | done                      |                   |
 |      <i></i>      | Chung-Lu          | done                      | done                      | done                      |                   |
 |      <i></i>      | CNRG              | done                      | done                      | done                      |                   |
-|      <i></i>      | Erdos-Renyi       | done                      | ...  in progress (ws)     | done                      |                   |
+|      <i></i>      | Erdos-Renyi       | done                      | done                      | done                      |                   |
 |      <i></i>      | HRG               | done                      | ...                       | done                      | lots of fails     |
 |      <i></i>      | Kronecker         | done                      | ...                       | done                      |                   |
 |      <i></i>      | SBM               | done                      | ...                       | done                      |                   |
