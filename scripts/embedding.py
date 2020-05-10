@@ -18,10 +18,10 @@ from src.graph_comparison import GraphPairCompare
 
 graphs = ['eucore', 'clique-ring-500-4', 'flights', 'tree', 'chess']
 
-#base_path = '/data/dgonza26'
-base_path = '/Users/akira/data/'
-dataset = 'clique-ring-500-4'
-models = ['BTER', 'BUGGE', 'CNRG', 'Chung-Lu', 'Erdos-Renyi', 'HRG', 'Kronecker', 'NetGAN', 'SBM']
+base_path = '/data/dgonza26'
+#base_path = '/Users/akira/data/'
+dataset = 'tree'
+models = ['BTER', 'BUGGE', 'Chung-Lu', 'CNRG', 'Erdos-Renyi', 'HRG', 'NetGAN', 'SBM']
 
 def get_graph_vec(g: nx.Graph, kernel: str='heat', dim: int=250, eigenvalues: int=20) -> np.ndarray:
     return net.netlsd(g, kernel=kernel, timescales=np.logspace(-2, 2, dim), eigenvalues=eigenvalues)
@@ -44,8 +44,9 @@ def main():
     rows = {col: [] for col in cols}
     save_path = os.path.join(base_path, dataset)
 
+    print(f'\nworking on {dataset}')
     for model in models:
-        print(f'\nstarting {model} ... ')
+        print(f'starting {model} ... ')
         path = os.path.join(base_path, dataset, model)
 
         for subdir, dirs, files in os.walk(path):
