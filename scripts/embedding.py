@@ -20,8 +20,8 @@ graphs = ['eucore', 'clique-ring-500-4', 'flights', 'tree', 'chess']
 
 base_path = '/data/dgonza26'
 #base_path = '/Users/akira/data/'
-dataset = 'eucore'
-models = ['SBM', 'Deep_GCN_AE']
+dataset = 'tree'
+models = ['BTER', 'BUGGE', 'Chung-Lu', 'CNRG', 'Erdos-Renyi', 'HRG', 'Kronecker', 'NetGAN', 'SBM']
 
 def get_graph_vec(g: nx.Graph, kernel: str='heat', dim: int=250, eigenvalues: int=20) -> np.ndarray:
     return net.netlsd(g, kernel=kernel, timescales=np.logspace(-2, 2, dim), eigenvalues=eigenvalues)
@@ -34,9 +34,12 @@ def compare_graphs(g1: nx.Graph, g2: nx.Graph, kernel: str='heat', dim: int=250,
 def get_row(root, cols, dataset, model, dim):
     for tnode in [root] + list(root.descendants):
         row = {'name': dataset, 'level': tnode.depth, 'model': model}
-        for i, x in enumerate(get_graph_vec(tnode.graph, dim=dim)):
-            row[f'v{i}'] = x
-        yield row
+        try:
+            for i, x in enumerate(get_graph_vec(tnode.graph, dim=dim)):
+                row[f'v{i}'] = x
+            yield row
+        except ArpackNoConvergence as err:
+            raise
 
 def main():
     dim = 250
@@ -55,16 +58,13 @@ def main():
                     print(f'\ttrying {filename} ... ', end='', flush=True)
                     try:
                         root = load_pickle(os.path.join(subdir, filename))
-                        trows = {col: [] for col in cols}
                         for row in get_row(root, cols, dataset, model, dim):
                             for key, val in row.items():
-                                trows[key].append(val)
-                        for key, val in trows.items():
-                            rows[key].append(val)
+                                rows[key].append(val)
                         print('SUCCESS')
                     except ArpackNoConvergence:
                         print('FAILURE')
         df = pd.DataFrame(rows)
-        df.to_csv(f'{save_path}/{dataset}_{model}.csv')
+        df.to_csv(f'{save_path}/{dataset}_{model}.csv', index=False)
 
 main()
