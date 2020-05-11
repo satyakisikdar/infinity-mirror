@@ -20,8 +20,8 @@ graphs = ['eucore', 'clique-ring-500-4', 'flights', 'tree', 'chess']
 
 base_path = '/data/dgonza26'
 #base_path = '/Users/akira/data/'
-dataset = 'tree'
-models = ['BTER', 'BUGGE', 'Chung-Lu', 'CNRG', 'Erdos-Renyi', 'HRG', 'NetGAN', 'SBM']
+dataset = 'eucore'
+models = ['SBM', 'Deep_GCN_AE']
 
 def get_graph_vec(g: nx.Graph, kernel: str='heat', dim: int=250, eigenvalues: int=20) -> np.ndarray:
     return net.netlsd(g, kernel=kernel, timescales=np.logspace(-2, 2, dim), eigenvalues=eigenvalues)
@@ -64,8 +64,7 @@ def main():
                         print('SUCCESS')
                     except ArpackNoConvergence:
                         print('FAILURE')
-
-    df = pd.DataFrame(rows)
-    df.to_csv(f'{save_path}/{dataset}.csv')
+        df = pd.DataFrame(rows)
+        df.to_csv(f'{save_path}/{dataset}_{model}.csv')
 
 main()
