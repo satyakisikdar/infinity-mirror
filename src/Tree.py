@@ -1,8 +1,23 @@
 from typing import Dict
 
-from anytree import Node
 import networkx as nx
-# from src.Graph import CustomGraph
+from anytree import Node
+
+
+class LightTreeNode(Node):
+    """
+    Light Tree Node, just stores a frozen graph in every node
+    """
+    def __init__(self, name: str, graph: nx.Graph, parent=None, children=None, **kwargs) -> None:
+        super(LightTreeNode, self).__init__(name, parent, children, **kwargs)
+        self.graph = nx.freeze(graph)
+        return
+
+    def __eq__(self, other) -> bool:
+        return self.name == other.name
+
+    def __hash__(self):
+        return hash(self.name)
 
 
 class TreeNode(Node):
@@ -26,4 +41,3 @@ class TreeNode(Node):
 
     def __hash__(self) -> int:
         return hash(self.name)
-

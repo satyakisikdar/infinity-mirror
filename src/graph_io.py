@@ -238,7 +238,7 @@ class GraphWriter:
         str_path = str(self.path)
 
         if extension in ('.g', '.txt'):
-            nx.write_edgelist(path=str_path, G=self.graph)
+            nx.write_edgelist(path=str_path, G=self.graph, data=False)
 
         elif extension == '.gml':
             nx.write_gml(path=str_path, G=self.graph)
