@@ -77,13 +77,13 @@
 |      <i></i>      | Linear VAE        |                       |                       |                       |                       |                   |
 |      <i></i>      |      <i></i>      |        <i></i>        |        <i></i>        |        <i></i>        |        <i></i>        |      <i></i>      |
 | chess             | BTER              | done                  |                       |                       | done                  |                   |
-|      <i></i>      | BUGGE             | in progress           |                       |                       |                       |                   |
-|      <i></i>      | Chung-Lu          | queued                |                       |                       |                       |                   |
-|      <i></i>      | CNRG              | queued                |                       |                       |                       |                   |
-|      <i></i>      | Erdos-Renyi       | queued                |                       |                       |                       |                   |
-|      <i></i>      | HRG               | queued                |                       |                       |                       |                   |
+|      <i></i>      | BUGGE             | in progress           |                       |                       |                       | 30 done so far    |
+|      <i></i>      | Chung-Lu          | done                  |                       |                       | in progress           |                   |
+|      <i></i>      | CNRG              | done                  |                       |                       | in progress           |                   |
+|      <i></i>      | Erdos-Renyi       | done                  |                       |                       | in progress           |                   |
+|      <i></i>      | HRG               | in progress           |                       |                       |                       | errors; rerunning |
 |      <i></i>      | Kronecker         |                       |                       |                       |                       |                   |
-|      <i></i>      | SBM               | queued                |                       |                       |                       |                   |
+|      <i></i>      | SBM               | done                  |                       |                       | in progress           |                   |
 |      <i></i>      |                   |                       |                       |                       |                       |                   |
 |      <i></i>      | GraphRNN          |                       |                       |                       |                       |                   |
 |      <i></i>      | NetGAN            | done                  | done                  | done                  | done                  |                   |
