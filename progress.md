@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 |      dataset      |        model      |        absolute       |       sequential      |       robustness      |       embedding       |       notes       |
 |:----------------- |:----------------- |:--------------------- |:--------------------- |:--------------------- |:--------------------- |:----------------- |
 | eucore            | BTER              | done                  | done                  |                       | done                  |                   |
@@ -194,4 +193,3 @@
 |      <i></i>      | Linear AE         |                       |                       |                       |                       |                               |
 |      <i></i>      | Linear VAE        |                       |                       |                       |                       |                               |
 |      <i></i>      |      <i></i>      |        <i></i>        |        <i></i>        |        <i></i>        |        <i></i>        |            <i></i>            |
->>>>>>> ef26222fed8e797ae669076dd48fcde387d378c4
