@@ -179,7 +179,7 @@
 |      <i></i>      | Chung-Lu          | done                  |                       |                       | done                  |                               |
 |      <i></i>      | CNRG              | done                  |                       |                       | done                  |                               |
 |      <i></i>      | Erdos-Renyi       | done                  |                       |                       | done                  |                               |
-|      <i></i>      | HRG               | done                  |                       |                       |                       |                               |
+|      <i></i>      | HRG               | in progress           |                       |                       |                       |                               |
 |      <i></i>      | Kronecker         |                       |                       |                       |                       |                               |
 |      <i></i>      | SBM               | done                  |                       |                       | done                  |                               |
 |      <i></i>      |                   |                       |                       |                       |                       |                               |
