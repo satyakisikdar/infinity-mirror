@@ -175,7 +175,7 @@
 |      <i></i>      | Linear VAE        |                       |                       |                       |                       |                               |
 |      <i></i>      |      <i></i>      |        <i></i>        |        <i></i>        |        <i></i>        |        <i></i>        |            <i></i>            |
 | chess             | BTER              | done                  |                       |                       | done                  | 30 trials completed           |
-|      <i></i>      | BUGGE             | in progress           |                       |                       |                       |                               |
+|      <i></i>      | BUGGE             | done                  |                       |                       | in progress           |                               |
 |      <i></i>      | Chung-Lu          | done                  |                       |                       | done                  |                               |
 |      <i></i>      | CNRG              | done                  |                       |                       | done                  |                               |
 |      <i></i>      | Erdos-Renyi       | done                  |                       |                       | done                  |                               |
