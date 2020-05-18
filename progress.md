@@ -176,13 +176,13 @@
 |      <i></i>      | Linear VAE        |                       |                       |                       |                       |                               |
 |      <i></i>      |      <i></i>      |        <i></i>        |        <i></i>        |        <i></i>        |        <i></i>        |            <i></i>            |
 | chess             | BTER              | done                  |                       |                       | done                  | 30 trials completed           |
-|      <i></i>      | BUGGE             | paused                |                       |                       |                       |                               |
-|      <i></i>      | Chung-Lu          | in progress           |                       |                       |                       |                               |
-|      <i></i>      | CNRG              | queued                |                       |                       |                       |                               |
-|      <i></i>      | Erdos-Renyi       | queued                |                       |                       |                       |                               |
-|      <i></i>      | HRG               | queued                |                       |                       |                       |                               |
+|      <i></i>      | BUGGE             | in progress           |                       |                       |                       |                               |
+|      <i></i>      | Chung-Lu          | done                  |                       |                       | done                  |                               |
+|      <i></i>      | CNRG              | done                  |                       |                       | done                  |                               |
+|      <i></i>      | Erdos-Renyi       | done                  |                       |                       | done                  |                               |
+|      <i></i>      | HRG               | done                  |                       |                       |                       |                               |
 |      <i></i>      | Kronecker         |                       |                       |                       |                       |                               |
-|      <i></i>      | SBM               | queued                |                       |                       |                       |                               |
+|      <i></i>      | SBM               | done                  |                       |                       | done                  |                               |
 |      <i></i>      |                   |                       |                       |                       |                       |                               |
 |      <i></i>      | GraphRNN          |                       |                       |                       |                       |                               |
 |      <i></i>      | NetGAN            | done                  | done                  | done                  | done                  |                               |
