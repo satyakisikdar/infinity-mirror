@@ -9,7 +9,7 @@
 |      <i></i>      | Kronecker         | done                  |                       |                       | done                  | 28 trials         |
 |      <i></i>      | SBM               | done                  | done                  |                       | done                  |                   |
 |      <i></i>      |                   |                       |                       |                       |                       |                   |
-|      <i></i>      | GraphRNN          |                       |                       |                       |                       |                   |
+|      <i></i>      | GraphRNN          | in progress           |                       |                       |                       |                   |
 |      <i></i>      | NetGAN            | done                  | done                  | done                  | done                  |                   |
 |      <i></i>      |                   |                       |                       |                       |                       |                   |
 |      <i></i>      | Deep GCN AE       | done                  | done                  |                       | done                  |                   |
@@ -28,7 +28,7 @@
 |      <i></i>      | Kronecker         | partial               | partial               | partial               | done                  | 5 runs done       |
 |      <i></i>      | SBM               | done                  | done                  |                       | done                  |                   |
 |      <i></i>      |                   |                       |                       |                       |                       |                   |
-|      <i></i>      | GraphRNN          |                       |                       |                       |                       |                   |
+|      <i></i>      | GraphRNN          | in progress           |                       |                       |                       |                   |
 |      <i></i>      | NetGAN            | done                  | done                  |                       | done                  |                   |
 |      <i></i>      |                   |                       |                       |                       |                       |                   |
 |      <i></i>      | Deep GCN AE       |                       |                       |                       |                       |                   |
@@ -44,7 +44,7 @@
 |      <i></i>      | CNRG              | done                  | done                  | done                  | done                  |                   |
 |      <i></i>      | Erdos-Renyi       | done                  | done                  | done                  | done                  |                   |
 |      <i></i>      | HRG               | done                  | done                  |                       | done                  | lots of fails     |
-|      <i></i>      | Kronecker         |                       |                       |                       |                       |                   |
+|      <i></i>      | Kronecker         | in progress           |                       |                       |                       |                   |
 |      <i></i>      | SBM               | done                  | done                  | done                  | done                  |                   |
 |      <i></i>      |                   |                       |                       |                       |                       |                   |
 |      <i></i>      | GraphRNN          |                       |                       |                       |                       |                   |
