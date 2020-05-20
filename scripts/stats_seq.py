@@ -17,17 +17,24 @@ graphs = ['eucore', 'clique-ring-500-4', 'flights', 'treer1000']
 
 #base_path = '/home/danielgonzalez/repos/infinity-mirror/output/pickles'
 base_path = '/data/dgonza26'
-dataset = 'tree'
-models = ['BTER', 'BUGGE', 'Chung-Lu', 'CNRG', 'Erdos-Renyi', 'HRG', 'NetGAN', 'SBM']
+dataset = 'eucore'
+#models = ['BTER', 'Chung-Lu', 'CNRG', 'Erdos-Renyi', 'NetGAN', 'SBM']
+models = ['Kronecker']
 
 for model in models:
     path = os.path.join(base_path, dataset, model)
 
     for subdir, dirs, files in os.walk(path):
         for filename in files:
-            if 'augmented' in filename:
+            if 'seq' not in filename:
+            #if 'augmented' not in filename:
                 string = subdir.split('/')[-2:]
                 file = os.path.join(subdir, filename)
+                newfile = file.split('.')[0]
+                if 'rob' in file:
+                    newfile += '_seq_rob.pkl.gz'
+                else:
+                    newfile += '_seq.pkl.gz'
                 print(f'starting\t{string[-2]}\t{string[-1]}\t{filename} ... ', end='', flush=True)
                 root = load_pickle(file)
                 node = root
@@ -47,6 +54,6 @@ for model in models:
                         child.stats_seq['degree_cvm'] = comparator.cvm_degree()
                         child.stats_seq['pagerank_cvm'] = comparator.cvm_pagerank()
                         node = child
-                with open(file, 'wb') as f:
+                with open(newfile, 'wb') as f:
                     pickle.dump(root, f)
                 print(f'\tdone')
