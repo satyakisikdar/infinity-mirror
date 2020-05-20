@@ -9,7 +9,7 @@
 |      <i></i>      | Kronecker         | done                  | in progress           |                       | done                  | 28 trials complete            |
 |      <i></i>      | SBM               | done                  | done                  |                       | done                  |                               |
 |      <i></i>      |                   |                       |                       |                       |                       |                               |
-|      <i></i>      | GraphRNN          |                       |                       |                       |                       |                               |
+|      <i></i>      | GraphRNN          | done                  |                       |                       |                       | 2 trials complete             |
 |      <i></i>      | NetGAN            | done                  | done                  | done                  | done                  |                               |
 |      <i></i>      |                   |                       |                       |                       |                       |                               |
 |      <i></i>      | Deep GCN AE       | done                  | done                  |                       | done                  |                               |
@@ -28,7 +28,7 @@
 |      <i></i>      | Kronecker         | in progress           | partial               | partial               | done                  | 6 trials complete (so far)    |
 |      <i></i>      | SBM               | done                  | done                  |                       | done                  |                               |
 |      <i></i>      |                   |                       |                       |                       |                       |                               |
-|      <i></i>      | GraphRNN          |                       |                       |                       |                       |                               |
+|      <i></i>      | GraphRNN          | done                  |                       |                       |                       | 12 trials complete            |
 |      <i></i>      | NetGAN            | done                  | done                  |                       | done                  |                               |
 |      <i></i>      |                   |                       |                       |                       |                       |                               |
 |      <i></i>      | Deep GCN AE       |                       |                       |                       |                       |                               |
@@ -47,7 +47,7 @@
 |      <i></i>      | Kronecker         | in progress           |                       |                       |                       |                               |
 |      <i></i>      | SBM               | done                  | done                  | done                  | done                  |                               |
 |      <i></i>      |                   |                       |                       |                       |                       |                               |
-|      <i></i>      | GraphRNN          |                       |                       |                       |                       |                               |
+|      <i></i>      | GraphRNN          | in progress           |                       |                       |                       |                               |
 |      <i></i>      | NetGAN            | done                  | done                  | done                  | done                  |                               |
 |      <i></i>      |                   |                       |                       |                       |                       |                               |
 |      <i></i>      | Deep GCN AE       |                       |                       |                       |                       |                               |
@@ -66,7 +66,7 @@
 |      <i></i>      | Kronecker         |                       |                       |                       |                       |                               |
 |      <i></i>      | SBM               | done                  | done                  | done                  | done                  |                               |
 |      <i></i>      |                   |                       |                       |                       |                       |                               |
-|      <i></i>      | GraphRNN          |                       |                       |                       |                       |                               |
+|      <i></i>      | GraphRNN          | done                  |                       |                       |                       | 3 trials complete             |
 |      <i></i>      | NetGAN            | done                  | done                  | done                  | done                  |                               |
 |      <i></i>      |                   |                       |                       |                       |                       |                               |
 |      <i></i>      | Deep GCN AE       |                       |                       |                       |                       |                               |
@@ -85,7 +85,7 @@
 |      <i></i>      | Kronecker         |                       |                       |                       |                       |                               |
 |      <i></i>      | SBM               | done                  |                       |                       | done                  |                               |
 |      <i></i>      |                   |                       |                       |                       |                       |                               |
-|      <i></i>      | GraphRNN          |                       |                       |                       |                       |                               |
+|      <i></i>      | GraphRNN          | in progress           |                       |                       |                       |                               |
 |      <i></i>      | NetGAN            | done                  | done                  | done                  | done                  |                               |
 |      <i></i>      |                   |                       |                       |                       |                       |                               |
 |      <i></i>      | Deep GCN AE       |                       |                       |                       |                       |                               |
