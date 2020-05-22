@@ -1,12 +1,12 @@
 |      dataset      |        model      |        absolute       |       sequential      |       robustness      |       embedding       |             notes             |
 |:----------------- |:----------------- |:--------------------- |:--------------------- |:--------------------- |:--------------------- |:----------------------------- |
-| eucore            | BTER              | done                  | done                  |                       | done                  |                               |
+| eucore            | BTER              | done                  | done                  | in progress           | done                  |                               |
 |      <i></i>      | BUGGE             | done                  | done                  |                       | done                  |                               |
 |      <i></i>      | Chung-Lu          | done                  | done                  |                       | done                  |                               |
 |      <i></i>      | CNRG              | done                  | done                  |                       | done                  |                               |
 |      <i></i>      | Erdos-Renyi       | done                  | done                  |                       | done                  |                               |
 |      <i></i>      | HRG               | done                  | done                  |                       | done                  |                               |
-|      <i></i>      | Kronecker         | done                  | in progress           |                       | done                  | 28 trials complete            |
+|      <i></i>      | Kronecker         | done                  | done                  |                       | done                  | 28 trials complete            |
 |      <i></i>      | SBM               | done                  | done                  |                       | done                  |                               |
 |      <i></i>      |                   |                       |                       |                       |                       |                               |
 |      <i></i>      | GraphRNN          | done                  |                       |                       |                       | 2 trials complete             |
