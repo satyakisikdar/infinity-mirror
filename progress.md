@@ -1,23 +1,23 @@
 |      dataset      |        model      |        absolute       |       sequential      |       robustness      |       embedding       |             notes             |
 |:----------------- |:----------------- |:--------------------- |:--------------------- |:--------------------- |:--------------------- |:----------------------------- |
 | eucore            | BTER              | done                  | done                  | in progress           | done                  |                               |
-|      <i></i>      | BUGGE             | done                  | done                  |                       | done                  |                               |
-|      <i></i>      | Chung-Lu          | done                  | done                  |                       | done                  |                               |
-|      <i></i>      | CNRG              | done                  | done                  |                       | done                  |                               |
-|      <i></i>      | Erdos-Renyi       | done                  | done                  |                       | done                  |                               |
-|      <i></i>      | HRG               | done                  | done                  |                       | done                  |                               |
-|      <i></i>      | Kronecker         | done                  | done                  |                       | done                  | 28 trials complete            |
-|      <i></i>      | SBM               | done                  | done                  |                       | done                  |                               |
+|      <i></i>      | BUGGE             | done                  | done                  | in progress           | done                  |                               |
+|      <i></i>      | Chung-Lu          | done                  | done                  | in progress           | done                  |                               |
+|      <i></i>      | CNRG              | done                  | done                  | in progress           | done                  |                               |
+|      <i></i>      | Erdos-Renyi       | done                  | done                  | in progress           | done                  |                               |
+|      <i></i>      | HRG               | done                  | done                  | in progress           | done                  |                               |
+|      <i></i>      | Kronecker         | done                  | done                  | in progress           | done                  | 28 trials complete            |
+|      <i></i>      | SBM               | done                  | done                  | in progress           | done                  |                               |
 |      <i></i>      |                   |                       |                       |                       |                       |                               |
 |      <i></i>      | GraphRNN          | done                  |                       |                       |                       | 2 trials complete             |
 |      <i></i>      | NetGAN            | done                  | done                  | done                  | done                  |                               |
 |      <i></i>      |                   |                       |                       |                       |                       |                               |
-|      <i></i>      | Deep GCN AE       | done                  | done                  |                       | done                  |                               |
-|      <i></i>      | Deep GCN VAE      | done                  | done                  |                       | done                  |                               |
-|      <i></i>      | GCN AE            | done                  | done                  |                       | done                  |                               |
-|      <i></i>      | GCN VAE           | done                  | done                  |                       | done                  |                               |
-|      <i></i>      | Linear AE         | done                  | done                  |                       | done                  |                               |
-|      <i></i>      | Linear VAE        | done                  | done                  |                       | done                  |                               |
+|      <i></i>      | Deep GCN AE       | done                  | done                  | in progress           | done                  |                               |
+|      <i></i>      | Deep GCN VAE      | done                  | done                  | in progress           | done                  |                               |
+|      <i></i>      | GCN AE            | done                  | done                  | in progress           | done                  |                               |
+|      <i></i>      | GCN VAE           | done                  | done                  | in progress           | done                  |                               |
+|      <i></i>      | Linear AE         | done                  | done                  | in progress           | done                  |                               |
+|      <i></i>      | Linear VAE        | done                  | done                  | in progress           | done                  |                               |
 |      <i></i>      |      <i></i>      |        <i></i>        |        <i></i>        |        <i></i>        |        <i></i>        |            <i></i>            |
 | clique-ring-500-4 | BTER              | done                  | done                  |                       | done                  |                               |
 |      <i></i>      | BUGGE             | done                  | done                  |                       | done                  |                               |
