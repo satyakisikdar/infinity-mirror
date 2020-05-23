@@ -1,23 +1,23 @@
 |      dataset      |        model      |        absolute       |       sequential      |       robustness      |       embedding       |             notes             |
 |:----------------- |:----------------- |:--------------------- |:--------------------- |:--------------------- |:--------------------- |:----------------------------- |
-| eucore            | BTER              | done                  | done                  | in progress           | done                  |                               |
-|      <i></i>      | BUGGE             | done                  | done                  | in progress           | done                  |                               |
-|      <i></i>      | Chung-Lu          | done                  | done                  | in progress           | done                  |                               |
-|      <i></i>      | CNRG              | done                  | done                  | in progress           | done                  |                               |
-|      <i></i>      | Erdos-Renyi       | done                  | done                  | in progress           | done                  |                               |
-|      <i></i>      | HRG               | done                  | done                  | in progress           | done                  |                               |
-|      <i></i>      | Kronecker         | done                  | done                  | in progress           | done                  | 28 trials complete            |
-|      <i></i>      | SBM               | done                  | done                  | in progress           | done                  |                               |
+| eucore            | BTER              | done                  | done                  | done                  | done                  |                               |
+|      <i></i>      | BUGGE             | done                  | done                  | done                  | done                  |                               |
+|      <i></i>      | Chung-Lu          | done                  | done                  | done                  | done                  |                               |
+|      <i></i>      | CNRG              | done                  | done                  | done                  | done                  |                               |
+|      <i></i>      | Erdos-Renyi       | done                  | done                  | done                  | done                  |                               |
+|      <i></i>      | HRG               | done                  | done                  | done                  | done                  |                               |
+|      <i></i>      | Kronecker         | done                  | done                  | done                  | done                  | 28 trials complete            |
+|      <i></i>      | SBM               | done                  | done                  | done                  | done                  |                               |
 |      <i></i>      |                   |                       |                       |                       |                       |                               |
 |      <i></i>      | GraphRNN          | done                  |                       |                       |                       | 2 trials complete             |
 |      <i></i>      | NetGAN            | done                  | done                  | done                  | done                  |                               |
 |      <i></i>      |                   |                       |                       |                       |                       |                               |
-|      <i></i>      | Deep GCN AE       | done                  | done                  | in progress           | done                  |                               |
-|      <i></i>      | Deep GCN VAE      | done                  | done                  | in progress           | done                  |                               |
-|      <i></i>      | GCN AE            | done                  | done                  | in progress           | done                  |                               |
-|      <i></i>      | GCN VAE           | done                  | done                  | in progress           | done                  |                               |
-|      <i></i>      | Linear AE         | done                  | done                  | in progress           | done                  |                               |
-|      <i></i>      | Linear VAE        | done                  | done                  | in progress           | done                  |                               |
+|      <i></i>      | Deep GCN AE       | done                  | done                  | done                  | done                  |                               |
+|      <i></i>      | Deep GCN VAE      | done                  | done                  | done                  | done                  |                               |
+|      <i></i>      | GCN AE            | done                  | done                  | done                  | done                  |                               |
+|      <i></i>      | GCN VAE           | done                  | done                  | done                  | done                  |                               |
+|      <i></i>      | Linear AE         | done                  | done                  | done                  | done                  |                               |
+|      <i></i>      | Linear VAE        | done                  | done                  | done                  | done                  |                               |
 |      <i></i>      |      <i></i>      |        <i></i>        |        <i></i>        |        <i></i>        |        <i></i>        |            <i></i>            |
 | clique-ring-500-4 | BTER              | done                  | done                  |                       | done                  |                               |
 |      <i></i>      | BUGGE             | done                  | done                  |                       | done                  |                               |
@@ -76,14 +76,14 @@
 |      <i></i>      | Linear AE         |                       |                       |                       |                       |                               |
 |      <i></i>      | Linear VAE        |                       |                       |                       |                       |                               |
 |      <i></i>      |      <i></i>      |        <i></i>        |        <i></i>        |        <i></i>        |        <i></i>        |            <i></i>            |
-| chess             | BTER              | done                  |                       |                       | done                  |                               |
-|      <i></i>      | BUGGE             | done                  |                       |                       | done                  |                               |
-|      <i></i>      | Chung-Lu          | done                  |                       |                       | done                  |                               |
-|      <i></i>      | CNRG              | done                  |                       |                       | done                  |                               |
-|      <i></i>      | Erdos-Renyi       | done                  |                       |                       | done                  |                               |
-|      <i></i>      | HRG               | done                  |                       |                       |                       |                               |
+| chess             | BTER              | done                  | in progress           |                       | done                  |                               |
+|      <i></i>      | BUGGE             | done                  | in progress           |                       | done                  |                               |
+|      <i></i>      | Chung-Lu          | done                  | in progress           |                       | done                  |                               |
+|      <i></i>      | CNRG              | done                  | in progress           |                       | done                  |                               |
+|      <i></i>      | Erdos-Renyi       | done                  | in progress           |                       | done                  |                               |
+|      <i></i>      | HRG               | done                  | in progress           |                       |                       |                               |
 |      <i></i>      | Kronecker         |                       |                       |                       |                       |                               |
-|      <i></i>      | SBM               | done                  |                       |                       | done                  |                               |
+|      <i></i>      | SBM               | done                  | in progress           |                       | done                  |                               |
 |      <i></i>      |                   |                       |                       |                       |                       |                               |
 |      <i></i>      | GraphRNN          | in progress           |                       |                       |                       |                               |
 |      <i></i>      | NetGAN            | done                  | done                  | done                  | done                  |                               |
