@@ -60,7 +60,7 @@ def main(base_path, dataset, models):
                     print(f'\tdone')
 
 base_path = '/data/dgonza26'
-dataset = 'eucore'
-models = ['GraphRNN', 'Kronecker']
+dataset = 'chess'
+models = ['BTER', 'BUGGE', 'Chung-Lu', 'CNRG', 'Erdos-Renyi', 'HRG', 'SBM']
 
 main(base_path, dataset, models)
