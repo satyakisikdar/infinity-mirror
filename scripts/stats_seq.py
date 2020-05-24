@@ -9,6 +9,7 @@ from glob import glob
 from statistics import median_low
 
 from src.Tree import TreeNode
+from src.Tree import LightTreeNode
 from src.utils import load_pickle
 from src.graph_stats import GraphStats
 from src.graph_comparison import GraphPairCompare
@@ -28,7 +29,7 @@ def main(base_path, dataset, models):
         for subdir, dirs, files in os.walk(path):
             for filename in files:
                 if 'seq' not in filename:
-                #if 'augmented' not in filename:
+                    run_id = int(filename.split('.')[0].split('_')[-1])
                     string = subdir.split('/')[-2:]
                     file = os.path.join(subdir, filename)
                     newfile = file.split('.')[0]
@@ -39,13 +40,38 @@ def main(base_path, dataset, models):
                     print(f'starting\t{string[-2]}\t{string[-1]}\t{filename} ... ', end='', flush=True)
                     root = load_pickle(file)
                     node = root
+                    try:
+                        node.stats_seq
+                    except AttributeError:
+                        if type(node) is LightTreeNode:
+                            node_graph_stats = GraphStats(run_id=run_id, graph=node.graph)
+                            comparator = GraphPairCompare(GraphStats(graph=root.graph, run_id=run_id), \
+                                                          GraphStats(graph=root.graph, run_id=run_id))
+                            stats = {}
+                            stats['lambda_dist'] = comparator.lambda_dist()
+                            stats['node_diff'] = comparator.node_diff()
+                            stats['edge_diff'] = comparator.edge_diff()
+                            stats['pgd_pearson'] = comparator.pgd_pearson()
+                            stats['pgd_spearman'] = comparator.pgd_spearman()
+                            stats['deltacon0'] = comparator.deltacon0()
+                            stats['degree_cvm'] = comparator.cvm_degree()
+                            stats['pagerank_cvm'] = comparator.cvm_pagerank()
+                            node = TreeNode(name=node.name, graph=node.graph, stats=stats, stats_seq={}, parent=node.parent, children=node.children)
+                        elif type(node) is TreeNode:
+                            node = TreeNode(name=node.name, graph=node.graph, stats=node.stats, stats_seq={}, parent=node.parent, children=node.children)
+                        else:
+                            print(f'node has unknown type: {type(node)}')
+                            exit()
                     if node.stats_seq is None or node.stats_seq == {}:
                         node.stats_seq = {}
                         while len(node.children) > 0:
                             child = node.children[0]
-                            comparator = GraphPairCompare(GraphStats(graph=node.graph, run_id=0),\
-                                                            GraphStats(graph=child.graph, run_id=0))
-                            child.stats_seq = {}
+                            try:
+                                child.stats_seq = {}
+                            except AttributeError:
+                                child = TreeNode(name=child.name, graph=child.graph, stats=child.stats, stats_seq={}, parent=child.parent, children=child.children)
+                            comparator = GraphPairCompare(GraphStats(graph=node.graph, run_id=run_id), \
+                                                          GraphStats(graph=child.graph, run_id=run_id))
                             child.stats_seq['lambda_dist'] = comparator.lambda_dist()
                             child.stats_seq['node_diff'] = comparator.node_diff()
                             child.stats_seq['edge_diff'] = comparator.edge_diff()
@@ -60,7 +86,7 @@ def main(base_path, dataset, models):
                     print(f'\tdone')
 
 base_path = '/data/dgonza26'
-dataset = 'chess'
-models = ['BTER', 'BUGGE', 'Chung-Lu', 'CNRG', 'Erdos-Renyi', 'HRG', 'SBM']
+dataset = 'flights'
+models = ['BUGGE']
 
 main(base_path, dataset, models)
