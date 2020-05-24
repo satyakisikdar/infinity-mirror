@@ -182,15 +182,17 @@ if __name__ == '__main__':
     ratio = 5
     if False:
         #g = nx.karate_club_graph(); gname = 'karate'
-        n = 100
+        n = 500
         g = nx.ring_of_cliques(n, 4); gname = f'ring-cliq-{n}-4_size{size}_ratio{ratio}'
         g.name = gname
         graphs = [nx.Graph(g) for _ in range(50)]
+        print(f'input graph: {gname}')
     else:
         base_path = '/home/danielgonzalez/repos/infinity-mirror/input/'
-        dataset = 'eucore'
+        dataset = 'chess'
         g = init(os.path.join(base_path, dataset + '.g'))
         graphs = [nx.Graph(g) for _ in range(50)]; gname = f'{dataset}_size{size}_ratio{ratio}'
+        print(f'input graph: {dataset}')
 
     model_type = 'mlp'
 
