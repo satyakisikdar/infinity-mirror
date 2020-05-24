@@ -186,16 +186,16 @@ if __name__ == '__main__':
         g = nx.ring_of_cliques(n, 4); gname = f'ring-cliq-{n}-4_size{size}_ratio{ratio}'
         g.name = gname
         graphs = [nx.Graph(g) for _ in range(50)]
-        print(f'input graph: {gname}')
     else:
         base_path = '/home/danielgonzalez/repos/infinity-mirror/input/'
         dataset = 'chess'
         g = init(os.path.join(base_path, dataset + '.g'))
         graphs = [nx.Graph(g) for _ in range(50)]; gname = f'{dataset}_size{size}_ratio{ratio}'
-        print(f'input graph: {dataset}')
 
     model_type = 'mlp'
+    input_graph = gname.split('_')[0]
 
     for gen_id in range(1, 21):
         print(f'\nround {gen_id}\n')
+        print(f'input graph: {input_graph}')
         graphs = fit(graphs=graphs, model_type=model_type, gname=gname, gen_id=gen_id)
