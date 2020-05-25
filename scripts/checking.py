@@ -18,7 +18,6 @@ from src.graph_comparison import GraphPairCompare
 graphs = ['eucore', 'clique-ring-500-4', 'flights', 'tree', 'chess']
 
 base_path = '/data/dgonza26'
-#base_path = '/Users/akira/data/'
 dataset = 'eucore'
 models = ['Linear_VAE']
 
@@ -29,7 +28,8 @@ def main():
         path = os.path.join(base_path, dataset, model)
         for subdir, dirs, files in os.walk(path):
             for filename in files:
-                if '_augmented' not in filename:
+                #if '_augmented' not in filename:
+                if True:
                     print(f'\tchecking {filename}')
                     root = load_pickle(os.path.join(subdir, filename))
                     root = root.children[0]
