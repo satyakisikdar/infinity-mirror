@@ -69,12 +69,12 @@
 |      <i></i>      | GraphRNN          | done          | done          |               |               |               | 3 trials complete             |
 |      <i></i>      | NetGAN            | done          | done          | done          | done          | done          |                               |
 |      <i></i>      |                   |               |               |               |               |               |                               |
-|      <i></i>      | Deep GCN AE       | x             |               |               |               |               |                               |
-|      <i></i>      | Deep GCN VAE      | x             |               |               |               |               |                               |
-|      <i></i>      | GCN AE            | x             |               |               |               |               |                               |
-|      <i></i>      | GCN VAE           | x             |               |               |               |               |                               |
-|      <i></i>      | Linear AE         | x             |               |               |               |               |                               |
-|      <i></i>      | Linear VAE        | x             |               |               |               |               |                               |
+|      <i></i>      | Deep GCN AE       | in progress   |               |               |               |               |                               |
+|      <i></i>      | Deep GCN VAE      | in progress   |               |               |               |               |                               |
+|      <i></i>      | GCN AE            | in progress   |               |               |               |               |                               |
+|      <i></i>      | GCN VAE           | in progress   |               |               |               |               |                               |
+|      <i></i>      | Linear AE         | in progress   |               |               |               |               |                               |
+|      <i></i>      | Linear VAE        | in progress   |               |               |               |               |                               |
 |      <i></i>      |      <i></i>      |    <i></i>    |    <i></i>    |    <i></i>    |    <i></i>    |    <i></i>    | <i></i>                       |
 | chess             | BTER              | done          | done          | in progress   |               | done          |                               |
 |      <i></i>      | BUGGE             | done          | done          | in progress   |               | done          |                               |
