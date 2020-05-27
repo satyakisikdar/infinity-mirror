@@ -216,4 +216,4 @@ class GraphPairCompare:
         dist = kl_div(deg1, deg2)
         self.stats['kl_div'] = dist
 
-        return round(dist, 3)
+        return dist.round(3)
