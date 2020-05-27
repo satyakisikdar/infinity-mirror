@@ -7,9 +7,10 @@ from typing import Dict, List, Any
 import networkx as nx
 import numpy as np
 import scipy.stats
+from scipy.special import kl_div
 from numpy import linalg as la
 
-from src.utils import fast_bp, _pad, cvm_distance
+from src.utils import fast_bp, _pad, cvm_distance, ks_distance
 from src.GCD import GCD
 from src.graph_stats import GraphStats
 
@@ -182,5 +183,33 @@ class GraphPairCompare:
 
         dist = cvm_distance(deg1, deg2)
         self.stats['degree_cvm'] = dist
+
+        return round(dist, 3)
+
+    def ks_test(self) -> float:
+        """
+        Calculate the KS distance of the degree distr
+        """
+        deg1 = list(self.gstats1['degree_dist'].values())
+        deg2 = list(self.gstats2['degree_dist'].values())
+
+        dist = ks_distance(deg1, deg2)
+        self.stats['ks_dist'] = dist
+
+        return round(dist, 3)
+
+    def kl_divergence(self) -> float:
+        """
+        Calculate the CVM distance of the degree distr
+        """
+        # if deg1 is None:
+        #     deg1 = nx.degree_histogram(self.graph1)
+        # if deg2 is None:
+        #     deg2 = nx.degree_histogram(self.graph2)
+        deg1 = list(self.gstats1['degree_dist'].values())
+        deg2 = list(self.gstats2['degree_dist'].values())
+
+        dist = kl_div(deg1, deg2)
+        self.stats['kl_div'] = dist
 
         return round(dist, 3)
