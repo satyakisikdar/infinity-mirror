@@ -213,7 +213,7 @@ class GraphPairCompare:
         deg1 = list(dist1.values())
         deg2 = list(dist2.values())
 
-        div = scipy.stats.entropy(deg1, deg2) = scipy.stats.entropy(deg2, deg1)
+        div = scipy.stats.entropy(deg1, deg2) + scipy.stats.entropy(deg2, deg1)
         self.stats['kl_div'] = div
 
         return np.round(div, 3)
