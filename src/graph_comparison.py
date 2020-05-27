@@ -202,12 +202,16 @@ class GraphPairCompare:
         """
         Calculate the CVM distance of the degree distr
         """
-        # if deg1 is None:
-        #     deg1 = nx.degree_histogram(self.graph1)
-        # if deg2 is None:
-        #     deg2 = nx.degree_histogram(self.graph2)
-        deg1 = list(self.gstats1['degree_dist'].values())
-        deg2 = list(self.gstats2['degree_dist'].values())
+        #deg1 = list(self.gstats1['degree_dist'].values())
+        #deg2 = list(self.gstats2['degree_dist'].values())
+        dist1 = self.gstats1['degree_dist']
+        dist2 = self.gstats2['degree_dist']
+        union = set(self.gstats1['degree_dist']) | set(self.gstats2['degree_dist'])
+        for key in union:
+            dist1[key] = dist1.get(key, 0)
+            dist2[key] = dist2.get(key, 0)
+        deg1 = list(dist1.values())
+        deg2 = list(dist2.values())
 
         dist = kl_div(deg1, deg2)
         self.stats['kl_div'] = dist
