@@ -7,7 +7,7 @@ from typing import Dict, List, Any
 import networkx as nx
 import numpy as np
 import scipy.stats
-from scipy.special import kl_div
+from scipy.spatial import distance
 from numpy import linalg as la
 
 from src.utils import fast_bp, _pad, cvm_distance, ks_distance
@@ -27,7 +27,7 @@ class GraphPairCompare:
         self.graph1: nx.Graph = gstats1.graph
         self.graph2: nx.Graph = gstats2.graph
         self.stats: Dict[str, float] = {}
-        #self.calculate()
+        self.calculate()
         return
 
     def __str__(self) -> str:
@@ -49,6 +49,7 @@ class GraphPairCompare:
         self.deltacon0()
         self.cvm_degree()
         self.cvm_pagerank()
+        self.js_distance()
 
         if self.graph2.order() == 1 or 'blank' in self.graph2.name:  # empty graph
             for key in self.stats:
@@ -74,7 +75,6 @@ class GraphPairCompare:
         self.stats['pgd_spearman'] = dist
 
         return round(dist, 3)
-
 
     def pgd_pearson(self) -> float:
         graphlet_dict_1 = self.gstats1['pgd_graphlet_counts']
@@ -202,8 +202,6 @@ class GraphPairCompare:
         """
         Calculate the KL distance of the degree distr
         """
-        #deg1 = list(self.gstats1['degree_dist'].values())
-        #deg2 = list(self.gstats2['degree_dist'].values())
         dist1 = self.gstats1['degree_dist']
         dist2 = self.gstats2['degree_dist']
         union = set(self.gstats1['degree_dist'].keys()) | set(self.gstats2['degree_dist'].keys())
@@ -218,20 +216,16 @@ class GraphPairCompare:
 
         return np.round(div, 3)
 
-    #def kl_divergence(self) -> float:
-    #    Calculate the CVM distance of the degree distr
-    #    #deg1 = list(self.gstats1['degree_dist'].values())
-    #    #deg2 = list(self.gstats2['degree_dist'].values())
-    #    dist1 = self.gstats1['degree_dist']
-    #    dist2 = self.gstats2['degree_dist']
-    #    union = set(self.gstats1['degree_dist']) | set(self.gstats2['degree_dist'])
-    #    for key in union:
-    #        dist1[key] = dist1.get(key, 0)
-    #        dist2[key] = dist2.get(key, 0)
-    #    deg1 = list(dist1.values())
-    #    deg2 = list(dist2.values())
+    def js_distance(self):
+        dist1 = self.gstats1['degree_dist']
+        dist2 = self.gstats2['degree_dist']
+        union = set(self.gstats1['degree_dist'].keys()) | set(self.gstats2['degree_dist'].keys())
+        for key in union:
+            dist1[key] = dist1.get(key, 0)
+            dist2[key] = dist2.get(key, 0)
+        deg1 = np.asarray(list(dist1.values())) + 0.00001
+        deg2 = np.asarray(list(dist2.values())) + 0.00001
+        JS_distance = distance.jensenshannon(deg1, deg2, base=2.0)
+        self.stats['js_dis'] = JS_distance
 
-    #    dist = kl_div(deg1, deg2)
-    #    self.stats['kl_div'] = dist
-
-    #    return np.round(dist, 3)
+        return np.round(JS_distance, 3)
