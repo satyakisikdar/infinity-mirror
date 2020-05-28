@@ -200,18 +200,18 @@ class GraphPairCompare:
 
     def kl_divergence(self) -> float:
         """
-        Calculate the CVM distance of the degree distr
+        Calculate the KL distance of the degree distr
         """
         #deg1 = list(self.gstats1['degree_dist'].values())
         #deg2 = list(self.gstats2['degree_dist'].values())
         dist1 = self.gstats1['degree_dist']
         dist2 = self.gstats2['degree_dist']
-        union = set(self.gstats1['degree_dist']) | set(self.gstats2['degree_dist'])
+        union = set(self.gstats1['degree_dist'].keys()) | set(self.gstats2['degree_dist'].keys())
         for key in union:
             dist1[key] = dist1.get(key, 0)
             dist2[key] = dist2.get(key, 0)
-        deg1 = list(dist1.values())
-        deg2 = list(dist2.values())
+        deg1 = np.asarray(list(dist1.values())) + 0.00001
+        deg2 = np.asarray(list(dist2.values())) + 0.00001
 
         div = scipy.stats.entropy(deg1, deg2) + scipy.stats.entropy(deg2, deg1)
         self.stats['kl_div'] = div
@@ -219,9 +219,7 @@ class GraphPairCompare:
         return np.round(div, 3)
 
     #def kl_divergence(self) -> float:
-    #    """
     #    Calculate the CVM distance of the degree distr
-    #    """
     #    #deg1 = list(self.gstats1['degree_dist'].values())
     #    #deg2 = list(self.gstats2['degree_dist'].values())
     #    dist1 = self.gstats1['degree_dist']
