@@ -27,7 +27,7 @@ class GraphPairCompare:
         self.graph1: nx.Graph = gstats1.graph
         self.graph2: nx.Graph = gstats2.graph
         self.stats: Dict[str, float] = {}
-        self.calculate()
+        #self.calculate()
         return
 
     def __str__(self) -> str:
