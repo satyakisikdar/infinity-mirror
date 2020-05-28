@@ -185,9 +185,10 @@ class InfinityMirror:
             f'Running Infinity Mirror on "{self.initial_graph.name}" {self.initial_graph.order(), self.initial_graph.size()} "{self.model.model_name}" {self.num_generations} generations')
         pbar = tqdm(total=self.num_generations, bar_format='{l_bar}{bar}|[{elapsed}<{remaining}]', ncols=50)
 
+        graph_list = [self.initial_graph]
+
         for i in range(self.num_generations):
             if i == 0:
-                tnode = self.root  # start with the root
                 curr_graph = self.initial_graph  # current graph is the initial graph
 
             level = i + 1
@@ -208,12 +209,13 @@ class InfinityMirror:
 
             curr_graph = generated_graphs[0]  # we are only generating one graph
             curr_graph.name = f'{self.initial_graph.name}_{self.selection}_{level}_{self.run_id}'
-            tnode = LightTreeNode(name=f'{self.selection}_{level}', graph=curr_graph, parent=tnode)
+            graph_list.append(curr_graph)
+
             pbar.update(1)
 
         pbar.close()
         CP.print_green(f'LightTreeNode root object is pickled at "{self.root_pickle_path + pickle_ext}"')
-        pickle.dump(self.root, open(self.root_pickle_path + pickle_ext, 'wb'), protocol=-1)  # use highest possible protocol
+        pickle.dump(graph_list, open(self.root_pickle_path + pickle_ext, 'wb'), protocol=-1)  # use highest possible protocol
         return
 
     def write_timing_stats(self, time_taken) -> None:
