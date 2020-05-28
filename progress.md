@@ -39,7 +39,7 @@
 |      <i></i>      | Linear VAE        |               |               |               |               |               |                               |
 |      <i></i>      |      <i></i>      |    <i></i>    |    <i></i>    |    <i></i>    |    <i></i>    |    <i></i>    | <i></i>                       |
 | flights           | BTER              | done          | done          | done          | done          | done          |                               |
-|      <i></i>      | BUGGE             | done          | in progress   | in progress   |               | done          |                               |
+|      <i></i>      | BUGGE             | done          |               |               |               | done          |                               |
 |      <i></i>      | Chung-Lu          | done          | done          | done          | done          | done          |                               |
 |      <i></i>      | CNRG              | done          | done          | done          | done          | done          |                               |
 |      <i></i>      | Erdos-Renyi       | done          | done          | done          | done          | done          |                               |
