@@ -7,9 +7,10 @@ from typing import Dict, List, Any
 import networkx as nx
 import numpy as np
 import scipy.stats
+from scipy.special import kl_div
 from numpy import linalg as la
 
-from src.utils import fast_bp, _pad, cvm_distance
+from src.utils import fast_bp, _pad, cvm_distance, ks_distance
 from src.GCD import GCD
 from src.graph_stats import GraphStats
 
@@ -26,7 +27,7 @@ class GraphPairCompare:
         self.graph1: nx.Graph = gstats1.graph
         self.graph2: nx.Graph = gstats2.graph
         self.stats: Dict[str, float] = {}
-        self.calculate()
+        #self.calculate()
         return
 
     def __str__(self) -> str:
@@ -184,3 +185,53 @@ class GraphPairCompare:
         self.stats['degree_cvm'] = dist
 
         return round(dist, 3)
+
+    def ks_test(self) -> float:
+        """
+        Calculate the KS distance of the degree distr
+        """
+        deg1 = list(self.gstats1['degree_dist'].values())
+        deg2 = list(self.gstats2['degree_dist'].values())
+
+        dist = ks_distance(deg1, deg2)
+        self.stats['ks_dist'] = dist
+
+        return round(dist, 3)
+
+    def kl_divergence(self) -> float:
+        """
+        Calculate the KL distance of the degree distr
+        """
+        #deg1 = list(self.gstats1['degree_dist'].values())
+        #deg2 = list(self.gstats2['degree_dist'].values())
+        dist1 = self.gstats1['degree_dist']
+        dist2 = self.gstats2['degree_dist']
+        union = set(self.gstats1['degree_dist'].keys()) | set(self.gstats2['degree_dist'].keys())
+        for key in union:
+            dist1[key] = dist1.get(key, 0)
+            dist2[key] = dist2.get(key, 0)
+        deg1 = np.asarray(list(dist1.values())) + 0.00001
+        deg2 = np.asarray(list(dist2.values())) + 0.00001
+
+        div = scipy.stats.entropy(deg1, deg2) + scipy.stats.entropy(deg2, deg1)
+        self.stats['kl_div'] = div
+
+        return np.round(div, 3)
+
+    #def kl_divergence(self) -> float:
+    #    Calculate the CVM distance of the degree distr
+    #    #deg1 = list(self.gstats1['degree_dist'].values())
+    #    #deg2 = list(self.gstats2['degree_dist'].values())
+    #    dist1 = self.gstats1['degree_dist']
+    #    dist2 = self.gstats2['degree_dist']
+    #    union = set(self.gstats1['degree_dist']) | set(self.gstats2['degree_dist'])
+    #    for key in union:
+    #        dist1[key] = dist1.get(key, 0)
+    #        dist2[key] = dist2.get(key, 0)
+    #    deg1 = list(dist1.values())
+    #    deg2 = list(dist2.values())
+
+    #    dist = kl_div(deg1, deg2)
+    #    self.stats['kl_div'] = dist
+
+    #    return np.round(dist, 3)
