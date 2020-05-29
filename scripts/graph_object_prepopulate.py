@@ -27,8 +27,8 @@ def get_filenames(base_path, dataset, models):
     ColorPrint.print_bold(f"Found {len(filenames)} graph files to be loaded.")
     return filenames
 
-def load_graph(filename):
-    root = load_pickle(filename)
+def load_graph(path):
+    root = load_pickle(path)
     return root
 
 def do_thing_function(idx, graph):
@@ -45,7 +45,6 @@ filenames = get_filenames(input_path, dataset, models)
 
 read_pbar = tqdm(len(filenames), desc="Reading Files")
 work_pbar = tqdm(len(filenames), desc="Processing Files")
-
 
 graphs_list = []
 

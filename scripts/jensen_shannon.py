@@ -12,19 +12,14 @@ from src.utils import load_pickle
 from src.graph_stats import GraphStats
 from src.graph_comparison import GraphPairCompare
 
-def load_data(base_path, dataset, models):
+def load_data(base_path, dataset, models, flag):
     for model in models:
-        count = 0
         path = os.path.join(base_path, dataset, model)
         for subdir, dirs, files in os.walk(path):
             for filename in files:
-                if 'seq' not in filename and 'rob' not in filename:
+                if (flag or 'seq' not in filename) and 'rob' not in filename:
                     print(f'loading {subdir} {filename}')
-                    count += 1
-                    if count <= 5:
-                        yield load_pickle(os.path.join(subdir, filename)), subdir.split('/')[-1]
-                    else:
-                        break
+                    yield load_pickle(os.path.join(subdir, filename)), subdir.split('/')[-1]
 
 def absolute(root):
     for node in list(root.descendants):
@@ -69,6 +64,12 @@ def construct_table(abs_js, seq_js, gen, M):
     abs_mean, abs_ci = stats(abs_js)
     seq_mean, seq_ci = stats(seq_js)
 
+    #if len()
+
+    print(abs_mean)
+    print(seq_mean)
+    print(abs_ci)
+    print(seq_ci)
     rows = {'model': M, 'gen': gen, 'abs_mean': abs_mean, 'abs-95%': abs_ci[:,0], 'abs+95%': abs_ci[:,1], 'seq_mean': seq_mean, 'seq-95%': seq_ci[:,0], 'seq+95%': seq_ci[:,1]}
 
     df = pd.DataFrame(rows)
@@ -76,15 +77,15 @@ def construct_table(abs_js, seq_js, gen, M):
 
 def main():
     base_path = '/data/infinity-mirror'
-    dataset = 'chess'
+    dataset = 'flights'
     #models = ['BTER', 'BUGGE', 'Chung-Lu', 'CNRG', 'Erdos-Renyi', 'HRG', 'NetGAN', 'SBM']
-    models = ['BUGGE']
+    models = ['Erdos-Renyi']
     model = models[0]
 
     abs_js = []
     seq_js = []
     gen = []
-    for root, model in load_data(base_path, dataset, models):
+    for root, model in load_data(base_path, dataset, models, True):
         abs_js.append(absolute_js(root))
         seq_js.append(sequential_js(root))
     abs_mean, abs_ci = stats(abs_js)
