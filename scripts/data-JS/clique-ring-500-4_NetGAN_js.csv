@@ -1,0 +1,7 @@
+model	gen	abs_mean	abs-95%	abs+95%	seq_mean	seq-95%	seq+95%
+NetGAN	1	0.6300000	nan	nan	0.6300000	nan	nan
+NetGAN	2	0.5150000	nan	nan	0.1510000	nan	nan
+NetGAN	3	0.4300000	nan	nan	0.1220000	nan	nan
+NetGAN	4	0.4430000	nan	nan	0.0430000	nan	nan
+NetGAN	5	0.4440000	nan	nan	0.0370000	nan	nan
+NetGAN	6	0.4510000	nan	nan	0.0440000	nan	nan
