@@ -6,7 +6,7 @@
 |      <i></i>      | CNRG              | done          | done          | done          | done          | done          |                               |
 |      <i></i>      | Erdos-Renyi       | done          | done          | done          | done          | done          |                               |
 |      <i></i>      | HRG               | done          | done          | done          | done          | done          |                               |
-|      <i></i>      | Kronecker         | done          | done          | done          | done          | done          | 28 trials complete            |
+|      <i></i>      | Kronecker         | in progress   | partial       | partial       | partial       | partial       | 28 trials complete            |
 |      <i></i>      | SBM               | done          | done          | done          | done          | done          |                               |
 |      <i></i>      |                   |               |               |               |               |               |                               |
 |      <i></i>      | GraphRNN          | done          | done          |               |               |               | 2 trials complete             |
@@ -25,7 +25,7 @@
 |      <i></i>      | CNRG              | done          | done          | done          | done          | done          |                               |
 |      <i></i>      | Erdos-Renyi       | done          | done          | done          | done          | done          |                               |
 |      <i></i>      | HRG               | done          | done          | done          | done          | done          | all failures                  |
-|      <i></i>      | Kronecker         | in progress   |               | partial       | partial       | done          | 6 trials complete (so far)    |
+|      <i></i>      | Kronecker         | done          |               |               |               |               | some failures                 |
 |      <i></i>      | SBM               | done          | done          | done          | done          | done          |                               |
 |      <i></i>      |                   |               |               |               |               |               |                               |
 |      <i></i>      | GraphRNN          | done          | done          |               |               |               | 12 trials complete            |
@@ -44,7 +44,7 @@
 |      <i></i>      | CNRG              | done          | done          | done          | done          | done          |                               |
 |      <i></i>      | Erdos-Renyi       | done          | done          | done          | done          | done          |                               |
 |      <i></i>      | HRG               | done          | done          | done          |               | done          | all failures                  |
-|      <i></i>      | Kronecker         | in progress   |               |               |               |               |                               |
+|      <i></i>      | Kronecker         | done          |               |               |               |               |                               |
 |      <i></i>      | SBM               | done          | done          | done          | done          | done          |                               |
 |      <i></i>      |                   |               |               |               |               |               |                               |
 |      <i></i>      | GraphRNN          | in progress   |               |               |               |               |                               |
