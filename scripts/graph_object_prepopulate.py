@@ -10,6 +10,10 @@ from src.utils import load_pickle, ColorPrint
 
 import multiprocessing as mp
 
+import threading
+
+import time
+
 def get_filenames(base_path, dataset, models):
     filenames = []
     for model in models:
@@ -27,6 +31,9 @@ def load_graph(filename):
     root = load_pickle(filename)
     return root
 
+def do_thing_function(idx, graph):
+    ColorPrint.print_green(f'Did a thing.')
+    return idx
 
 input_path = '/data/infinity-mirror'
 output_path = '/data/infinity-mirror/'
@@ -36,20 +43,51 @@ model = models[0]
 
 filenames = get_filenames(input_path, dataset, models)
 
-pbar = tqdm(len(filenames))
+read_pbar = tqdm(len(filenames), desc="Reading Files")
+work_pbar = tqdm(len(filenames), desc="Processing Files")
+
 
 graphs_list = []
 
-def update_progress(result):
-    # graphs_list.append(result)
-    pbar.update()
+active_reads_Lock = threading.Lock()
+active_reads = 0
+pending_work_Lock = threading.Lock()
+pending_work = 0
+active_work_Lock = threading.Lock()
+active_work = 0
 
+def read_update(result):
+    global active_reads
+    global pending_work
+    with active_reads_Lock:
+        active_reads -= 1
+    with pending_work_Lock:
+        pending_work += 1
+    graphs_list.append(result)
+    read_pbar.update()
 
-with mp.Pool(5) as pool:
-    for filename in filenames:
-        graphs_list.append(pool.apply_async(load_graph, [filename], callback=update_progress))
-    for obj in graphs_list:
-        obj.wait()
+def work_update():
+    global active_work
+    with active_work_Lock:
+        active_work -= 1
+    work_pbar.update()
+
+work_pool = mp.Pool(5)
+
+with mp.Pool(5) as read_pool:
+    while filenames:
+        filename = filenames.pop(0) # take the first item
+        active_reads += 1
+        read_pool.apply_async(load_graph, [filename], callback=read_update)
+        for idx, graph in enumerate(graphs_list):
+            active_work += 1
+            work_pool.apply_async(do_thing_function, (idx,graph), callback=work_update())
+            graphs_list.pop(idx)
+            pending_work -= 1
+        if active_reads+pending_work+active_work > 5:
+            time.sleep(10)
+
+work_pool.close()
 
 # single processed version for debugging
 # for filename in tqdm(filenames):
