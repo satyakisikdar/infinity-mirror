@@ -88,14 +88,9 @@ def get_filenames(base_path, dataset, models):
     ColorPrint.print_bold(f"Found {len(filenames)} graph files to be loaded.")
     return filenames
 
-<<<<<<< HEAD
-def load_graph(path):
-    root = load_pickle(path)
-=======
 def load_graph(filename):
     # todo: ask about the slice
     root = load_pickle(filename)[-1]
->>>>>>> f44a38baa490a2fc2ae691e01eae67ce98832b4f
     return root
 
 def do_thing_function(graph):
@@ -121,10 +116,6 @@ M = []
 read_pbar = tqdm(len(filenames), desc="Reading Files")
 work_pbar = tqdm(len(filenames), desc="Processing Files")
 
-<<<<<<< HEAD
-graphs_list = []
-=======
->>>>>>> f44a38baa490a2fc2ae691e01eae67ce98832b4f
 
 active_reads_Lock = threading.Lock()
 active_reads = 0
