@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import networkx as nx
 import scipy.stats as st
+import multiprocessing as mp
 from src.Tree import TreeNode
 from src.utils import load_pickle
 from src.graph_stats import GraphStats
@@ -13,12 +14,17 @@ from src.graph_comparison import GraphPairCompare
 
 def load_data(base_path, dataset, models):
     for model in models:
+        count = 0
         path = os.path.join(base_path, dataset, model)
         for subdir, dirs, files in os.walk(path):
             for filename in files:
                 if 'seq' not in filename and 'rob' not in filename:
                     print(f'loading {subdir} {filename}')
-                    yield load_pickle(os.path.join(subdir, filename)), subdir.split('/')[-1]
+                    count += 1
+                    if count <= 5:
+                        yield load_pickle(os.path.join(subdir, filename)), subdir.split('/')[-1]
+                    else:
+                        break
 
 def absolute(root):
     for node in list(root.descendants):
@@ -60,11 +66,8 @@ def stats(js):
     return np.asarray(mean), np.asarray(ci)
 
 def construct_table(abs_js, seq_js, gen, M):
-    #abs_js = [absolute_js(root) for root in roots]
-    #seq_js = [sequential_js(root) for root in roots]
     abs_mean, abs_ci = stats(abs_js)
     seq_mean, seq_ci = stats(seq_js)
-    #gen = [x for x in range(len(abs_mean))]
 
     rows = {'model': M, 'gen': gen, 'abs_mean': abs_mean, 'abs-95%': abs_ci[:,0], 'abs+95%': abs_ci[:,1], 'seq_mean': seq_mean, 'seq-95%': seq_ci[:,0], 'seq+95%': seq_ci[:,1]}
 
@@ -74,21 +77,28 @@ def construct_table(abs_js, seq_js, gen, M):
 def main():
     base_path = '/data/infinity-mirror'
     dataset = 'chess'
-    models = ['BTER', 'BUGGE', 'Chung-Lu', 'CNRG', 'Erdos-Renyi', 'HRG', 'NetGAN', 'SBM']
+    #models = ['BTER', 'BUGGE', 'Chung-Lu', 'CNRG', 'Erdos-Renyi', 'HRG', 'NetGAN', 'SBM']
+    models = ['BUGGE']
+    model = models[0]
 
     abs_js = []
     seq_js = []
     gen = []
-    M = []
     for root, model in load_data(base_path, dataset, models):
         abs_js.append(absolute_js(root))
         seq_js.append(sequential_js(root))
-        gen += [x for x in range(len(abs_js))]
-        M += [model for _ in range(len(abs_js))]
-    #roots = [root for root in load_data(base_path, dataset, models)]
+    abs_mean, abs_ci = stats(abs_js)
+    seq_mean, seq_ci = stats(seq_js)
+    gen = [x + 1 for x in range(len(abs_mean))]
+        #new_abs_js = absolute_js(root)
+        #new_seq_js = sequential_js(root)
+        #abs_js.append(new_abs_js)
+        #seq_js.append(new_seq_js)
+        #gen += [x for x in range(len(new_abs_js))]
+        #M += [model for _ in range(len(new_abs_js))]
 
-    df = construct_table(abs_js, seq_js, gen, M)
-    df.to_csv(f'data-JS/{dataset}_js.csv', float_format='%g', sep='\t', index=False)
+    df = construct_table(abs_js, seq_js, gen, model)
+    df.to_csv(f'data-JS/{dataset}_{model}_js.csv', float_format='%.7f', sep='\t', index=False)
 
     return
 
