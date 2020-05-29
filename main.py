@@ -28,7 +28,7 @@ def parse_args():
     model_names = {'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker', 'UniformRandom', 'GCN_AE',
                    'GCN_VAE', 'Linear_AE', 'Linear_VAE', 'Deep_GCN_AE', 'Deep_GCN_VAE', 'SBM', 'GraphForge',
                    'NetGAN', 'GraphRNN', '_BTER', 'BUGGE'}
-    selections = {'best', 'worst', 'median', 'all', 'fast'}
+    selections = {'fast',}
 
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)  # formatter class shows defaults in help
@@ -129,28 +129,17 @@ def run_infinity_mirror(args, run_id) -> None:
                 run_id=run_id)  # this is a roundabout way to ensure the name of GraphModel object is correct
     make_dirs(g.name, model=model_obj.model_name)
 
-    if selection == 'all':
-        for sel in 'best', 'median', 'worst':
-            inf = InfinityMirror(selection=sel, initial_graph=g, num_generations=num_gens, model_obj=model_obj,
-                                 num_graphs=num_graphs, run_id=run_id, r=rewire)
-            tic = time.perf_counter()
-            inf.run(use_pickle=use_pickle)
-            toc = time.perf_counter()
+    assert selection=='fast', 'invalid selection'
+    num_graphs = 1  # only 1 graph per generation
+    inf = InfinityMirror(initial_graph=g, num_generations=num_gens, model_obj=model_obj,
+                         num_graphs=num_graphs, run_id=run_id, r=rewire)
+    tic = time.perf_counter()
+    inf.run(use_pickle=use_pickle)
+    toc = time.perf_counter()
 
-            inf.write_timing_stats(round(toc - tic, 3))
-            print(run_id, inf)
-    else:
-        if selection == 'fast':
-            num_graphs = 1  # only 1 graph per generation
-        inf = InfinityMirror(selection=selection, initial_graph=g, num_generations=num_gens, model_obj=model_obj,
-                             num_graphs=num_graphs, run_id=run_id, r=rewire)
-        tic = time.perf_counter()
-        inf.run(use_pickle=use_pickle)
-        toc = time.perf_counter()
-
-        inf.write_timing_stats(round(toc - tic, 3))
-        print(run_id, inf)
-        return
+    inf.write_timing_stats(round(toc - tic, 3))
+    print(run_id, inf)
+    return
 
 
 @timer
