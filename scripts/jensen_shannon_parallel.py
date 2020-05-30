@@ -58,27 +58,42 @@ def flatten(L):
     return [item for sublist in L for item in sublist]
 
 
-def stats(js):
-    mean = np.mean(js, axis=0)
+def mkdir_output(path):
+    if not os.path.isdir(path):
+        try:
+            os.mkdir(path)
+        except OSError:
+            print('ERROR: could not make directory {path} for some reason')
+    return
+
+def compute_stats(js):
+    #mean = np.mean(js, axis=0)
+    #ci = []
+    #for row in np.asarray(js).T:
+    #    ci.append(st.t.interval(0.95, len(row) - 1, loc=np.mean(row), scale=st.sem(row)))
+    #return np.asarray(mean), np.asarray(ci)
+    print(js)
+    padding = max(len(l) for l in js)
+    for idx, l in enumerate(js):
+        while len(js[idx]) < padding:
+            js[idx] += [np.NaN]
+    mean = np.nanmean(js, axis=0)
     ci = []
     for row in np.asarray(js).T:
-        ci.append(st.t.interval(0.95, len(row) - 1, loc=np.mean(row), scale=st.sem(row)))
+        ci.append(st.t.interval(0.95, len(row)-1, loc=np.mean(row), scale=st.sem(row)))
     return np.asarray(mean), np.asarray(ci)
 
 
-def construct_table(abs_js, seq_js, gen, M):
-    # abs_js = [absolute_js(root) for root in roots]
-    # seq_js = [sequential_js(root) for root in roots]
-    abs_mean, abs_ci = stats(abs_js)
-    seq_mean, seq_ci = stats(seq_js)
-    # gen = [x for x in range(len(abs_mean))]
+def construct_table(abs_js, seq_js, gen, model):
+    abs_mean, abs_ci = compute_stats(abs_js)
+    seq_mean, seq_ci = compute_stats(seq_js)
+    gen = [x + 1 for x in range(len(abs_mean))]
 
-    rows = {'model': M, 'gen': gen, 'abs_mean': abs_mean, 'abs-95%': abs_ci[:, 0], 'abs+95%': abs_ci[:, 1],
+    rows = {'model': model, 'gen': gen, 'abs_mean': abs_mean, 'abs-95%': abs_ci[:, 0], 'abs+95%': abs_ci[:, 1],
             'seq_mean': seq_mean, 'seq-95%': seq_ci[:, 0], 'seq+95%': seq_ci[:, 1]}
 
     df = pd.DataFrame(rows)
     return df
-
 
 def get_filenames(base_path, dataset, models):
     filenames = []
@@ -86,8 +101,8 @@ def get_filenames(base_path, dataset, models):
         path = os.path.join(base_path, dataset, model)
         for subdir, dirs, files in os.walk(path):
             for filename in files:
-                if 'seq' not in filename and 'rob' not in filename:
-                    # print(f'loading {filename}')
+                if 'seq' in filename and 'rob' not in filename:
+                    print(f'loading {filename}')
                     filenames.append(os.path.join(subdir, filename))
                     # yield load_pickle(os.path.join(subdir, filename))
     ColorPrint.print_bold(f"Found {len(filenames)} graph files to be loaded.")
@@ -100,13 +115,12 @@ def load_graph(filename):
     return root
 
 
-def parallel_thing(model, root):
+def parallel_thing(root):
     local_abs_js = absolute_js(root)
     local_seq_js = sequential_js(root)
     local_gen = [x for x in range(len(abs_js))]
-    local_M = [model for _ in range(len(abs_js))]
 
-    return [local_abs_js, local_seq_js, local_gen, local_M]
+    return [local_abs_js, local_seq_js, local_gen]
 
 
 def driver():
@@ -114,22 +128,23 @@ def driver():
 
 
 if __name__ == '__main__':
-    input_path = '/data/infinity-mirror'
-    output_path = '/data/infinity-mirror/'
-    dataset = 'tree'
+    base_path = '/data/infinity-mirror'
+    dataset = 'eucore'
     models = ['BTER']
-    model = models[0]
+    num = 5
 
-    filenames = get_filenames(input_path, dataset, models)
+    output_path = os.path.join(base_path, dataset, models[0], 'jensen-shannon')
+    mkdir_output(output_path)
 
+    filenames = get_filenames(base_path, dataset, models)
     graphs_list = []
 
     results_lock = threading.Lock()
 
+    # pandas dict variables
     abs_js = []
     seq_js = []
     gen = []
-    M = []
 
     read_pbar = tqdm(len(filenames), desc="Reading Files", position=0, leave=False)
     work_pbar = tqdm(len(filenames), desc="Processing Files", position=1, leave=True)
@@ -160,12 +175,11 @@ if __name__ == '__main__':
             global abs_js
             global seq_js
             global gen
-            global M
+            #global M
 
             abs_js.append(result[0])
             seq_js.append(result[1])
             gen += result[2]
-            M += result[3]
 
         # update work status variables
         global active_work
@@ -174,11 +188,11 @@ if __name__ == '__main__':
         work_pbar.update()
 
 
-    work_pool = mp.Pool(5)
+    work_pool = mp.Pool(num)
 
-    with mp.Pool(5) as read_pool:
+    with mp.Pool(num) as read_pool:
         while filenames or graphs_list:
-            if active_reads + pending_work + active_work <= 5:
+            if active_reads + pending_work + active_work <= num:
                 if filenames:
                     filename = filenames.pop(0)  # take the first item
                     active_reads += 1
@@ -186,22 +200,25 @@ if __name__ == '__main__':
                     # graphs_list.append(read_update(load_graph(filename)))
                 for idx, graph in enumerate(graphs_list):
                     active_work += 1
-                    work_pool.apply_async(parallel_thing, (model, graph), callback=work_update)
+                    work_pool.apply_async(parallel_thing, (graph), callback=work_update)
                     graphs_list.pop(idx)
                     pending_work -= 1
             else:
                 for idx, graph in enumerate(graphs_list):
                     active_work += 1
-                    work_pool.apply_async(parallel_thing, (model, graph), callback=work_update)
+                    work_pool.apply_async(parallel_thing, (graph), callback=work_update)
                     graphs_list.pop(idx)
                     pending_work -= 1
                 # ColorPrint.print_blue(f'Sleeping {active_reads}, {pending_work}, {active_work}')
                 time.sleep(10)
     # wait until everything is off of the queue
-    while graphs_list:
-        time.sleep(5)
+    while active_work > 0:
+        time.sleep(num)
 
     work_pool.close()
 
-    df = construct_table(abs_js, seq_js, gen, model)
-    df.to_csv(f'data-JS/tf_test_{dataset}_{model}_js.csv', float_format='%.7f', sep='\t', index=False)
+    print(abs_js)
+    print(seq_js)
+    df = construct_table(abs_js, seq_js, gen, models[0])
+    df.to_csv(f'{output_path}/{dataset}/{models[0]}/', float_format='%.7f', sep='\t', index=False)
+    #df.to_csv(f'data-JS/tf_test_{dataset}_{models[0]}_js.csv', float_format='%.7f', sep='\t', index=False)
