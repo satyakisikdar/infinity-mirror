@@ -72,7 +72,6 @@ def compute_stats(js):
     #for row in np.asarray(js).T:
     #    ci.append(st.t.interval(0.95, len(row) - 1, loc=np.mean(row), scale=st.sem(row)))
     #return np.asarray(mean), np.asarray(ci)
-    print(js)
     padding = max(len(l) for l in js)
     for idx, l in enumerate(js):
         while len(js[idx]) < padding:
@@ -118,7 +117,7 @@ def load_graph(filename):
 def parallel_thing(root):
     local_abs_js = absolute_js(root)
     local_seq_js = sequential_js(root)
-    local_gen = [x for x in range(len(abs_js))]
+    local_gen = [x for x in range(len(local_abs_js))]
 
     return [local_abs_js, local_seq_js, local_gen]
 
@@ -131,7 +130,7 @@ if __name__ == '__main__':
     base_path = '/data/infinity-mirror'
     dataset = 'eucore'
     models = ['BTER']
-    num = 5
+    num = 10
 
     output_path = os.path.join(base_path, dataset, models[0], 'jensen-shannon')
     mkdir_output(output_path)
@@ -200,16 +199,16 @@ if __name__ == '__main__':
                     # graphs_list.append(read_update(load_graph(filename)))
                 for idx, graph in enumerate(graphs_list):
                     active_work += 1
-                    work_pool.apply_async(parallel_thing, (graph), callback=work_update)
+                    work_pool.apply_async(parallel_thing, [graph], callback=work_update)
                     graphs_list.pop(idx)
                     pending_work -= 1
             else:
                 for idx, graph in enumerate(graphs_list):
                     active_work += 1
-                    work_pool.apply_async(parallel_thing, (graph), callback=work_update)
+                    work_pool.apply_async(parallel_thing, [graph], callback=work_update)
                     graphs_list.pop(idx)
                     pending_work -= 1
-                # ColorPrint.print_blue(f'Sleeping {active_reads}, {pending_work}, {active_work}')
+                #ColorPrint.print_blue(f'Sleeping {active_reads}, {pending_work}, {active_work}')
                 time.sleep(10)
     # wait until everything is off of the queue
     while active_work > 0:
@@ -217,8 +216,6 @@ if __name__ == '__main__':
 
     work_pool.close()
 
-    print(abs_js)
-    print(seq_js)
     df = construct_table(abs_js, seq_js, gen, models[0])
-    df.to_csv(f'{output_path}/{dataset}/{models[0]}/', float_format='%.7f', sep='\t', index=False)
+    df.to_csv(f'{output_path}/{dataset}_{models[0]}_js.csv', float_format='%.7f', sep='\t', index=False)
     #df.to_csv(f'data-JS/tf_test_{dataset}_{models[0]}_js.csv', float_format='%.7f', sep='\t', index=False)
