@@ -2,7 +2,7 @@
 # coding: utf-8
 
 import os
-import sys;
+import sys
 import multiprocessing as mp
 import threading
 import time
@@ -20,29 +20,34 @@ from src.graph_stats import GraphStats
 from src.utils import load_pickle, ColorPrint
 
 
-def absolute(root):
-    for node in list(root.descendants):
-        comparator = GraphPairCompare(GraphStats(graph=root.graph, run_id=1), GraphStats(graph=node.graph, run_id=1))
+def compute_graph_stats(root):
+    graph_stats = [GraphStats(graph=node.graph, run_id=1) for node in [root] + list(root.descendants)]
+    return graph_stats
+
+
+def absolute(graph_stats):
+    for gs in graph_stats[1:]:
+        comparator = GraphPairCompare(graph_stats[0], gs)
         dist = comparator.js_distance()
         yield dist
 
 
-def sequential(root):
-    prev = root
-    for node in list(root.descendants):
-        comparator = GraphPairCompare(GraphStats(graph=prev.graph, run_id=1), GraphStats(graph=node.graph, run_id=1))
-        prev = node
+def sequential(graph_stats):
+    prev = graph_stats[0]
+    for curr in graph_stats[1:]:
+        comparator = GraphPairCompare(prev, curr)
+        prev = curr
         dist = comparator.js_distance()
         yield dist
 
 
-def absolute_js(root):
-    abs_js = [x for x in absolute(root)]
+def absolute_js(graph_stats):
+    abs_js = [x for x in absolute(graph_stats)]
     return abs_js
 
 
-def sequential_js(root):
-    seq_js = [x for x in sequential(root)]
+def sequential_js(graph_stats):
+    seq_js = [x for x in sequential(graph_stats)]
     return seq_js
 
 
@@ -63,11 +68,6 @@ def mkdir_output(path):
     return
 
 def compute_stats(js):
-    #mean = np.mean(js, axis=0)
-    #ci = []
-    #for row in np.asarray(js).T:
-    #    ci.append(st.t.interval(0.95, len(row) - 1, loc=np.mean(row), scale=st.sem(row)))
-    #return np.asarray(mean), np.asarray(ci)
     padding = max(len(l) for l in js)
     for idx, l in enumerate(js):
         while len(js[idx]) < padding:
@@ -125,8 +125,9 @@ def load_graph(filename):
 
 
 def parallel_thing(root):
-    local_abs_js = absolute_js(root)
-    local_seq_js = sequential_js(root)
+    graph_stats = compute_graph_stats(root)
+    local_abs_js = absolute_js(graph_stats)
+    local_seq_js = sequential_js(graph_stats)
 
     return [local_abs_js, local_seq_js]
 
@@ -138,7 +139,7 @@ def driver():
 if __name__ == '__main__':
     base_path = '/data/infinity-mirror'
     dataset = 'eucore'
-    models_list = ['Deep_GCN_AE', 'Deep_GCN_VAE', 'Erdos-Renyi', 'GCN_AE', 'GCN_VAE', 'HRG', 'Kronecker', 'Linear_AE', 'Linear_VAE', 'NetGAN', 'SBM']
+    models_list = ['BTER']
     num = 10
 
     for model in models_list:

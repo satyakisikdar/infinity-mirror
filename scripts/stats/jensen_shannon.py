@@ -1,6 +1,6 @@
 from collections import Counter
 import os
-import sys; sys.path.append('./../')
+import sys; sys.path.append('./../../')
 import pickle
 import numpy as np
 import pandas as pd
@@ -17,33 +17,37 @@ def load_data(base_path, dataset, models, flag):
         path = os.path.join(base_path, dataset, model)
         for subdir, dirs, files in os.walk(path):
             for filename in files:
-                if (flag or 'seq' not in filename) and 'rob' not in filename:
-                    print(f'loading {subdir} {filename}')
-                    yield load_pickle(os.path.join(subdir, filename)), subdir.split('/')[-1]
+                if 'jensen-shannon' not in subdir:
+                    if (flag or 'seq' not in filename) and 'rob' not in filename:
+                        print(f'loading {subdir} {filename}')
+                        yield load_pickle(os.path.join(subdir, filename)), subdir.split('/')[-1]
 
-def absolute(root):
-    for node in list(root.descendants):
-        comparator = GraphPairCompare(GraphStats(graph=root.graph, run_id=1), GraphStats(graph=node.graph, run_id=1))
+def compute_graph_stats(root):
+    return [GraphStats(graph=node.graph, run_id=1) for node in [root] + list(root.descendants)]
+
+def absolute(graph_stats):
+    for gs in graph_stats[1:]:
+        comparator = GraphPairCompare(graph_stats[0], gs)
         dist = comparator.js_distance()
         yield dist
 
-def sequential(root):
-    prev = root
-    for node in list(root.descendants):
-        comparator = GraphPairCompare(GraphStats(graph=prev.graph, run_id=1), GraphStats(graph=node.graph, run_id=1))
-        prev = node
+def sequential(graph_stats):
+    prev = graph_stats[0]
+    for curr in graph_stats[1:]:
+        comparator = GraphPairCompare(prev, curr)
         dist = comparator.js_distance()
         yield dist
+        prev = curr
 
-def absolute_js(root):
+def absolute_js(graph_stats):
     print('absolute... ', end='', flush=True)
-    abs_js = [x for x in absolute(root)]
+    abs_js = [x for x in absolute(graph_stats)]
     print('done')
     return abs_js
 
-def sequential_js(root):
+def sequential_js(graph_stats):
     print('sequential... ', end='', flush=True)
-    seq_js = [x for x in sequential(root)]
+    seq_js = [x for x in sequential(graph_stats)]
     print('done')
     return seq_js
 
@@ -76,19 +80,22 @@ def construct_table(abs_js, seq_js, model):
 
 def main():
     base_path = '/data/infinity-mirror'
-    dataset = 'tree'
-    models = ['NetGAN']
+    dataset = 'eucore'
+    models = ['BTER']
     model = models[0]
+
+    output_path = os.path.join(base_path, dataset, models[0], 'jensen-shannon')
 
     abs_js = []
     seq_js = []
     gen = []
     for root, model in load_data(base_path, dataset, models, True):
-        abs_js.append(absolute_js(root))
-        seq_js.append(sequential_js(root))
+        graph_stats = compute_graph_stats(root)
+        abs_js.append(absolute_js(graph_stats))
+        seq_js.append(sequential_js(graph_stats))
 
     df = construct_table(abs_js, seq_js, model)
-    df.to_csv(f'data-JS/{dataset}_{model}_js.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
+    df.to_csv(f'{output_path}/{dataset}_{model}', float_format='%.7f', sep='\t', index=False, na_rep='nan')
 
     return
 
