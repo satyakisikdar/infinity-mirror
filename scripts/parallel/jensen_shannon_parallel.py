@@ -83,13 +83,26 @@ def compute_stats(js):
     return np.asarray(mean), np.asarray(ci)
 
 
-def construct_table(abs_js, seq_js, gen, model):
-    abs_mean, abs_ci = compute_stats(abs_js)
-    seq_mean, seq_ci = compute_stats(seq_js)
+def construct_table(abs_js, seq_js, model):
+    if abs_js != []:
+        abs_mean, abs_ci = compute_stats(abs_js)
+        abs_lower = abs_ci[:, 0]
+        abs_upper = abs_ci[:, 1]
+    else:
+        abs_mean = []
+        abs_lower = []
+        abs_upper = []
+    if seq_js != []:
+        seq_mean, seq_ci = compute_stats(seq_js)
+        seq_lower = seq_ci[:, 0]
+        seq_upper = seq_ci[:, 1]
+    else:
+        seq_mean = []
+        seq_lower = []
+        seq_upper = []
     gen = [x + 1 for x in range(len(abs_mean))]
 
-    rows = {'model': model, 'gen': gen, 'abs_mean': abs_mean, 'abs-95%': abs_ci[:, 0], 'abs+95%': abs_ci[:, 1],
-            'seq_mean': seq_mean, 'seq-95%': seq_ci[:, 0], 'seq+95%': seq_ci[:, 1]}
+    rows = {'model': model, 'gen': gen, 'abs_mean': abs_mean, 'abs-95%': abs_lower, 'abs+95%': abs_upper, 'seq_mean': seq_mean, 'seq-95%': seq_lower, 'seq+95%': seq_upper}
 
     df = pd.DataFrame(rows)
     return df
@@ -118,9 +131,8 @@ def load_graph(filename):
 def parallel_thing(root):
     local_abs_js = absolute_js(root)
     local_seq_js = sequential_js(root)
-    local_gen = [x for x in range(len(local_abs_js))]
 
-    return [local_abs_js, local_seq_js, local_gen]
+    return [local_abs_js, local_seq_js]
 
 
 def driver():
@@ -130,7 +142,7 @@ def driver():
 if __name__ == '__main__':
     base_path = '/data/infinity-mirror'
     dataset = 'eucore'
-    models_list = ['BTER', 'BUGGE', 'Chung-Lu', 'CNRG']
+    models_list = ['Deep_GCN_AE', 'Deep_GCN_VAE', 'Erdos-Renyi', 'GCN_AE', 'GCN_VAE', 'HRG', 'Kronecker', 'Linear_AE', 'Linear_VAE', 'NetGAN', 'SBM']
     num = 10
 
     for model in models_list:
@@ -146,7 +158,6 @@ if __name__ == '__main__':
         # pandas dict variables
         abs_js = []
         seq_js = []
-        gen = []
 
         read_pbar = tqdm(len(filenames), desc="Reading Files", position=0, leave=False)
         work_pbar = tqdm(len(filenames), desc="Processing Files", position=1, leave=True)
@@ -176,12 +187,10 @@ if __name__ == '__main__':
             with results_lock:
                 global abs_js
                 global seq_js
-                global gen
                 #global M
 
                 abs_js.append(result[0])
                 seq_js.append(result[1])
-                gen += result[2]
 
             # update work status variables
             global active_work
@@ -219,5 +228,5 @@ if __name__ == '__main__':
 
         work_pool.close()
 
-        df = construct_table(abs_js, seq_js, gen, models[0])
+        df = construct_table(abs_js, seq_js, models[0])
         df.to_csv(f'{output_path}/{dataset}_{models[0]}_js.csv', float_format='%.7f', sep='\t', index=False)
