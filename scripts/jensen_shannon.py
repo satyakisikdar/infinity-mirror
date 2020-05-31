@@ -53,7 +53,7 @@ def length_chain(root):
 def flatten(L):
     return [item for sublist in L for item in sublist]
 
-def stats(js):
+def compute_stats(js):
     padding = max(len(l) for l in js)
     for idx, l in enumerate(js):
         while len(js[idx]) < padding:
@@ -65,16 +65,10 @@ def stats(js):
     return np.asarray(mean), np.asarray(ci)
 
 def construct_table(abs_js, seq_js, model):
-    abs_mean, abs_ci = stats(abs_js)
-    seq_mean, seq_ci = stats(seq_js)
+    abs_mean, abs_ci = compute_stats(abs_js)
+    seq_mean, seq_ci = compute_stats(seq_js)
     gen = [x + 1 for x in range(len(abs_mean))]
 
-    #if len()
-
-    print(abs_mean)
-    print(seq_mean)
-    print(abs_ci)
-    print(seq_ci)
     rows = {'model': model, 'gen': gen, 'abs_mean': abs_mean, 'abs-95%': abs_ci[:,0], 'abs+95%': abs_ci[:,1], 'seq_mean': seq_mean, 'seq-95%': seq_ci[:,0], 'seq+95%': seq_ci[:,1]}
 
     df = pd.DataFrame(rows)
@@ -92,16 +86,6 @@ def main():
     for root, model in load_data(base_path, dataset, models, True):
         abs_js.append(absolute_js(root))
         seq_js.append(sequential_js(root))
-    print(abs_js)
-    print(seq_js)
-    #abs_mean, abs_ci = stats(abs_js)
-    #seq_mean, seq_ci = stats(seq_js)
-        #new_abs_js = absolute_js(root)
-        #new_seq_js = sequential_js(root)
-        #abs_js.append(new_abs_js)
-        #seq_js.append(new_seq_js)
-        #gen += [x for x in range(len(new_abs_js))]
-        #M += [model for _ in range(len(new_abs_js))]
 
     df = construct_table(abs_js, seq_js, model)
     df.to_csv(f'data-JS/{dataset}_{model}_js.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
