@@ -37,16 +37,12 @@ def sequential(root):
 
 
 def absolute_js(root):
-    # print('absolute... ', end='', flush=True)
     abs_js = [x for x in absolute(root)]
-    # print('done')
     return abs_js
 
 
 def sequential_js(root):
-    # print('sequential... ', end='', flush=True)
     seq_js = [x for x in sequential(root)]
-    # print('done')
     return seq_js
 
 
@@ -109,7 +105,7 @@ def construct_table(abs_js, seq_js, model):
 
 def get_filenames(base_path, dataset, models):
     filenames = []
-    print('loading {dataset} {models[0]}')
+    print(f'loading {dataset} {models[0]}')
     for model in models:
         path = os.path.join(base_path, dataset, model)
         for subdir, dirs, files in os.walk(path):
