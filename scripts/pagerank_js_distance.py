@@ -30,7 +30,10 @@ if __name__ == '__main__':
             for filename in input_filenames:
                 # print(filename)
                 # parse filename for generation id
-                chain_id = int(filename.split("_")[2].strip(".pkl.gz"))
+                if model in ['GCN_AE', 'GCN_VAE', 'Linear_AE', 'Linear_VAE', 'Deep_GCN_AE', 'Deep_GCN_VAE']:
+                    chain_id = int(filename.split("_")[3].strip(".pkl.gz"))
+                else:
+                    chain_id = int(filename.split("_")[2].strip(".pkl.gz"))
                 gen_id = int(filename.split("_")[-1].strip(".csv"))
                 # print(gen_id, chain_id)
                 file = pd.read_csv(filename, sep="\t")

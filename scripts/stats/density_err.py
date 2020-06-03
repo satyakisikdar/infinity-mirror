@@ -99,29 +99,28 @@ def preprocess(graph: nx.Graph, reindex_nodes: bool, first_label: int = 0, take_
     #CP.print_none(f'Pre-processed graph "{self.gname}" n:{self.graph.order():,} m:{self.graph.size():,}')
     return graph
 
-def load_data(base_path, dataset, models, seq_flag, rob_flag):
-    for model in models:
-        if model == 'GraphRNN':
-            path = os.path.join(base_path, model, f'{dataset}_size10_ratio5')
-            for subdir, dirs, files in os.walk(path):
-                for filename in files:
-                    if '1000' in filename:
-                        print(f'loading {subdir} {filename} ...', end='', flush=True)
+def load_data(base_path, dataset, model, seq_flag, rob_flag):
+    if model == 'GraphRNN':
+        path = os.path.join(base_path, model, f'{dataset}_size10_ratio5')
+        for subdir, dirs, files in os.walk(path):
+            for filename in files:
+                if '1000' in filename:
+                    print(f'\tloading {subdir} {filename} ...', end='', flush=True)
+                    pkl = load_pickle(os.path.join(subdir, filename))
+                    print('done')
+                    yield pkl, model
+        return
+    else:
+        path = os.path.join(base_path, dataset, model)
+        for subdir, dirs, files in os.walk(path):
+            for filename in files:
+                if '.csv' not in filename and 'jensen-shannon' not in subdir:
+                    #if ((seq_flag and 'seq' in filename) and (not seq_flag and 'seq' not in filename)) and ((rob_flag and 'rob' in filename) and (not rob_flag and 'rob' not in filename)):
+                    if 'seq' in filename and 'rob' not in filename:
+                        print(f'\tloading {subdir} {filename} ... ', end='', flush=True)
                         pkl = load_pickle(os.path.join(subdir, filename))
                         print('done')
                         yield pkl, model
-            return
-        else:
-            path = os.path.join(base_path, dataset, model)
-            for subdir, dirs, files in os.walk(path):
-                for filename in files:
-                    if '.csv' not in filename and 'jensen-shannon' not in subdir:
-                        #if ((seq_flag and 'seq' in filename) and (not seq_flag and 'seq' not in filename)) and ((rob_flag and 'rob' in filename) and (not rob_flag and 'rob' not in filename)):
-                        if 'seq' in filename and 'rob' not in filename:
-                            print(f'loading {subdir} {filename} ... ', end='', flush=True)
-                            pkl = load_pickle(os.path.join(subdir, filename))
-                            print('done')
-                            yield pkl, model
 
 def mkdir_output(path):
     if not os.path.isdir(path):
@@ -152,13 +151,13 @@ def sequential(graphs):
         prev = curr
 
 def absolute_density(graphs):
-    print('absolute... ', end='', flush=True)
+    print('\t\tabsolute... ', end='', flush=True)
     abs_densities = [x for x in absolute(graphs)]
     print('done')
     return abs_densities
 
 def sequential_density(graphs):
-    print('sequential... ', end='', flush=True)
+    print('\t\tsequential... ', end='', flush=True)
     seq_densities = [x for x in sequential(graphs)]
     print('done')
     return seq_densities
@@ -193,36 +192,42 @@ def construct_table(abs_densities, seq_densities, model):
 def main():
     base_path = '/data/infinity-mirror'
     input_path = '/home/dgonza26/infinity-mirror/input'
-    dataset = 'eucore'
-    models = ['GCN_AE']
-    model = models[0]
+    dataset = 'flights'
+    models = ['BTER', 'BUGGE', 'CNRG', 'Chung-Lu', 'Erdos-Renyi', 'HRG', 'NetGAN', 'SBM', 'Kronecker']
 
-    #output_path = os.path.join(base_path, dataset, models[0], 'jensen-shannon')
-    output_path = '/data/infinity-mirror/stats/density'
-    mkdir_output(output_path)
+    for model in models:
+        #output_path = os.path.join(base_path, dataset, models[0], 'jensen-shannon')
+        output_path = '/data/infinity-mirror/stats/density'
+        mkdir_output(output_path)
 
-    abs_densities = []
-    seq_densities = []
-    gen = []
-    if model == 'GraphRNN':
-        R = [root for root, model in load_data(base_path, dataset, models, True, True)]
-        if dataset == 'clique-ring-500-4':
-            g = nx.ring_of_cliques(500, 4)
+        abs_densities = []
+        seq_densities = []
+        gen = []
+        if model == 'GraphRNN':
+            R = [root for root, model in load_data(base_path, dataset, model, True, True)]
+            if dataset == 'clique-ring-500-4':
+                g = nx.ring_of_cliques(500, 4)
+            else:
+                g = init(os.path.join(input_path, f'{dataset}.g'))
+            roots = [[g] + list(r) for r in zip(*R)]
+            for root in roots:
+                graphs = unravel(root)
+                assert graphs != []
+                abs_densities.append(absolute_density(graphs))
+                seq_densities.append(sequential_density(graphs))
         else:
-            g = init(os.path.join(input_path, f'{dataset}.g'))
-        roots = [[g] + list(r) for r in zip(*R)]
-        for root in roots:
-            graphs = unravel(root)
-            abs_densities.append(absolute_density(graphs))
-            seq_densities.append(sequential_density(graphs))
-    else:
-        for root, model in load_data(base_path, dataset, models, True, False):
-            graphs = unravel(root)
-            abs_densities.append(absolute_density(graphs))
-            seq_densities.append(sequential_density(graphs))
+            for root, model in load_data(base_path, dataset, model, True, False):
+                graphs = unravel(root)
+                assert graphs != []
+                abs_densities.append(absolute_density(graphs))
+                seq_densities.append(sequential_density(graphs))
 
-    df = construct_table(abs_densities, seq_densities, model)
-    df.to_csv(f'{output_path}/{dataset}_{model}_density.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
+        if abs_densities == [] or seq_densities == []:
+            continue
+
+        df = construct_table(abs_densities, seq_densities, model)
+        df.to_csv(f'{output_path}/{dataset}_{model}_density.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
+        print(f'wrote: {output_path}/{dataset}_{model}_density.csv')
 
     return
 
