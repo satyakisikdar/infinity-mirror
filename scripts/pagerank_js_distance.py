@@ -12,16 +12,16 @@ import scipy.stats as st
 
 if __name__ == '__main__':
 
-    output_directory = "/data/infinity-mirror/stats/"
+    output_directory = "/data/infinity-mirror/stats/pagerank/"
 
     input_filenames = []
     datasets = ['eucore']
-    models = ['BTER']
+    models = ['GCN_AE', 'Linear_AE']
 
     for dataset in datasets:
         for model in models:
             input_directory = f"/data/infinity-mirror/{dataset}/{model}/pagerank/"
-            input_filenames += [input_directory + f for f in listdir(input_directory) if
+            input_filenames = [input_directory + f for f in listdir(input_directory) if
                                 isfile(join(input_directory, f))]
 
             graph_dists = defaultdict(defaultdict)
@@ -30,7 +30,7 @@ if __name__ == '__main__':
             for filename in input_filenames:
                 # print(filename)
                 # parse filename for generation id
-                chain_id = int(filename.split("_")[2])
+                chain_id = int(filename.split("_")[2].strip(".pkl.gz"))
                 gen_id = int(filename.split("_")[-1].strip(".csv"))
                 # print(gen_id, chain_id)
                 file = pd.read_csv(filename, sep="\t")
@@ -99,7 +99,7 @@ if __name__ == '__main__':
                 {'abs': [abs_mean, abs95d, abs95u], 'seq': [seq_mean, seq95d, seq95u]})
             print(results_df.info())
             results_df.columns = results_df.columns.droplevel(0)
-            results_df.to_csv(output_directory + f'pagerank_{dataset}_{model}.csv', sep='\t')
+            results_df.to_csv(output_directory + f'pagerank_{dataset}_{model}.csv', sep='\t', index=False, na_rep='nan')
 
             # print(results_df.head())
 # model	gen	abs_mean	abs95d	abs95u	seq_mean	seq95d	seq95u?
