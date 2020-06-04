@@ -15,8 +15,8 @@ if __name__ == '__main__':
     output_directory = "/data/infinity-mirror/stats/pagerank/"
 
     input_filenames = []
-    datasets = ['eucore']
-    models = ['GCN_AE', 'Linear_AE']
+    datasets = ['tree']
+    models = ['Erdos-Renyi']
 
     for dataset in datasets:
         for model in models:
