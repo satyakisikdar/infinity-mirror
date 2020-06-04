@@ -99,29 +99,28 @@ def preprocess(graph: nx.Graph, reindex_nodes: bool, first_label: int = 0, take_
     #CP.print_none(f'Pre-processed graph "{self.gname}" n:{self.graph.order():,} m:{self.graph.size():,}')
     return graph
 
-def load_data(base_path, dataset, models, seq_flag, rob_flag):
-    for model in models:
-        if model == 'GraphRNN':
-            path = os.path.join(base_path, model, f'{dataset}_size10_ratio5')
-            for subdir, dirs, files in os.walk(path):
-                for filename in files:
-                    if '1000' in filename:
-                        print(f'loading {subdir} {filename} ...', end='', flush=True)
+def load_data(base_path, dataset, model, seq_flag, rob_flag):
+    if model == 'GraphRNN':
+        path = os.path.join(base_path, model, f'{dataset}_size10_ratio5')
+        for subdir, dirs, files in os.walk(path):
+            for filename in files:
+                if '1000' in filename:
+                    print(f'loading {subdir} {filename} ...', end='', flush=True)
+                    pkl = load_pickle(os.path.join(subdir, filename))
+                    print('done')
+                    yield pkl, model
+        return
+    else:
+        path = os.path.join(base_path, dataset, model)
+        for subdir, dirs, files in os.walk(path):
+            for filename in files:
+                if 'csv' not in filename:
+                    if 'seq' not in filename and 'rob' not in filename:
+                        print(f'loading {subdir} {filename} ... ', end='', flush=True)
                         pkl = load_pickle(os.path.join(subdir, filename))
+                        trial = filename.split('_')[2].strip('.pkl.gz')
                         print('done')
-                        yield pkl, model
-            return
-        else:
-            path = os.path.join(base_path, dataset, model)
-            for subdir, dirs, files in os.walk(path):
-                for filename in files:
-                    if 'csv' not in filename:
-                        if 'seq' in filename and 'rob' not in filename:
-                            print(f'loading {subdir} {filename} ... ', end='', flush=True)
-                            pkl = load_pickle(os.path.join(subdir, filename))
-                            trial = filename.split('_')[2]
-                            print('done')
-                            yield pkl, trial
+                        yield pkl, trial
 
 def mkdir_output(path):
     if not os.path.isdir(path):
@@ -210,51 +209,52 @@ def construct_full_table(abs_delta, seq_delta, model, trials):
 def main():
     base_path = '/data/infinity-mirror'
     input_path = '/home/dgonza26/infinity-mirror/input'
-    dataset = 'eucore'
-    models = ['CNRG']
-    model = models[0]
+    dataset = 'tree'
+    models = ['BTER', 'BUGGE', 'CNRG', 'Chung-Lu', 'Erdos-Renyi', 'SBM', 'HRG', 'NetGAN']
+    #model = models[0]
 
     #output_path = os.path.join(base_path, dataset, models[0], 'jensen-shannon')
     #output_path = '/home/dgonza26/infinity-mirror/data/deltacon/'
     output_path = os.path.join(base_path, 'stats/deltacon')
     mkdir_output(output_path)
 
-    abs_delta = []
-    seq_delta = []
-    trials = []
-    if model == 'GraphRNN':
-        R = [root for root, model in load_data(base_path, dataset, models, True, True)]
-        if dataset == 'clique-ring-500-4':
-            g = nx.ring_of_cliques(500, 4)
+    for model in models:
+        abs_delta = []
+        seq_delta = []
+        trials = []
+        if model == 'GraphRNN':
+            R = [root for root, model in load_data(base_path, dataset, models, True, True)]
+            if dataset == 'clique-ring-500-4':
+                g = nx.ring_of_cliques(500, 4)
+            else:
+                g = init(os.path.join(input_path, f'{dataset}.g'))
+            roots = [[g] + list(r) for r in zip(*R)]
+            for root in roots:
+                graph_stats = compute_graph_stats(root)
+                abs_delta.append(absolute_delta(graph_stats))
+                seq_delta.append(sequential_delta(graph_stats))
         else:
-            g = init(os.path.join(input_path, f'{dataset}.g'))
-        roots = [[g] + list(r) for r in zip(*R)]
-        for root in roots:
-            graph_stats = compute_graph_stats(root)
-            abs_delta.append(absolute_delta(graph_stats))
-            seq_delta.append(sequential_delta(graph_stats))
-    else:
-        for root, trial in load_data(base_path, dataset, models, True, False):
-            graph_stats = compute_graph_stats(root)
-            trials.append([trial for _ in graph_stats[1:]])
-            try:
-                root.children[0].stats['deltacon0']
-            except AttributeError:
-                #abs_delta.append(absolute_delta(graph_stats))
-                #seq_delta.append(sequential_delta(graph_stats))
-                abs_delta += absolute_delta(graph_stats)
-            else:
-                abs_delta += [node.stats['deltacon0'] for node in root.descendants]
-            try:
-                root.children[0].stats_seq['deltacon0']
-            except AttributeError:
-                seq_delta += sequential_delta(graph_stats)
-            else:
-                seq_delta += [node.stats_seq['deltacon0'] for node in root.descendants]
+            for root, trial in load_data(base_path, dataset, model, True, False):
+                graph_stats = compute_graph_stats(root)
+                trials.append([trial for _ in graph_stats[1:]])
+                try:
+                    assert root.children[0].stats['deltacon0'] is not None
+                except Exception as e:
+                    #abs_delta.append(absolute_delta(graph_stats))
+                    #seq_delta.append(sequential_delta(graph_stats))
+                    abs_delta += absolute_delta(graph_stats)
+                else:
+                    abs_delta += [node.stats['deltacon0'] for node in root.descendants]
+                try:
+                    assert root.children[0].stats_seq['deltacon0'] is not None
+                except Exception as e:
+                    seq_delta += sequential_delta(graph_stats)
+                else:
+                    seq_delta += [node.stats_seq['deltacon0'] for node in root.descendants]
 
-    df = construct_full_table(abs_delta, seq_delta, model, trials)
-    df.to_csv(f'{output_path}/{dataset}_{model}_deltacon.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
-    #df.to_csv(f'{output_path}/{dataset}_{model}_delta.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
+        df = construct_full_table(abs_delta, seq_delta, model, trials)
+        df.to_csv(f'{output_path}/{dataset}_{model}_deltacon.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
+        #df.to_csv(f'{output_path}/{dataset}_{model}_delta.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
 
     return
 

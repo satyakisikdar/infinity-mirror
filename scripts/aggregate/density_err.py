@@ -116,7 +116,7 @@ def load_data(base_path, dataset, model, seq_flag, rob_flag):
             for filename in files:
                 if '.csv' not in filename and 'jensen-shannon' not in subdir:
                     #if ((seq_flag and 'seq' in filename) and (not seq_flag and 'seq' not in filename)) and ((rob_flag and 'rob' in filename) and (not rob_flag and 'rob' not in filename)):
-                    if 'seq' in filename and 'rob' not in filename:
+                    if 'seq' not in filename and 'rob' not in filename:
                         print(f'\tloading {subdir} {filename} ... ', end='', flush=True)
                         pkl = load_pickle(os.path.join(subdir, filename))
                         print('done')
@@ -173,6 +173,10 @@ def compute_stats(densities):
     #for idx, l in enumerate(js):
     #    while len(js[idx]) < padding:
     #        js[idx] += [np.NaN]
+    for idx, l in enumerate(densities):
+        if l == []:
+            densities[idx] = [0]
+    print(densities)
     mean = np.nanmean(densities, axis=0)
     ci = []
     for row in np.asarray(densities).T:
@@ -193,7 +197,7 @@ def main():
     base_path = '/data/infinity-mirror'
     input_path = '/home/dgonza26/infinity-mirror/input'
     dataset = 'flights'
-    models = ['BTER', 'BUGGE', 'CNRG', 'Chung-Lu', 'Erdos-Renyi', 'HRG', 'NetGAN', 'SBM', 'Kronecker']
+    models = ['Kronecker']
 
     for model in models:
         #output_path = os.path.join(base_path, dataset, models[0], 'jensen-shannon')
@@ -221,9 +225,6 @@ def main():
                 assert graphs != []
                 abs_densities.append(absolute_density(graphs))
                 seq_densities.append(sequential_density(graphs))
-
-        if abs_densities == [] or seq_densities == []:
-            continue
 
         df = construct_table(abs_densities, seq_densities, model)
         df.to_csv(f'{output_path}/{dataset}_{model}_density.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')

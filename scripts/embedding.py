@@ -18,10 +18,10 @@ from src.graph_comparison import GraphPairCompare
 
 graphs = ['eucore', 'clique-ring-500-4', 'flights', 'tree', 'chess']
 
-base_path = '/data/dgonza26'
+base_path = '/data/infinity-mirror'
 #base_path = '/Users/akira/data/'
-dataset = 'chess'
-models = ['NetGAN']
+dataset = 'tree'
+models = ['Linear_AE']
 
 def get_graph_vec(g: nx.Graph, kernel: str='heat', dim: int=250, eigenvalues: int=20) -> np.ndarray:
     return net.netlsd(g, kernel=kernel, timescales=np.logspace(-2, 2, dim), eigenvalues=eigenvalues)
@@ -44,7 +44,7 @@ def get_row(root, cols, dataset, model, dim):
 def main():
     dim = 250
     cols = ['name', 'level', 'model'] + [f'v{i}' for i in range(dim)]
-    save_path = os.path.join(base_path, dataset)
+    save_path = os.path.join(base_path, 'stats', 'embedding')
 
     print(f'\nworking on {dataset}')
     for model in models:
