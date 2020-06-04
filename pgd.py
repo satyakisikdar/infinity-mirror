@@ -34,7 +34,10 @@ def mkdir_output(path):
 
 def compute_graph_stats(root):
     print('computing GraphStats... ', end='', flush=True)
-    graph_stats = [GraphStats(graph=node.graph, run_id=1) for node in [root] + list(root.descendants)]
+    if type(root) is list:
+        graph_stats = [GraphStats(graph=g, run_id=1) for g in root]
+    else:
+        graph_stats = [GraphStats(graph=node.graph, run_id=1) for node in [root] + list(root.descendants)]
     print('done')
     return graph_stats
 
@@ -117,11 +120,11 @@ def construct_full_table(pgds, trials, gens, model):
 
 def main():
     base_path = '/data/infinity-mirror'
-    dataset = 'eucore'
-    models = ['Linear_VAE']
+    dataset = 'clique-ring-500-4'
+    models = ['GCN_AE']
     model = models[0]
 
-    output_path = os.path.join(base_path, dataset, models[0], 'pgd')
+    output_path = os.path.join('/data/infinity-mirror/stats', 'pgd')
     mkdir_output(output_path)
 
     pgds = []
