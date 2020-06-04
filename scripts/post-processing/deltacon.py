@@ -201,7 +201,7 @@ def construct_full_table(abs_delta, seq_delta, model, trials):
     for t in trials:
         gen += [x + 1 for x in range(len(t))]
 
-    rows = {'model': model, 'trial': flatten(trials), 'gen': gen, 'abs': abs_delta, 'seq': seq_delta}
+    rows = {'model': model, 'trial': flatten(trials), 'gen': gen, 'abs': abs_delta}#, 'seq': seq_delta}
 
     df = pd.DataFrame(rows)
     return df
@@ -209,13 +209,13 @@ def construct_full_table(abs_delta, seq_delta, model, trials):
 def main():
     base_path = '/data/infinity-mirror'
     input_path = '/home/dgonza26/infinity-mirror/input'
-    dataset = 'tree'
-    models = ['BTER', 'BUGGE', 'CNRG', 'Chung-Lu', 'Erdos-Renyi', 'SBM', 'HRG', 'NetGAN']
+    dataset = 'flights'
+    models = ['GCN_AE', 'Linear_AE']
     #model = models[0]
 
     #output_path = os.path.join(base_path, dataset, models[0], 'jensen-shannon')
     #output_path = '/home/dgonza26/infinity-mirror/data/deltacon/'
-    output_path = os.path.join(base_path, 'stats/deltacon')
+    output_path = os.path.join(base_path, 'stats', 'deltacon')
     mkdir_output(output_path)
 
     for model in models:
@@ -223,7 +223,7 @@ def main():
         seq_delta = []
         trials = []
         if model == 'GraphRNN':
-            R = [root for root, model in load_data(base_path, dataset, models, True, True)]
+            R = [root for root, model in load_data(base_path, dataset, model, True, True)]
             if dataset == 'clique-ring-500-4':
                 g = nx.ring_of_cliques(500, 4)
             else:
@@ -239,21 +239,23 @@ def main():
                 trials.append([trial for _ in graph_stats[1:]])
                 try:
                     assert root.children[0].stats['deltacon0'] is not None
+                    assert root.children[0].stats['deltacon0'] != {}
                 except Exception as e:
                     #abs_delta.append(absolute_delta(graph_stats))
                     #seq_delta.append(sequential_delta(graph_stats))
                     abs_delta += absolute_delta(graph_stats)
                 else:
                     abs_delta += [node.stats['deltacon0'] for node in root.descendants]
-                try:
-                    assert root.children[0].stats_seq['deltacon0'] is not None
-                except Exception as e:
-                    seq_delta += sequential_delta(graph_stats)
-                else:
-                    seq_delta += [node.stats_seq['deltacon0'] for node in root.descendants]
+                #try:
+                #    assert root.children[0].stats_seq['deltacon0'] is not None
+                #except Exception as e:
+                #    seq_delta += sequential_delta(graph_stats)
+                #else:
+                #    seq_delta += [node.stats_seq['deltacon0'] for node in root.descendants]
 
         df = construct_full_table(abs_delta, seq_delta, model, trials)
         df.to_csv(f'{output_path}/{dataset}_{model}_deltacon.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
+        print(f'wrote {output_path}/{dataset}_{model}_deltacon.csv')
         #df.to_csv(f'{output_path}/{dataset}_{model}_delta.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
 
     return
