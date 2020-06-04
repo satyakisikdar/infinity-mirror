@@ -120,8 +120,8 @@ def construct_full_table(pgds, trials, gens, model):
 
 def main():
     base_path = '/data/infinity-mirror'
-    dataset = 'clique-ring-500-4'
-    models = ['GCN_AE']
+    dataset = 'eucore'
+    models = ['Kronecker']
     model = models[0]
 
     output_path = os.path.join('/data/infinity-mirror/stats', 'pgd')
