@@ -113,14 +113,14 @@ def load_data(base_path, dataset, model, seq_flag, rob_flag):
     else:
         path = os.path.join(base_path, dataset, model)
         for subdir, dirs, files in os.walk(path):
-            for filename in files:
+            for filename in files[: 5]:
                 if 'csv' not in filename:
-                    if 'seq' not in filename and 'rob' not in filename:
-                        print(f'loading {subdir} {filename} ... ', end='', flush=True)
-                        pkl = load_pickle(os.path.join(subdir, filename))
-                        trial = filename.split('_')[2].strip('.pkl.gz')
-                        print('done')
-                        yield pkl, trial
+                    # if 'seq' not in filename and 'rob' not in filename:
+                    print(f'loading {subdir} {filename} ... ', end='', flush=True)
+                    pkl = load_pickle(os.path.join(subdir, filename))
+                    trial = filename.split('_')[2].strip('.pkl.gz')
+                    print('done')
+                    yield pkl, trial
 
 def mkdir_output(path):
     if not os.path.isdir(path):
@@ -209,8 +209,11 @@ def construct_full_table(abs_delta, seq_delta, model, trials):
 def main():
     base_path = '/data/infinity-mirror'
     input_path = '/home/dgonza26/infinity-mirror/input'
-    dataset = 'flights'
-    models = ['GCN_AE', 'Linear_AE']
+    # dataset = 'flights'
+    dataset = 'clique-ring-500-4'
+    # models = ['CNRG', 'BUGGE']
+    models = ['Kronecker']
+    # models = ['GCN_AE', 'Linear_AE']
     #model = models[0]
 
     #output_path = os.path.join(base_path, dataset, models[0], 'jensen-shannon')
@@ -237,15 +240,15 @@ def main():
             for root, trial in load_data(base_path, dataset, model, True, False):
                 graph_stats = compute_graph_stats(root)
                 trials.append([trial for _ in graph_stats[1:]])
-                try:
-                    assert root.children[0].stats['deltacon0'] is not None
-                    assert root.children[0].stats['deltacon0'] != {}
-                except Exception as e:
+                # try:
+                #     assert root.children[0].stats['deltacon0'] is not None
+                #     assert root.children[0].stats['deltacon0'] != {}
+                # except Exception as e:
                     #abs_delta.append(absolute_delta(graph_stats))
                     #seq_delta.append(sequential_delta(graph_stats))
-                    abs_delta += absolute_delta(graph_stats)
-                else:
-                    abs_delta += [node.stats['deltacon0'] for node in root.descendants]
+                abs_delta += absolute_delta(graph_stats)
+                # else:
+                #     abs_delta += [node.stats['deltacon0'] for node in root.descendants]
                 #try:
                 #    assert root.children[0].stats_seq['deltacon0'] is not None
                 #except Exception as e:
