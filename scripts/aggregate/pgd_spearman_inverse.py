@@ -40,7 +40,7 @@ def main():
         for column in df:
             if column != 'model' and column != 'gen':
                 df[column] = df[column].apply(lambda x: 1 - x)
-        df.to_csv(f'{output_path}/{filename}', float_format='%.7f', sep='\t', na_rep='nan')
+        df.to_csv(f'{output_path}/{filename}', float_format='%.7f', sep='\t', index=False, na_rep='nan')
         print(f'wrote: {output_path}/{filename}')
 
     return
