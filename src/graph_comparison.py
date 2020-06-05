@@ -152,8 +152,9 @@ class GraphPairCompare:
 
         A1, A2 = [_pad(A, N) for A in [nx.to_numpy_array(self.graph1), nx.to_numpy_array(self.graph2)]]
         S1, S2 = [fast_bp(A, eps=eps) for A in [A1, A2]]
-        dist = np.abs(np.sqrt(S1) - np.sqrt(S2)).sum()
 
+        d = np.sqrt(np.sum(np.power(np.sqrt(S1) - np.sqrt(S2), 2)))  # correct formula from paper
+        dist = 1 / (d + 1)
         self.stats['deltacon0'] = round(dist, 3)
 
         return round(dist, 3)
