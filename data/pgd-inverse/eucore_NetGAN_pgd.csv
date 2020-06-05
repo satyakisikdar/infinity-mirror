@@ -1,2 +1,2 @@
-	model	gen	abs_mean	abs95d	abs95u	seq_mean	seq95d	seq95u
-0	NetGAN	1	0.0151786	0.0172898	0.0130673	0.0151786	0.0172898	0.0130673
+model	gen	abs_mean	abs95d	abs95u	seq_mean	seq95d	seq95u
+NetGAN	1	0.0151786	0.0172898	0.0130673	0.0151786	0.0172898	0.0130673
