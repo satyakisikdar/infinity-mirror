@@ -33,7 +33,7 @@ def portrait_cpp(graph, fname=None, keepfile=False):
     nx.write_edgelist(graph, f+".edgelist", data=False)
     
     # make B-matrix:
-    os.system("/tmp/infinity-mirror-tmp/src/portrait/B_matrix {}.edgelist {}.Bmat > /dev/null".format(f, f))  # TODO: fix path
+    os.system("~/repos/infinity-mirror/src/portrait/B_matrix {}.edgelist {}.Bmat > /dev/null".format(f, f))  # TODO: fix path
     portrait = np.loadtxt("{}.Bmat".format(f))
     
     # clean up:
@@ -50,7 +50,7 @@ def portrait_py(graph):
     
     If this function is too slow, consider portrait_cpp() instead.
     """
-    dia = 501 # nx.diameter(graph)
+    dia = 10000 # nx.diameter(graph)
     N = graph.number_of_nodes()
     # B indices are 0...dia x 0...N-1:
     B = np.zeros((dia+1,N)) 

@@ -118,7 +118,7 @@ def construct_full_table(pgds, trials, gens, model):
     df = pd.DataFrame(rows)
     return df
 
-def main():
+if __name__ == '__main__':
     base_path = '/data/infinity-mirror'
     dataset = 'eucore'
     models = ['Kronecker']
@@ -139,6 +139,3 @@ def main():
     df_full = construct_full_table(pgds, trials, gens, model)
     df_full.to_csv(f'{output_path}/{dataset}_{model}_pgd_full.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
 
-    return
-
-main()
