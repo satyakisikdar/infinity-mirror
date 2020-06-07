@@ -108,9 +108,15 @@ def main():
 
     for df, filename in load_df(base_path):
         if 'seq' in df.columns:
-            df = df.drop(['trial', 'seq'], axis=1).groupby(['model', 'gen']).agg([abs_mean, abs95d, abs95u])
+            if 'trial' in df.columns:
+                df = df.drop(['trial', 'seq'], axis=1).groupby(['model', 'gen']).agg([abs_mean, abs95d, abs95u])
+            else:
+                df = df.drop(['seq'], axis=1).groupby(['model', 'gen']).agg([abs_mean, abs95d, abs95u])
         else:
-            df = df.drop('trial', axis=1).groupby(['model', 'gen']).agg([abs_mean, abs95d, abs95u])
+            if 'trial' in df.columns:
+                df = df.drop('trial', axis=1).groupby(['model', 'gen']).agg([abs_mean, abs95d, abs95u])
+            else:
+                df = df.groupby(['model', 'gen']).agg([abs_mean, abs95d, abs95u])
         df.columns = df.columns.droplevel(0)
         for column in df:
             if column != 'gen' and column != 'trial' and column != 'model':
