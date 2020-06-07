@@ -16,7 +16,7 @@ from src.graph_comparison import GraphPairCompare
 def load_df(path):
     for subdir, dirs, files in os.walk(path):
         for filename in files:
-            if 'lambda' in filename and 'csv' in filename:
+            if 'portrait' in filename and 'csv' in filename:
                 print(f'\tloading {subdir} {filename} ... ', end='', flush=True)
                 df = pd.read_csv(os.path.join(subdir, filename), sep='\t'), filename
                 print('done')
@@ -103,24 +103,18 @@ def abs95d(a):
     return st.t.interval(0.95, len(a) - 1, loc=np.mean(a), scale=st.sem(a))[0]
 
 def main():
-    base_path = '/data/infinity-mirror/stats/lambda'
-    output_path = '/home/dgonza26/infinity-mirror/data/lambda'
+    base_path = '/data/infinity-mirror/stats/portrait'
+    output_path = '/home/dgonza26/infinity-mirror/data/portrait'
 
     for df, filename in load_df(base_path):
         if 'seq' in df.columns:
-            if 'trial' in df.columns:
-                df = df.drop(['trial', 'seq'], axis=1).groupby(['model', 'gen']).agg([abs_mean, abs95d, abs95u])
-            else:
-                df = df.drop(['seq'], axis=1).groupby(['model', 'gen']).agg([abs_mean, abs95d, abs95u])
+            df = df.drop(['trial_id', 'name', 'seq'], axis=1).groupby(['model', 'gen']).agg([abs_mean, abs95d, abs95u])
         else:
-            if 'trial' in df.columns:
-                df = df.drop('trial', axis=1).groupby(['model', 'gen']).agg([abs_mean, abs95d, abs95u])
-            else:
-                df = df.groupby(['model', 'gen']).agg([abs_mean, abs95d, abs95u])
+            df = df.drop(['trial_id', 'name'], axis=1).groupby(['model', 'gen']).agg([abs_mean, abs95d, abs95u])
         df.columns = df.columns.droplevel(0)
-        for column in df:
-            if column != 'gen' and column != 'trial' and column != 'model':
-                df[column] = df[column].apply(lambda x: 0.001 if x < 0.001 else x)
+        #for column in df:
+        #    if column != 'gen' and column != 'trial' and column != 'model':
+        #        df[column] = df[column].apply(lambda x: 0.001 if x < 0.001 else x)
         df.to_csv(f'{output_path}/{filename}', float_format='%.7f', sep='\t', na_rep='nan')
         print(f'wrote: {output_path}/{filename}')
 
