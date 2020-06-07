@@ -112,6 +112,9 @@ def main():
         else:
             df = df.drop('trial', axis=1).groupby(['model', 'gen']).agg([abs_mean, abs95d, abs95u])
         df.columns = df.columns.droplevel(0)
+        for column in df:
+            if column != 'gen' and column != 'trial' and column != 'model':
+                df[column] = df[column].apply(lambda x: 0.001 if x < 0.001 else x)
         df.to_csv(f'{output_path}/{filename}', float_format='%.7f', sep='\t', na_rep='nan')
         print(f'wrote: {output_path}/{filename}')
 
