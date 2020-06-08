@@ -101,7 +101,9 @@ def _onion_decomposition(G):
     current_core = 0
     current_layer = 1
     local_layer = 1
-    while G_copy.number_of_nodes() > 0:
+    removed_nodes_count = 0
+    number_of_nodes = G_copy.number_of_nodes()
+    while number_of_nodes - removed_nodes_count > 0:
         # Sets properly the current core.
         degree_sequence = [d for n, d in G_copy.degree()]
         min_degree = min(degree_sequence)
@@ -119,6 +121,7 @@ def _onion_decomposition(G):
             layer_map[v] = current_layer
             local_layer_map[v] = local_layer
             G_copy.remove_node(v)
+            removed_nodes_count +=1
         # Updates the layer count.
         current_layer = current_layer + 1
         local_layer = local_layer + 1
