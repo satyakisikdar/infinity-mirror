@@ -59,7 +59,10 @@ dependencies:
   - wheel=0.33.6
   - xz=5.2.4
   - zlib=1.2.11
+  - graph-tool=2.29
   - pip:
+    - python_louvain==0.13
+    - pyintergraph==1.1.2
     - tensorflow==1.15
     - anytree==2.7.3
     - bitarray==0.8.3
@@ -68,7 +71,6 @@ dependencies:
     - botocore==1.13.43
     - chardet==3.0.4
     - click==7.0
-    - community==1.0.0b1
     - docutils==0.15.2
     - flask==1.1.1
     - gensim==3.6.0
