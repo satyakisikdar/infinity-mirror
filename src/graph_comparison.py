@@ -155,9 +155,9 @@ class GraphPairCompare:
 
         d = np.sqrt(np.sum(np.power(np.sqrt(S1) - np.sqrt(S2), 2)))  # correct formula from paper
         dist = d / (d + 1)
-        self.stats['deltacon0'] = round(dist, 3)
+        self.stats['deltacon0'] = round(dist, 7)
 
-        return round(dist, 3)
+        return round(dist, 7)
 
     def cvm_pagerank(self) -> float:
         """
