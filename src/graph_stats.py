@@ -366,7 +366,7 @@ class GraphStats:
                 bash_script = f'{pgd_path}/pgd_{self.run_id} -w 1 -f {dummy_path} -c {dummy_path}'
 
                 pipe = sub.run(bash_script, shell=True, capture_output=True, input=edgelist.encode(), check=True,
-                               timeout=3000)  # timeout of 10s
+                               timeout=300000)  # timeout of 10s
 
                 output_data = pipe.stdout.decode()
 
@@ -374,8 +374,8 @@ class GraphStats:
                 CP.print_blue('PGD timeout!')
                 graphlet_counts = {}
 
-            except sub.CalledProcessError:
-                CP.print_blue('PGD error')
+            except sub.CalledProcessError as e:
+                CP.print_blue(f'PGD error {e.stderr}')
                 graphlet_counts = {}
 
             else:  # pgd is successfully run
