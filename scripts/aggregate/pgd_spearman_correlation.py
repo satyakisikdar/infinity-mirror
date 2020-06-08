@@ -2,6 +2,8 @@ import itertools
 from collections import defaultdict
 from os import listdir
 from os.path import join, isfile
+import os
+import sys; sys.path.append('./../../')
 
 import pandas as pd
 import numpy as np
@@ -15,27 +17,36 @@ from src.utils import ColorPrint
 
 if __name__ == '__main__':
 
-    output_directory = "../data/pgd/" # now going in the repo
+    input_directory = '/data/infinity-mirror/stats/pgd'
 
-    input_filenames = []
-    datasets = ['eucore']
-    models = ['BTER']
+    output_directory = "../../data/pgd/" # now going in the repo
 
-    for dataset in datasets:
-        for model in models:
-            input_directory = f"/data/infinity-mirror/stats/pgd/"
-            input_filenames = [input_directory + f for f in listdir(input_directory) if
-                                isfile(join(input_directory, f)) and f'{dataset}_{model}_pgd_full' in f]
+    #input_filenames = []
+    #datasets = ['eucore']
+    #models = ['BTER']
 
+    for subdir, dirs, files in os.walk(input_directory):
+        for filename in files:
+            dataset = filename.split('_')[0]
+            model = filename.split('_')[1]
+            if model == 'GCN':
+                model = 'GCN_AE'
+            if model == 'Linear':
+                model = 'Linear_AE'
+    #for dataset in datasets:
+    #    for model in models:
+    #        input_directory = f"/data/infinity-mirror/stats/pgd/"
+    #        input_filenames = [input_directory + f for f in listdir(input_directory) if
+    #                            isfile(join(input_directory, f)) and f'{dataset}_{model}_pgd_full' in f]
             graph_dists = defaultdict(defaultdict)
-            if len(input_filenames) != 1:
-                ColorPrint.print_red(f'There is file inconsistancy for {dataset} using {model} \n')
-                exit()
+            #if len(input_filenames) != 1:
+            #    ColorPrint.print_red(f'There is file inconsistancy for {dataset} using {model} \n')
+            #    exit()
 
-            filename = input_filenames[0]
-            data = pd.read_csv(filename, sep="\t")
+            #filename = input_filenames[0]
+            data = pd.read_csv(os.path.join(subdir, filename), sep="\t")
             ColorPrint.print_green(f'Loaded {filename}')
-            # print(original_hist)\
+            data['trial'] = data['trial'].apply(lambda x: int(str(x).strip('.pkl.gz')))
             original_data = data.loc[(data.gen == 0) & (data.trial == 1)]
             original_data = original_data.drop(['model', 'gen', 'trial'], axis=1)
             original_data = original_data.to_numpy()[0]
@@ -116,7 +127,7 @@ if __name__ == '__main__':
                 {'abs': [abs_mean, abs95d, abs95u], 'seq': [seq_mean, seq95d, seq95u]})
             print(results_df.info())
             results_df.columns = results_df.columns.droplevel(0)
-            results_df.to_csv(output_directory + f'pgd_{dataset}_{model}.csv', sep='\t', index=False, na_rep='nan')
+            results_df.to_csv(output_directory + f'pgd_{dataset}_{model}.csv', sep='\t', na_rep='nan')
 
             # print(results_df.head())
 # model	gen	abs_mean	abs95d	abs95u	seq_mean	seq95d	seq95u?
