@@ -20,8 +20,8 @@ graphs = ['eucore', 'clique-ring-500-4', 'flights', 'tree', 'chess']
 
 base_path = '/data/infinity-mirror'
 #base_path = '/Users/akira/data/'
-dataset = 'tree'
-models = ['Linear_AE']
+dataset = 'flights'
+models = ['GCN_AE', 'Linear_AE']
 
 def get_graph_vec(g: nx.Graph, kernel: str='heat', dim: int=250, eigenvalues: int=20) -> np.ndarray:
     return net.netlsd(g, kernel=kernel, timescales=np.logspace(-2, 2, dim), eigenvalues=eigenvalues)
@@ -32,14 +32,24 @@ def compare_graphs(g1: nx.Graph, g2: nx.Graph, kernel: str='heat', dim: int=250,
     return net.compare(g_vec1, g_vec2)
 
 def get_row(root, cols, dataset, model, dim):
-    for tnode in [root] + list(root.descendants):
-        row = {'name': dataset, 'level': tnode.depth, 'model': model}
-        try:
-            for i, x in enumerate(get_graph_vec(tnode.graph, dim=dim)):
-                row[f'v{i}'] = x
-            yield row
-        except ArpackNoConvergence as err:
-            raise
+    if type(root) is list:
+        for idx, graph in enumerate(root):
+            row = {'name': dataset, 'level': idx, 'model': model}
+            try:
+                for i, x in enumerate(get_graph_vec(graph, dim=dim)):
+                    row[f'v{i}'] = x
+                yield row
+            except ArpackNoConvergence as err:
+                raise
+    else:
+        for tnode in [root] + list(root.descendants):
+            row = {'name': dataset, 'level': tnode.depth, 'model': model}
+            try:
+                for i, x in enumerate(get_graph_vec(tnode.graph, dim=dim)):
+                    row[f'v{i}'] = x
+                yield row
+            except ArpackNoConvergence as err:
+                raise
 
 def main():
     dim = 250
@@ -53,17 +63,18 @@ def main():
 
         rows = {col: [] for col in cols}
         for subdir, dirs, files in os.walk(path):
-            for filename in files:
-                if '_augmented' not in filename and '_seq' not in filename and '_rob' not in filename and '.pkl.gz' in filename:
-                    print(f'\ttrying {filename} ... ', end='', flush=True)
-                    try:
-                        root = load_pickle(os.path.join(subdir, filename))
-                        for row in get_row(root, cols, dataset, model, dim):
-                            for key, val in row.items():
-                                rows[key].append(val)
-                        print('SUCCESS')
-                    except ArpackNoConvergence:
-                        print('FAILURE')
+            if 'pagerank' not in subdir:
+                for filename in files:
+                    if '_augmented' not in filename and '_seq' not in filename and '_rob' not in filename and '.pkl.gz' in filename:
+                        print(f'\ttrying {filename} ... ', end='', flush=True)
+                        try:
+                            root = load_pickle(os.path.join(subdir, filename))
+                            for row in get_row(root, cols, dataset, model, dim):
+                                for key, val in row.items():
+                                    rows[key].append(val)
+                            print('SUCCESS')
+                        except ArpackNoConvergence:
+                            print('FAILURE')
         df = pd.DataFrame(rows)
         df.to_csv(f'{save_path}/{dataset}_{model}.csv', index=False)
 
