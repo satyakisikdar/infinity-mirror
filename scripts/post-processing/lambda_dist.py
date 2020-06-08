@@ -113,7 +113,7 @@ def main():
     base_path = '/data/infinity-mirror'
     input_path = '/home/dgonza26/infinity-mirror/input'
     dataset = 'chess'
-    models = ['HRG', 'NetGAN']
+    models = ['GCN_AE', 'Linear_AE']
 
     output_path = os.path.join(base_path, 'stats', 'lambda')
     mkdir_output(output_path)
