@@ -107,64 +107,11 @@ def load_data(base_path, dataset):
                 print(f'loading {subdir} {filename} ... ', end='', flush=True)
                 pkl = load_pickle(os.path.join(subdir, filename))
                 print('done')
-                yield pkl
+                yield pkl, int(filename.split('_')[1])
     return
-
-def mkdir_output(path):
-    if not os.path.isdir(path):
-        try:
-            os.mkdir(path)
-        except OSError:
-            print('ERROR: could not make directory {path} for some reason')
-    return
-
-def compute_graph_stats(root):
-    print('computing GraphStats... ', end='', flush=True)
-    if type(root) is list:
-        graph_stats = [GraphStats(graph=g, run_id = 1) for g in root]
-    else:
-        graph_stats = [GraphStats(graph=node.graph, run_id=1) for node in [root] + list(root.descendants)]
-    print('done')
-    return graph_stats
-
-def absolute(gs1, gs2):
-    for gs in graph_stats[1:]:
-        comparator = GraphPairCompare(graph_stats[0], gs)
-        lambda_dist = comparator.lambda_dist()
-        yield lambda_dist
-
-def sequential(graph_stats):
-    prev = graph_stats[0]
-    for curr in graph_stats[1:]:
-        comparator = GraphPairCompare(prev, curr)
-        lambda_dist = comparator.lambda_dist()
-        yield lambda_dist
-        prev = curr
-
-def absolute_lambda(graph_stats):
-    print('absolute... ', end='', flush=True)
-    abs_lambda = [x for x in absolute(graph_stats)]
-    print('done')
-    return abs_lambda
-
-def sequential_lambda(graph_stats):
-    print('sequential... ', end='', flush=True)
-    seq_lambda = [x for x in sequential(graph_stats)]
-    print('done')
-    return seq_lambda
 
 def flatten(L):
     return [item for sublist in L for item in sublist]
-
-def construct_full_table(abs_lambda, seq_lambda, model, trials):
-    gen = []
-    for t in trials:
-        gen += [x + 1 for x in range(len(t))]
-
-    rows = {'model': model, 'trial': flatten(trials), 'gen': gen, 'abs': abs_lambda}#, 'seq': seq_lambda}
-
-    df = pd.DataFrame(rows)
-    return df
 
 def main():
     base_path = '/data/infinity-mirror/'
@@ -178,14 +125,16 @@ def main():
     abs_lambda = []
     trials = []
 
-    R = [root for root in load_data(os.path.join(base_path, 'cleaned'), dataset)]
+    R = [(root, generation) for root, generation in load_data(os.path.join(base_path, 'cleaned'), dataset)]
+    R.sort(key=lambda x: x[1])
+    R = [root for (root, generation) in R]
 
     if dataset == 'clique-ring-500-4':
         G = nx.ring_of_cliques(500, 4)
     else:
         G = init(os.path.join(input_path, f'{dataset}.g'))
 
-    # add the initial graph and transpose the list
+    # transpose the list
     roots = [list(r) for r in zip(*R)]
 
     cols = ['model', 'gen', 'abs']
@@ -210,7 +159,6 @@ def main():
     print(df.head())
     df.to_csv(f'{output_path}/{dataset}_{model}_lambda.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
     print(f'wrote {output_path}/{dataset}_{model}_lambda.csv')
-    #df.to_csv(f'{output_path}/{dataset}_{model}_lambda.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
 
     return
 
