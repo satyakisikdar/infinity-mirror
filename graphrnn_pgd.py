@@ -1,6 +1,6 @@
 from collections import Counter
 import os
-import sys; sys.path.append('./../../')
+import sys#; sys.path.append('./../../')
 import pickle
 import numpy as np
 import pandas as pd
@@ -126,7 +126,7 @@ def construct_full_table(abs_lambda, seq_lambda, model, trials):
 def main():
     base_path = '/data/infinity-mirror/'
     input_path = '/home/dgonza26/infinity-mirror/input'
-    dataset = 'tree'
+    dataset = 'flights'
     model = 'GraphRNN'
 
     output_path = os.path.join(base_path, 'stats', 'pgd')
@@ -146,45 +146,67 @@ def main():
     # add the initial graph and transpose the list
     roots = [[G] + list(r) for r in zip(*R)]
 
-    cols = ['model', 'gen', 'total_2_1edge', 'total_2_indep', 'total_3_tris', 'total_2_star', 'total_3_1edge', 'total_4_clique', 'total_4_chordcycle', 'total_4_tailed_tris', 'total_3_star', 'total_4_path', 'total_4_1edge', 'total_4_2edge', 'total_4_2star', 'total_4_tri', 'total_4_indep']
+    cols = ['model', 'gen', 'trial', 'total_2_1edge', 'total_2_indep', 'total_3_tris', 'total_2_star', 'total_3_1edge', 'total_4_clique', 'total_4_chordcycle', 'total_4_tailed_tris', 'total_3_star', 'total_4_path', 'total_4_1edge', 'total_4_2edge', 'total_4_2star', 'total_4_tri', 'total_4_indep']
     rows = {col: [] for col in cols}
 
-    gs0 = GraphStats(graph=G, run_id=1)
     for i, chain in enumerate(roots, 1):
         print(f'chain: {i}')
         for idx, graph in enumerate(chain):
             print(f'\tgen: {idx} ... ', end='', flush=True)
-            #comparator = GraphPairCompare(gs0, GraphStats(graph=graph, run_id=1))
             try:
                 pgd = GraphStats(graph=graph, run_id=1).pgd_graphlet_counts()
             except Exception as e:
                 print(f'ERROR\n{e}')
             else:
-                rows['model'].append('GraphRNN')
-                rows['gen'].append(idx)
+                if pgd == {} and len(graph.edges()) == 0:
+                    rows['model'].append('GraphRNN')
+                    rows['gen'].append(idx)
+                    rows['trial'].append(i)
 
-                rows['total_2_1edge'].append(pgd['total_2_1edge'])
-                rows['total_2_indep'].append(pgd['total_2_indep'])
-                rows['total_3_tris'].append(pgd['total_3_tris'])
-                rows['total_2_star'].append(pgd['total_2_star'])
-                rows['total_3_1edge'].append(pgd['total_3_1edge'])
-                rows['total_4_clique'].append(pgd['total_4_clique'])
-                rows['total_4_chordcycle'].append(pgd['total_4_chordcycle'])
-                rows['total_4_tailed_tris'].append(pgd['total_4_tailed_tris'])
-                rows['total_3_star'].append(pgd['total_3_star'])
-                rows['total_4_path'].append(pgd['total_4_path'])
-                rows['total_4_1edge'].append(pgd['total_4_1edge'])
-                rows['total_4_2edge'].append(pgd['total_4_2edge'])
-                rows['total_4_2star'].append(pgd['total_4_2star'])
-                rows['total_4_tri'].append(pgd['total_4_tri'])
-                rows['total_4_indep'].append(pgd['total_4_indep'])
+                    rows['total_2_1edge'].append(0)
+                    rows['total_2_indep'].append(0)
+                    rows['total_3_tris'].append(0)
+                    rows['total_2_star'].append(0)
+                    rows['total_3_1edge'].append(0)
+                    rows['total_4_clique'].append(0)
+                    rows['total_4_chordcycle'].append(0)
+                    rows['total_4_tailed_tris'].append(0)
+                    rows['total_3_star'].append(0)
+                    rows['total_4_path'].append(0)
+                    rows['total_4_1edge'].append(0)
+                    rows['total_4_2edge'].append(0)
+                    rows['total_4_2star'].append(0)
+                    rows['total_4_tri'].append(0)
+                    rows['total_4_indep'].append(0)
 
-                print('done')
+                    print('done')
+                else:
+                    rows['model'].append('GraphRNN')
+                    rows['gen'].append(idx)
+                    rows['trial'].append(i)
+
+                    rows['total_2_1edge'].append(pgd['total_2_1edge'])
+                    rows['total_2_indep'].append(pgd['total_2_indep'])
+                    rows['total_3_tris'].append(pgd['total_3_tris'])
+                    rows['total_2_star'].append(pgd['total_2_star'])
+                    rows['total_3_1edge'].append(pgd['total_3_1edge'])
+                    rows['total_4_clique'].append(pgd['total_4_clique'])
+                    rows['total_4_chordcycle'].append(pgd['total_4_chordcycle'])
+                    rows['total_4_tailed_tris'].append(pgd['total_4_tailed_tris'])
+                    rows['total_3_star'].append(pgd['total_3_star'])
+                    rows['total_4_path'].append(pgd['total_4_path'])
+                    rows['total_4_1edge'].append(pgd['total_4_1edge'])
+                    rows['total_4_2edge'].append(pgd['total_4_2edge'])
+                    rows['total_4_2star'].append(pgd['total_4_2star'])
+                    rows['total_4_tri'].append(pgd['total_4_tri'])
+                    rows['total_4_indep'].append(pgd['total_4_indep'])
+
+                    print('done')
 
     df = pd.DataFrame(rows)
     print(df.head())
-    df.to_csv(f'{output_path}/{dataset}_{model}_lambda.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
-    print(f'wrote {output_path}/{dataset}_{model}_lambda.csv')
+    df.to_csv(f'{output_path}/{dataset}_{model}_pgd_full.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
+    print(f'wrote {output_path}/{dataset}_{model}_pgd_full.csv')
     #df.to_csv(f'{output_path}/{dataset}_{model}_lambda.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
 
     return
