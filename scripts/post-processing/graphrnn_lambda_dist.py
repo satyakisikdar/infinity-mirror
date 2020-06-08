@@ -122,9 +122,6 @@ def main():
     output_path = os.path.join(base_path, 'stats', 'lambda')
     mkdir_output(output_path)
 
-    abs_lambda = []
-    trials = []
-
     R = [(root, generation) for root, generation in load_data(os.path.join(base_path, 'cleaned'), dataset)]
     R.sort(key=lambda x: x[1])
     R = [root for (root, generation) in R]
