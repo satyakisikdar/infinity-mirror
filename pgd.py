@@ -1,6 +1,12 @@
 from collections import Counter
 import os
-import sys; sys.path.append('./')
+import sys;
+from os import listdir
+from os.path import isfile, join
+
+from tqdm import tqdm
+
+sys.path.append('./')
 import pickle
 import numpy as np
 import pandas as pd
@@ -8,28 +14,25 @@ import networkx as nx
 import scipy.stats as st
 import multiprocessing as mp
 from src.Tree import TreeNode
-from src.utils import load_pickle
+from src.utils import load_pickle, ColorPrint
 from src.graph_stats import GraphStats
 from src.graph_comparison import GraphPairCompare
 
-def load_data(base_path, dataset, models, seq_flag, rob_flag):
-    for model in models:
-        path = os.path.join(base_path, dataset, model)
-        for subdir, dirs, files in os.walk(path):
-            for filename in files:
-                if 'csv' not in filename:
-                    if (seq_flag or 'seq' not in filename) and (rob_flag or 'rob' not in filename):
-                        print(f'loading {subdir} {filename} ... ', end='', flush=True)
-                        pkl = load_pickle(os.path.join(subdir, filename))#, subdir.split('/')[-1]
-                        print('done')
-                        yield pkl, filename.split('_')[2]
+def load_data(input_path, dataset, model, filename_idx):
+    path = os.path.join(input_path, dataset, model)
+    input_filenames = [f for f in listdir(path) if isfile(join(path, f))]
+    # print(input_filenames)
+    filename = input_filenames[filename_idx]
+    pkl = load_pickle(os.path.join(path, filename))
+    trial = filename.split('_')[2].strip('.pkl.gz')
+    return pkl, trial
 
 def mkdir_output(path):
     if not os.path.isdir(path):
         try:
             os.mkdir(path)
         except OSError:
-            print('ERROR: could not make directory {path} for some reason')
+            print(f'ERROR: could not make directory {path} for some reason')
     return
 
 def compute_graph_stats(root):
@@ -118,24 +121,93 @@ def construct_full_table(pgds, trials, gens, model):
     df = pd.DataFrame(rows)
     return df
 
-if __name__ == '__main__':
-    base_path = '/data/infinity-mirror'
-    dataset = 'eucore'
-    models = ['Kronecker']
-    model = models[0]
-
-    output_path = os.path.join('/data/infinity-mirror/stats', 'pgd')
+def sublevel_parallel_computation(input_path, dataset, model, idx):
+    output_path = f'/afs/crc.nd.edu/user/t/tford5/infinity-mirror/output/pgd/{model}/'
     mkdir_output(output_path)
 
     pgds = []
     trials = []
     gens = []
-    for root, trial in load_data(base_path, dataset, models, True, False):
-        graph_stats = compute_graph_stats(root)
-        pgds += compute_pgd(graph_stats)
-        trials += [trial for _ in graph_stats]
-        gens += [x for x in range(len(graph_stats))]
+
+    graph_list, trial = load_data(input_path, dataset, model, idx)
+
+    graph_stats_list = compute_graph_stats(graph_list)
+    pgds += compute_pgd(graph_stats_list)
+    trials += [trial for _ in graph_stats_list]
+    gens += [x for x in range(len(graph_stats_list))]
 
     df_full = construct_full_table(pgds, trials, gens, model)
-    df_full.to_csv(f'{output_path}/{dataset}_{model}_pgd_full.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
+    df_full.to_csv(f'{output_path}/{dataset}_{model}_{trial}_pgd_full.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
+
+    return dataset+model
+
+def parallel_computation(input_path, dataset, model):
+
+    path = os.path.join(input_path, dataset, model)
+    input_filenames = [f for f in listdir(path) if isfile(join(path, f))]
+
+    number_of_files = len(input_filenames)
+    n_threads = 12
+
+    pbar_inner = tqdm(number_of_files)
+
+    def pbar_update(result):
+        pbar_inner.update()
+        pbar_inner.set_postfix_str(result)
+
+
+    # for idx in range(number_of_files):
+    #     sublevel_parallel_computation(p_arg[0],p_arg[1],p_arg[2], idx)
+
+    asyncResults = []
+    with mp.Pool(n_threads) as innerPool:
+        ColorPrint.print_green(f"Starting Pool with {n_threads} threads with {len(parallel_args)} tasks.")
+        for idx in range(number_of_files):
+            r = innerPool.apply_async(sublevel_parallel_computation, [input_path, dataset, model, idx], callback=pbar_update)
+            asyncResults.append(r)
+        for r in asyncResults:
+            try:
+                r.wait()
+            except:
+                continue
+
+    return model, dataset
+
+if __name__ == '__main__':
+    input_path = '/afs/crc.nd.edu/user/t/tford5/infinity-mirror/cleaned/'
+    datasets = ['eucore', 'clique-ring-500-4', 'flights']
+    models = ['CNRG']
+
+    this_list = [['clique-ring-500-4', 'GCN_AE'], ['clique-ring-500-4', 'Linear_AE'], ['clique-ring-500-4', 'Kronecker'], ['eucore', 'Kronecker'], ['flights', 'GCN_AE'], ['flights', 'Linear_AE'], ['flights', 'Kronecker'], ['tree', 'GCN_AE'], ['tree', 'Linear_AE'], ['chess', 'GCN_AE'], ['chess', 'Linear_AE']]
+
+    # pgds = []
+    # trials = []
+    # gens = []
+    parallel_args = []
+    results = []
+
+    for thing in this_list:
+        parallel_args.append([input_path, thing[0], thing[1]])
+
+    pbar = tqdm(len(parallel_args))
+
+    def result_update(result):
+        pbar.update()
+        pbar.set_postfix_str(result[0]+result[1])
+
+    # sequential implementation
+    for p_arg in parallel_args:
+        results.append(parallel_computation(p_arg[0],p_arg[1],p_arg[2]))
+
+    # asyncResults = []
+    # with mp.Pool(12) as outerPool:
+    #     ColorPrint.print_green(f"Starting Pool with {12} threads with {len(parallel_args)} tasks.")
+    #     for p_arg in parallel_args:
+    #         r = outerPool.apply_async(parallel_computation, p_arg, callback=result_update)
+    #         asyncResults.append(r)
+    #     for r in asyncResults:
+    #         try:
+    #             r.wait()
+    #         except:
+    #             continue
 
