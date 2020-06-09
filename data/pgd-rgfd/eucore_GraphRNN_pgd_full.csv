@@ -1,0 +1,4 @@
+model	gen	abs_mean	abs95d	abs95u
+GraphRNN	0	0.0000000	nan	nan
+GraphRNN	1	0.0591198	0.0582474	0.0599922
+GraphRNN	2	0.0764875	0.0761473	0.0768277
