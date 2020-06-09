@@ -242,3 +242,13 @@ class ColorPrint:
     def print_none(message, end='\n'):
         pass
         # sys.stdout.write(message + end)
+
+# given a path to a directory, create it if it does not exist
+def verify_dir(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+
+# given a filepath, return true if the file exists
+def verify_file(path):
+    return os.path.exists(path)
