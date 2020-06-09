@@ -14,7 +14,7 @@ import networkx as nx
 import scipy.stats as st
 import multiprocessing as mp
 from src.Tree import TreeNode
-from src.utils import load_pickle, ColorPrint
+from src.utils import load_pickle, ColorPrint, verify_file
 from src.graph_stats import GraphStats
 from src.graph_comparison import GraphPairCompare
 
@@ -26,6 +26,13 @@ def load_data(input_path, dataset, model, filename_idx):
     pkl = load_pickle(os.path.join(path, filename))
     trial = filename.split('_')[2].strip('.pkl.gz')
     return pkl, trial
+
+def get_trial_id(input_path, dataset, model, filename_idx):
+    path = os.path.join(input_path, dataset, model)
+    input_filenames = [f for f in listdir(path) if isfile(join(path, f))]
+    filename = input_filenames[filename_idx]
+    trial = filename.split('_')[2].strip('.pkl.gz')
+    return trial
 
 def mkdir_output(path):
     if not os.path.isdir(path):
@@ -44,9 +51,9 @@ def compute_graph_stats(root):
     print('done')
     return graph_stats
 
-def compute_pgd(graph_stats):
+def compute_pgd(graph_stats, n_threads=4):
     print('computing pgd... ', end='', flush=True)
-    pgds = [gs.pgd_graphlet_counts() for gs in graph_stats]
+    pgds = [gs.pgd_graphlet_counts(n_threads=n_threads) for gs in graph_stats]
     print('done')
     return pgds
 
@@ -124,20 +131,30 @@ def construct_full_table(pgds, trials, gens, model):
 def sublevel_parallel_computation(input_path, dataset, model, idx):
     output_path = f'/afs/crc.nd.edu/user/t/tford5/infinity-mirror/output/pgd/{model}/'
     mkdir_output(output_path)
+    trial = get_trial_id(input_path, dataset, model, idx)
+
+    output_filename = f'{output_path}/{dataset}_{model}_{trial}_pgd_full.csv'
+
+    # don't do repeat work
+    if verify_file(output_filename):
+        ColorPrint.print_orange(f'{output_filename} Already Exists!')
+        return dataset+model
+
+    graph_list, trial = load_data(input_path, dataset, model, idx)
 
     pgds = []
     trials = []
     gens = []
 
-    graph_list, trial = load_data(input_path, dataset, model, idx)
+    n_threads = 24
 
     graph_stats_list = compute_graph_stats(graph_list)
-    pgds += compute_pgd(graph_stats_list)
+    pgds += compute_pgd(graph_stats_list, n_threads)
     trials += [trial for _ in graph_stats_list]
     gens += [x for x in range(len(graph_stats_list))]
 
     df_full = construct_full_table(pgds, trials, gens, model)
-    df_full.to_csv(f'{output_path}/{dataset}_{model}_{trial}_pgd_full.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
+    df_full.to_csv(output_filename, float_format='%.7f', sep='\t', index=False, na_rep='nan')
 
     return dataset+model
 
@@ -147,7 +164,7 @@ def parallel_computation(input_path, dataset, model):
     input_filenames = [f for f in listdir(path) if isfile(join(path, f))]
 
     number_of_files = len(input_filenames)
-    n_threads = 12
+    n_threads = 2
 
     pbar_inner = tqdm(number_of_files)
 
@@ -179,7 +196,7 @@ if __name__ == '__main__':
     models = ['CNRG']
 
     this_list = [['clique-ring-500-4', 'GCN_AE'], ['clique-ring-500-4', 'Linear_AE'], ['clique-ring-500-4', 'Kronecker'], ['eucore', 'Kronecker'], ['flights', 'GCN_AE'], ['flights', 'Linear_AE'], ['flights', 'Kronecker'], ['tree', 'GCN_AE'], ['tree', 'Linear_AE'], ['chess', 'GCN_AE'], ['chess', 'Linear_AE']]
-
+    this_list.reverse()
     # pgds = []
     # trials = []
     # gens = []
