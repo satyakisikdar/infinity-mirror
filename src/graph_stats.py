@@ -349,7 +349,7 @@ class GraphStats:
 
         return pagerank
 
-    def pgd_graphlet_counts(self) -> Dict:
+    def pgd_graphlet_counts(self, n_threads = 4) -> Dict:
         """
         Return the dictionary of graphlets and their counts - based on Neville's PGD
         :return:
@@ -363,21 +363,23 @@ class GraphStats:
             dummy_path = f'{pgd_path}/dummy.txt'
 
             try:
-                bash_script = f'{pgd_path}/pgd_{self.run_id} -w 1 -f {dummy_path} -c {dummy_path}'
+                bash_script = f'{pgd_path}/pgd -w {n_threads} -f {dummy_path} -c {dummy_path}'
 
                 pipe = sub.run(bash_script, shell=True, capture_output=True, input=edgelist.encode(), check=True,
-                               timeout=300000)  # timeout of 10s
+                               timeout=30000)  # timeout of heat death of universe
 
                 output_data = pipe.stdout.decode()
 
-            except sub.TimeoutExpired:
-                CP.print_blue('PGD timeout!')
+            except sub.TimeoutExpired as e:
+                CP.print_blue(f'PGD timeout!{e.stderr}')
                 graphlet_counts = {}
 
             except sub.CalledProcessError as e:
                 CP.print_blue(f'PGD error {e.stderr}')
                 graphlet_counts = {}
-
+            except Exception as e:
+                CP.print_blue(str(e))
+                graphlet_counts = {}
             else:  # pgd is successfully run
                 for line in output_data.split('\n')[: -1]:  # last line blank
                     graphlet_name, count = map(lambda st: st.strip(), line.split('='))

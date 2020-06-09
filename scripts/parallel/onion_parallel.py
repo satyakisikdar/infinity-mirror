@@ -65,6 +65,7 @@ if __name__ == '__main__':
     input_path = '/afs/crc.nd.edu/user/t/tford5/infinity-mirror/cleaned/'
     output_path = '/afs/crc.nd.edu/user/t/tford5/infinity-mirror/output/onion/'
     datasets = ['eucore', 'clique-ring-500-4', 'flights', 'tree', 'chess']
+    # datasets = ['clique-ring-500-4']
     # models = ['Chung-Lu', 'CNRG', 'SBM']
     models = ['CNRG', 'BTER', 'BUGGE', 'Chung-Lu', 'Erdos-Renyi', 'HRG', 'SBM', 'NetGAN', 'GCN_AE', 'Linear_AE', 'Kronecker']
 
@@ -79,24 +80,24 @@ if __name__ == '__main__':
     pbar = tqdm(len(parallel_args))
 
     # sequential implementation
-    for p_arg in parallel_args:
-        results.append(parallel_computation(p_arg[0],p_arg[1],p_arg[2], p_arg[3]))
+    # for p_arg in parallel_args:
+    #     results.append(parallel_computation(p_arg[0],p_arg[1],p_arg[2], p_arg[3]))
 
     def result_update(result):
         pbar.update()
         pbar.set_postfix_str(result[1]+result[2])
         results.append(result[0])
 
-    # asyncResults = []
-    # with mp.Pool(24) as outerPool:
-    #     for p_arg in parallel_args:
-    #         r = outerPool.apply_async(parallel_computation, p_arg, callback=result_update)
-    #         asyncResults.append(r)
-    #     for r in asyncResults:
-    #         try:
-    #             r.wait()
-    #         except:
-    #             continue
+    asyncResults = []
+    with mp.Pool(24) as outerPool:
+        for p_arg in parallel_args:
+            r = outerPool.apply_async(parallel_computation, p_arg, callback=result_update)
+            asyncResults.append(r)
+        for r in asyncResults:
+            try:
+                r.wait()
+            except:
+                continue
 
     df = pd.concat(results)
     mkdir_output(output_path)
