@@ -4,7 +4,7 @@ from itertools import combinations
 
 from tqdm import tqdm
 
-from pgd import mkdir_output
+#from pgd import mkdir_output
 
 sys.path.append('./../../')
 from os import listdir
@@ -28,7 +28,7 @@ def load_data(input_path, dataset, model):
         yield pkl, trial
 
 def parallel_computation(input_path, output_path, dataset, model):
-    mkdir_output(os.path.join(output_path,model))
+    #mkdir_output(os.path.join(output_path,model))
     output_filename = f'{os.path.join(output_path,model)}/{dataset}_{model}_portrait.csv'
     # if the data already exists, just don't redo it.
     if os.path.isfile(output_filename):
@@ -64,7 +64,7 @@ def parallel_computation(input_path, output_path, dataset, model):
 if __name__ == '__main__':
     input_path = '/data/infinity-mirror/cleaned-new/'
     output_path = '/data/infinity-mirror/stats/portrait/'
-    datasets = ['clique-ring-500-4']
+    datasets = ['eucore', 'tree', 'flights']
     models = ['GraphRNN']
 
     cols = ['name', 'model', 'trial_id', 'gen', 'portrait']
@@ -98,5 +98,5 @@ if __name__ == '__main__':
                 continue
 
     df = pd.concat(results)
-    mkdir_output(output_path)
+    #mkdir_output(output_path)
     df.to_csv(f'{output_path}/merged_portrait.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
