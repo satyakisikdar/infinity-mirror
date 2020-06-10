@@ -62,11 +62,10 @@ def parallel_computation(input_path, output_path, dataset, model):
     return df, model, dataset
 
 if __name__ == '__main__':
-    input_path = '/afs/crc.nd.edu/user/t/tford5/infinity-mirror/cleaned/'
-    output_path = '/afs/crc.nd.edu/user/t/tford5/infinity-mirror/output/'
-    datasets = ['chess', 'clique-ring-500-4', 'eucore', 'flights', 'tree']
-    # models = ['Chung-Lu', 'CNRG', 'SBM']
-    models = ['BTER', 'BUGGE', 'CNRG', 'Chung-Lu', 'Erdos-Renyi', 'HRG', 'SBM', 'NetGAN', 'GCN_AE', 'Linear_AE', 'Kronecker']
+    input_path = '/data/infinity-mirror/cleaned-new/'
+    output_path = '/data/infinity-mirror/stats/portrait/'
+    datasets = ['clique-ring-500-4']
+    models = ['GraphRNN']
 
     cols = ['name', 'model', 'trial_id', 'gen', 'portrait']
     parallel_args = []

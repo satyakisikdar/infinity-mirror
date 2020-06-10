@@ -28,15 +28,6 @@ def load_data(base_path, dataset, model, seq_flag, rob_flag):
                 yield pkl, trial
 
 
-def mkdir_output(path):
-    if not os.path.isdir(path):
-        try:
-            os.mkdir(path)
-        except OSError:
-            print('ERROR: could not make directory {path} for some reason')
-    return
-
-
 def compute_graph_stats(root):
     print('computing GraphStats... ', end='', flush=True)
     if type(root) is list:
@@ -120,13 +111,12 @@ def construct_full_table(abs_delta, seq_delta, model, trials):
 
 
 if __name__ == '__main__':
-    base_path = '/data/infinity-mirror/'
-    dataset = 'clique-ring-500-4'
-    models = ['Chung-Lu', 'CNRG', 'SBM']
-    # models = ['BTER', 'BUGGE', 'CNRG', 'Chung-Lu', 'Erdos-Renyi', 'SBM', 'HRG', 'NetGAN']
+    base_path = '/data/infinity-mirror/cleaned-new/'
+    dataset = 'flights'
+    models = ['GraphRNN']
 
-    output_path = os.path.join(base_path, 'stats/portrait/')
-    mkdir_output(output_path)
+    output_path = os.path.join('/data/infinity-mirror/stats/portrait/')
+    #mkdir_output(output_path)
 
     cols = ['model', 'gen', 'trial_id', 'portrait']
 
@@ -151,4 +141,4 @@ if __name__ == '__main__':
                 rows['portrait'].append(d)
             break
         df = pd.DataFrame(rows)
-        df.to_csv(f'{output_path}/{dataset}_{model}_portrait.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
+        df.to_csv(f'{output_path}/portrait_{dataset}_{model}.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
