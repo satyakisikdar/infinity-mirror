@@ -12,15 +12,15 @@ import scipy.stats as st
 
 if __name__ == '__main__':
 
-    output_directory = "/data/infinity-mirror/stats/pagerank/"
+    output_directory = "/home/dgonza26/infinity-mirror/data/pagerank/"
 
     input_filenames = []
-    datasets = ['tree']
-    models = ['Erdos-Renyi']
+    datasets = ['clique-ring-500-4']
+    models = ['GraphRNN']
 
     for dataset in datasets:
         for model in models:
-            input_directory = f"/data/infinity-mirror/{dataset}/{model}/pagerank/"
+            input_directory = f"/data/infinity-mirror/cleaned-new/{dataset}/{model}/pagerank/"
             input_filenames = [input_directory + f for f in listdir(input_directory) if
                                 isfile(join(input_directory, f))]
 
@@ -37,6 +37,8 @@ if __name__ == '__main__':
                 gen_id = int(filename.split("_")[-1].strip(".csv"))
                 # print(gen_id, chain_id)
                 file = pd.read_csv(filename, sep="\t")
+                if file.empty:
+                    continue
                 graph_dists[chain_id][gen_id] = file.pagerank.values
 
             # print(original_hist)\
@@ -54,7 +56,10 @@ if __name__ == '__main__':
                                        0] + 0.00001
                     abs_js_distance = distance.jensenshannon(original_hist, current_hist, base=2.0)
 
-                    seq_upper_bound = max(graph_dists[chain_id][gen_id - 1].max(), graph_dists[chain_id][gen_id].max())
+                    try:
+                        seq_upper_bound = max(graph_dists[chain_id][gen_id - 1].max(), graph_dists[chain_id][gen_id].max())
+                    except Exception as e:
+                        seq_upper_bound = graph_dists[chain_id][gen_id].max()
 
                     pred_hist = np.histogram(graph_dists[1][0], range=(0, seq_upper_bound), bins=100)[0] + 0.00001
                     current_hist = np.histogram(graph_dists[chain_id][gen_id], range=(0, seq_upper_bound), bins=100)[
@@ -102,7 +107,7 @@ if __name__ == '__main__':
                 {'abs': [abs_mean, abs95d, abs95u], 'seq': [seq_mean, seq95d, seq95u]})
             print(results_df.info())
             results_df.columns = results_df.columns.droplevel(0)
-            results_df.to_csv(output_directory + f'pagerank_{dataset}_{model}.csv', sep='\t', index=False, na_rep='nan')
+            results_df.to_csv(output_directory + f'pagerank_{dataset}_{model}.csv', sep='\t', na_rep='nan')
 
             # print(results_df.head())
 # model	gen	abs_mean	abs95d	abs95u	seq_mean	seq95d	seq95u?

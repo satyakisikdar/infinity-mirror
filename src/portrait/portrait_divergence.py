@@ -33,7 +33,7 @@ def portrait_cpp(graph, fname=None, keepfile=False):
     nx.write_edgelist(graph, f+".edgelist", data=False)
     
     # make B-matrix:
-    os.system("~/repos/infinity-mirror/src/portrait/B_matrix {}.edgelist {}.Bmat > /dev/null".format(f, f))  # TODO: fix path
+    os.system("~/infinity-mirror/src/portrait/B_matrix {}.edgelist {}.Bmat > /dev/null".format(f, f))
     portrait = np.loadtxt("{}.Bmat".format(f))
     
     # clean up:

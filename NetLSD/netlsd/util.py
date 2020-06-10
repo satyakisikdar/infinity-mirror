@@ -253,20 +253,16 @@ def eigenvalues_auto(mat, n_eivals='auto'):
         mat = mat.todense()
     if sps.issparse(mat):
         if n_lower == n_upper:
-            print('hi')
-            tr_eivals = spsl.eigsh(mat, 2*n_lower, which='BE', return_eigenvectors=False)
+            tr_eivals = spsl.eigsh(mat, 2*n_lower, which='BE', return_eigenvectors=False, maxiter=nv*50000)
             return updown_linear_approx(tr_eivals[:n_upper], tr_eivals[n_upper:], nv)
         else:
-            print('hello')
             lo_eivals = spsl.eigsh(mat, n_lower, which='SM', return_eigenvectors=False)[::-1]
             up_eivals = spsl.eigsh(mat, n_upper, which='LM', return_eigenvectors=False)
             return updown_linear_approx(lo_eivals, up_eivals, nv)
     else:
         if do_full:
-            print('good day')
             return spl.eigvalsh(mat)
         else:
-            print('good night')
             lo_eivals = spl.eigvalsh(mat, eigvals=(0, n_lower-1))
             up_eivals = spl.eigvalsh(mat, eigvals=(nv-n_upper-1, nv-1))
             return updown_linear_approx(lo_eivals, up_eivals, nv)
