@@ -29,10 +29,10 @@ for model in models:
     #        print(f'ERROR: could not make directory {model_path} for some reason')
 
     all_pickle_files = set(file for file in os.listdir(model_path) if file.endswith('.pkl.gz'))
-    non_seq_pickle_files = set(file for file in all_pickle_files if 'seq' not in file and 'rob' not in file)
+    non_pickle_files = set(file for file in all_pickle_files if 'seq' not in file and 'rob' not in file)
 
-    seq_pickle_files = set(file for file in all_pickle_files if 'seq' in file)
-    rob_pickle_files = set(file for file in all_pickle_files if 'rob' in file)
+    seq_pickle_files = set(file for file in all_pickle_files if 'seq' in file and 'rob' not in file)
+    rob_pickle_files = set(file for file in all_pickle_files if 'rob' in file and 'seq' not in file)
 
     non_seq_pickle_files = set(file for file in all_pickle_files if 'seq' not in file)
     non_rob_pickle_files = set(file for file in all_pickle_files if 'rob' not in file)
@@ -41,7 +41,7 @@ for model in models:
 
     t = [0 for x in range(50)]
 
-    if len(non_seq_pickle_files) == 0:
+    if len(non_pickle_files) == 0:
         pickles = seq_pickle_files
     else:
         pickles = non_seq_pickle_files
