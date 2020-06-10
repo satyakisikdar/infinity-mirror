@@ -56,7 +56,10 @@ if __name__ == '__main__':
                                        0] + 0.00001
                     abs_js_distance = distance.jensenshannon(original_hist, current_hist, base=2.0)
 
-                    seq_upper_bound = max(graph_dists[chain_id][gen_id - 1].max(), graph_dists[chain_id][gen_id].max())
+                    try:
+                        seq_upper_bound = max(graph_dists[chain_id][gen_id - 1].max(), graph_dists[chain_id][gen_id].max())
+                    except Exception as e:
+                        seq_upper_bound = graph_dists[chain_id][gen_id].max()
 
                     pred_hist = np.histogram(graph_dists[1][0], range=(0, seq_upper_bound), bins=100)[0] + 0.00001
                     current_hist = np.histogram(graph_dists[chain_id][gen_id], range=(0, seq_upper_bound), bins=100)[
