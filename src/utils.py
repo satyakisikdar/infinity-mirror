@@ -245,8 +245,10 @@ class ColorPrint:
 
 # given a path to a directory, create it if it does not exist
 def verify_dir(path):
+    p = Path(path)
     if not os.path.exists(path):
-        os.makedirs(path)
+        p.mkdir(parents=True)
+    #    os.makedirs(path)
 
 
 # given a filepath, return true if the file exists
