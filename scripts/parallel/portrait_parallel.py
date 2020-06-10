@@ -64,7 +64,7 @@ def parallel_computation(input_path, output_path, dataset, model):
 if __name__ == '__main__':
     input_path = '/data/infinity-mirror/cleaned-new/'
     output_path = '/data/infinity-mirror/stats/portrait/'
-    datasets = ['eucore', 'tree', 'flights']
+    datasets = ['tree']
     models = ['GraphRNN']
 
     cols = ['name', 'model', 'trial_id', 'gen', 'portrait']
