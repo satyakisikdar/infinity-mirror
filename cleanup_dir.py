@@ -7,7 +7,7 @@ from sys import argv
 import shutil
 
 base_path = '/data/infinity-mirror/'
-dest_path = '/data/infinity-mirror/cleaned-new/'
+dest_path = '/data/infinity-mirror/cleaned-new-new/'
 datasets = ['eucore', 'flights', 'clique-ring-500-4', 'tree', 'chess']
 
 # for dataset in datasets:
