@@ -65,7 +65,7 @@ class InfinityMirror:
         if use_pickle and check_file_exists(self.graphs_pickle_path + pickle_ext):
             CP.print_green(f'Using pickle at "{self.graphs_pickle_path + pickle_ext}"')
             graphs = load_pickle(self.graphs_pickle_path + pickle_ext)
-            assert isinstance(list, LightTreeNode), 'Invalid TreeNode format, needs to be a LightTreeNode object'
+            # assert isinstance(list, LightTreeNode), 'Invalid TreeNode format, needs to be a LightTreeNode object'
             self.graphs = graphs
             return
 
@@ -100,7 +100,8 @@ class InfinityMirror:
             curr_graph.name = f'{self.initial_graph.name}_{level}_{self.run_id}'
             curr_graph.gen = level
             self.graphs.append(curr_graph)
-
+            pickle.dump(self.graphs, open(self.graphs_pickle_path + '_temp' + pickle_ext, 'wb'),
+                        protocol=-1)  # use highest possible protocol
             pbar.update(1)
 
         pbar.close()
