@@ -80,10 +80,11 @@ def construct_full_table(pgds, trials, gens, model):
     total_3_tris = []
     total_2_star = []
     total_3_1edge = []
+    total_3_indep = []
     total_4_clique = []
-    total_4_cycle = []
     total_4_chordcycle = []
     total_4_tailed_tris = []
+    total_4_cycle = []
     total_3_star = []
     total_4_path = []
     total_4_1edge = []
@@ -97,10 +98,11 @@ def construct_full_table(pgds, trials, gens, model):
         total_3_tris.append(d['total_3_tris'])
         total_2_star.append(d['total_2_star'])
         total_3_1edge.append(d['total_3_1edge'])
+        total_3_indep.append(d['total_3_indep'])
         total_4_clique.append(d['total_4_clique'])
-        total_4_cycle.append(d['total_4_cycle'])
         total_4_chordcycle.append(d['total_4_chordcycle'])
         total_4_tailed_tris.append(d['total_4_tailed_tris'])
+        total_4_cycle.append(d['total_4_cycle'])
         total_3_star.append(d['total_3_star'])
         total_4_path.append(d['total_4_path'])
         total_4_1edge.append(d['total_4_1edge'])
@@ -115,10 +117,11 @@ def construct_full_table(pgds, trials, gens, model):
             'total_3_tris': total_3_tris, \
             'total_2_star': total_2_star, \
             'total_3_1edge': total_3_1edge, \
+            'total_3_indep': total_3_indep, \
             'total_4_clique': total_4_clique, \
-            'total_4_cycle': total_4_cycle, \
             'total_4_chordcycle': total_4_chordcycle, \
             'total_4_tailed_tris': total_4_tailed_tris, \
+            'total_4_cycle': total_4_cycle, \
             'total_3_star': total_3_star, \
             'total_4_path': total_4_path, \
             'total_4_1edge': total_4_1edge, \
