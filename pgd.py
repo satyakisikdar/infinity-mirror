@@ -197,7 +197,7 @@ def parallel_computation(input_path, dataset, model):
     return model, dataset
 
 if __name__ == '__main__':
-    input_path = '/afs/crc.nd.edu/user/t/tford5/infinity-mirror/cleaned-new-new/'
+    input_path = '/data/infinity-mirror/cleaned-new-new/'
     datasets = ['tree']
     models = ['Kronecker']
 
