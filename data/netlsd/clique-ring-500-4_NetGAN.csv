@@ -1,5 +1,5 @@
 model	gen	abs_mean	abs95d	abs95u
-NetGAN	0	0.0000000	0.0000000	0.0000000
+NetGAN	0	0.0000100	0.0000100	0.0000100
 NetGAN	1	0.4048287	nan	nan
 NetGAN	2	0.4158937	nan	nan
 NetGAN	3	8.3490821	nan	nan
