@@ -1,2 +1,2 @@
-model	gen	abs_mean	abs95d	abs95u
-NetGAN	1	0.0159420	0.0133968	0.0184873
+	model	gen	abs_mean	abs95d	abs95u
+0	NetGAN	1	1.0000000	1.0000000	1.0000000
