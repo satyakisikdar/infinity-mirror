@@ -125,15 +125,15 @@ def construct_full_table(abs_lambda, seq_lambda, model, trials):
     return df
 
 def main():
-    base_path = '/data/infinity-mirror/cleaned-new'
+    base_path = '/data/infinity-mirror/cleaned-new-new'
     input_path = '/home/dgonza26/infinity-mirror/input'
-    dataset = 'tree'
+    dataset = 'flights'
     model = 'GraphRNN'
 
     output_path = os.path.join(base_path, dataset, model)
     verify_dir(output_path)
 
-    R = [(root, generation) for root, generation in load_data(os.path.join(base_path, 'cleaned'), dataset)]
+    R = [(root, generation) for root, generation in load_data(base_path, dataset)]
     R.sort(key=lambda x: x[1])
     R = [root for (root, generation) in R]
 
