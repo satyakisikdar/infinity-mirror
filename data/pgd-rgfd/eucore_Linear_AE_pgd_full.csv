@@ -1,5 +1,4 @@
 model	gen	abs_mean	abs95d	abs95u
-Linear_AE	0	0.0000000	nan	nan
 Linear_AE	1	0.0451496	0.0450377	0.0452615
 Linear_AE	2	0.0353602	0.0351440	0.0355764
 Linear_AE	3	0.0328471	0.0328172	0.0328770

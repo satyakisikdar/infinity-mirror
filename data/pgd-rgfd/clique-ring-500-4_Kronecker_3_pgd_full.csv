@@ -1,5 +1,4 @@
 model	gen	abs_mean	abs95d	abs95u
-Kronecker	0	0.0000000	nan	nan
 Kronecker	1	0.0283419	nan	nan
 Kronecker	2	0.0429868	nan	nan
 Kronecker	3	0.0704299	nan	nan

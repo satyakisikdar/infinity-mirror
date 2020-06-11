@@ -1,5 +1,4 @@
 model	gen	abs_mean	abs95d	abs95u
-Erdos-Renyi	0	0.0000000	nan	nan
 Erdos-Renyi	1	0.1193927	0.1193848	0.1194006
 Erdos-Renyi	2	0.1193986	0.1193861	0.1194111
 Erdos-Renyi	3	0.1194010	0.1193869	0.1194151
