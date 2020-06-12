@@ -136,8 +136,8 @@ def sequential(graphs):
     prev = graphs[0]
     for curr in graphs[1:]:
         density = nx.density(curr) - nx.density(prev)
-        yield density
         prev = curr
+        yield density
 
 def absolute_density(graphs):
     print('\t\tabsolute... ', end='', flush=True)
@@ -167,26 +167,22 @@ def compute_stats(densities):
             densities[idx] = [0]
     print(densities)
     mean = np.nanmean(densities, axis=0)
-    ci = []
-    for row in np.asarray(densities).T:
-        ci.append(st.t.interval(0.95, len(row)-1, loc=np.mean(row), scale=st.sem(row)))
-    return np.asarray(mean), np.asarray(ci)
+    return np.asarray(mean)
 
-def construct_table(abs_densities, seq_densities, model):
-    abs_mean, abs_ci = compute_stats(abs_densities)
-    seq_mean, seq_ci = compute_stats(seq_densities)
+def construct_table(abs_densities, model):
+    abs_mean = compute_stats(abs_densities)
     gen = [x + 1 for x in range(len(abs_mean))]
 
-    rows = {'model': model, 'gen': gen, 'abs_mean': abs_mean, 'abs-95%': abs_ci[:,0], 'abs+95%': abs_ci[:,1], 'seq_mean': seq_mean, 'seq-95%': seq_ci[:,0], 'seq+95%': seq_ci[:,1]}
+    rows = {'model': model, 'gen': gen, 'abs_mean': abs_mean}
 
     df = pd.DataFrame(rows)
     return df
 
 def main():
     base_path = '/data/infinity-mirror/cleaned-new-new'
-    input_path = '/home/dgonza26/infinity-mirror/input'
-    dataset = 'tree'
-    models = ['Linear_AE']
+    #input_path = '/home/dgonza26/infinity-mirror/input'
+    dataset = 'clique-ring-500-4'
+    models = ['Kronecker']
 
     for model in models:
         #output_path = os.path.join(base_path, dataset, models[0], 'jensen-shannon')
@@ -194,15 +190,13 @@ def main():
         mkdir_output(output_path)
 
         abs_densities = []
-        seq_densities = []
         gen = []
         for root, model in load_data(base_path, dataset, model, True, False):
             graphs = unravel(root)
             assert graphs != []
             abs_densities.append(absolute_density(graphs))
-            seq_densities.append(sequential_density(graphs))
 
-        df = construct_table(abs_densities, seq_densities, model)
+        df = construct_table(abs_densities, model)
         df.to_csv(f'{output_path}/{dataset}_{model}_density.csv', float_format='%.7f', sep='\t', index=False, na_rep='nan')
         print(f'wrote: {output_path}/{dataset}_{model}_density.csv')
 
