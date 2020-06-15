@@ -14,7 +14,7 @@ import networkx as nx
 import scipy.stats as st
 import multiprocessing as mp
 from src.Tree import TreeNode
-from src.utils import load_pickle, ColorPrint, verify_file
+from src.utils import load_pickle, ColorPrint, verify_file, verify_dir
 from src.graph_stats import GraphStats
 from src.graph_comparison import GraphPairCompare
 
@@ -80,11 +80,9 @@ def construct_full_table(pgds, trials, gens, model):
     total_3_tris = []
     total_2_star = []
     total_3_1edge = []
-    #total_3_indep = []
     total_4_clique = []
     total_4_chordcycle = []
     total_4_tailed_tris = []
-    #total_4_cycle = []
     total_3_star = []
     total_4_path = []
     total_4_1edge = []
@@ -98,11 +96,9 @@ def construct_full_table(pgds, trials, gens, model):
         total_3_tris.append(d['total_3_tris'])
         total_2_star.append(d['total_2_star'])
         total_3_1edge.append(d['total_3_1edge'])
-        #total_3_indep.append(d['total_3_indep'])
         total_4_clique.append(d['total_4_clique'])
         total_4_chordcycle.append(d['total_4_chordcycle'])
         total_4_tailed_tris.append(d['total_4_tailed_tris'])
-        #total_4_cycle.append(d['total_4_cycle'])
         total_3_star.append(d['total_3_star'])
         total_4_path.append(d['total_4_path'])
         total_4_1edge.append(d['total_4_1edge'])
@@ -117,11 +113,9 @@ def construct_full_table(pgds, trials, gens, model):
             'total_3_tris': total_3_tris, \
             'total_2_star': total_2_star, \
             'total_3_1edge': total_3_1edge, \
-            #'total_3_indep': total_3_indep, \
             'total_4_clique': total_4_clique, \
             'total_4_chordcycle': total_4_chordcycle, \
             'total_4_tailed_tris': total_4_tailed_tris, \
-            #'total_4_cycle': total_4_cycle, \
             'total_3_star': total_3_star, \
             'total_4_path': total_4_path, \
             'total_4_1edge': total_4_1edge, \
@@ -135,8 +129,11 @@ def construct_full_table(pgds, trials, gens, model):
     return df
 
 def sublevel_parallel_computation(input_path, dataset, model, idx):
+    #dac
     output_path = f'/afs/crc.nd.edu/user/t/tford5/infinity-mirror/output/pgd/{model}/'
-    mkdir_output(output_path)
+    #dsg
+    output_path = f'/afs/crc.nd.edu/user/t/tford5/infinity-mirror/infinity-mirror/output/pgd/{model}/'
+    verify_dir(output_path)
     trial = get_trial_id(input_path, dataset, model, idx)
 
     output_filename = f'{output_path}/{dataset}_{model}_{trial}_pgd_full.csv'
@@ -152,7 +149,7 @@ def sublevel_parallel_computation(input_path, dataset, model, idx):
     trials = []
     gens = []
 
-    n_threads = 24
+    n_threads = 28
 
     graph_stats_list = compute_graph_stats(graph_list)
     pgds += compute_pgd(graph_stats_list, n_threads)
@@ -197,20 +194,27 @@ def parallel_computation(input_path, dataset, model):
     return model, dataset
 
 if __name__ == '__main__':
-    input_path = '/data/infinity-mirror/cleaned-new-new/'
-    datasets = ['tree']
+    #dac
+    input_path = '/afs/crc.nd.edu/user/t/tford5/infinity-mirror/cleaned/'
+    # DSGs
+    # input_path = '/data/infinity-mirror/cleaned/'
+    # datasets = ['eucore', 'clique-ring-500-4', 'flights']
+    datasets = ['eucore', 'clique-ring-500-4', 'chess', 'tree', 'flights']
+    datasets = ['eucore', 'clique-ring-500-4', 'flights']
     models = ['Kronecker']
 
-    this_list = [['clique-ring-500-4', 'GCN_AE'], ['clique-ring-500-4', 'Linear_AE'], ['clique-ring-500-4', 'Kronecker'], ['eucore', 'Kronecker'], ['flights', 'GCN_AE'], ['flights', 'Linear_AE'], ['flights', 'Kronecker'], ['tree', 'GCN_AE'], ['tree', 'Linear_AE'], ['chess', 'GCN_AE'], ['chess', 'Linear_AE']]
-    this_list.reverse()
-    # pgds = []
-    # trials = []
-    # gens = []
     parallel_args = []
     results = []
 
+    for dataset in datasets:
+        for model in models:
+            parallel_args.append([input_path, dataset, model])
+
+    this_list = [['tree', 'GCN_AE'], ['tree', 'Linear_AE'], ['flights', 'GCN_AE'], ['flights', 'Linear_AE'], ['eucore', 'GCN_AE'], ['eucore', 'Linear_AE'], ['clique-ring-500-4', 'GCN_AE'], ['clique-ring-500-4', 'Linear_AE']]
+
     for thing in this_list:
         parallel_args.append([input_path, thing[0], thing[1]])
+
 
     pbar = tqdm(len(parallel_args))
 
