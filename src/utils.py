@@ -284,3 +284,12 @@ def verify_file(path) -> bool:
     :return: bool
     """
     return os.path.exists(path)
+
+
+def get_imt_output_directory() -> os.path:
+    """
+    This should look in a users' home directory for a file that contains a path to that user's data directory for
+    the IMT graph files.
+    :param: None
+    :return: data_dir: os.path
+    """
