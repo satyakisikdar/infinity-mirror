@@ -1,6 +1,7 @@
 import functools
 import os
 import pickle
+import re
 import sys
 import time
 from datetime import datetime
@@ -10,6 +11,7 @@ from typing import Union, Any, Tuple, List
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
+import pandas as pd
 import seaborn as sns;
 
 sns.set(); sns.set_style("darkgrid")
@@ -131,6 +133,27 @@ def load_pickle(path: Union[Path, str]) -> Any:
     return pickle.load(open(path, 'rb'))
 
 
+def load_imt_trial(input_path, dataset, model) -> (pd.DataFrame,int):
+    """
+    Loads graph list files and yields them to the caller one file at a time. This function loads
+    each file that matches the imt_filename_pattern regex in the input directory and attempts to yield it.
+    :param
+        input_path: str or os.path object
+        dataset:    str
+        model:      str
+    :return: Tuple(pd.Datafrome, int)
+    """
+    full_path = os.path.join(input_path, dataset, model)
+    imt_filename_pattern = re.compile('list\_(\d+)\_(\d+).pkl.gz')
+    input_filenames = [f for f in os.listdir(full_path) if os.path.isfile(os.path.join(full_path, f))
+                       if re.match(imt_filename_pattern, f)]
+
+    for filename in input_filenames:
+        imt_dataframe = load_pickle(os.path.join(full_path, filename))
+        generations,trial_id = imt_filename_pattern.fullmatch(filename).groups()
+        yield imt_dataframe, trial_id
+
+
 def make_plot(y, kind='line', x=None, title='', xlabel='', ylabel='') -> None:
     if isinstance(y, dict):
         lists = sorted(y.items())
@@ -151,7 +174,7 @@ def make_plot(y, kind='line', x=None, title='', xlabel='', ylabel='') -> None:
 
     return
 
-
+#todo: these two functions need to be moved to their respective driver scripts
 def cvm_distance(data1, data2) -> float:
     data1, data2 = map(np.asarray, (data1, data2))
     n1 = len(data1)
@@ -178,7 +201,7 @@ def ks_distance(data1, data2) -> float:
     d = np.max(np.absolute(cdf1 - cdf2))
     return np.round(d, 3)
 
-
+#todo: this function is only used in Graph Comparison and should probably be moved there.
 def _pad(A,N):
     """Pad A so A.shape is (N,N)"""
     n,_ = A.shape
@@ -198,7 +221,7 @@ def _pad(A,N):
             A_pad = np.concatenate([A_pad,bottom])
         return A_pad
 
-
+#todo: this function is only used in Graph Comparison and should probably be moved there.
 def fast_bp(A,eps=None):
     n, m = A.shape
     degs = np.array(A.sum(axis=1)).flatten()
