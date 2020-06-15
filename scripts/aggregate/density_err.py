@@ -18,7 +18,7 @@ from src.graph_stats import GraphStats
 from src.graph_comparison import GraphPairCompare
 
 
-def load_data(base_path, dataset, model):
+def load_data(, dataset, model):
     path = os.path.join(base_path, dataset, model)
     for subdir, dirs, files in os.walk(path):
         for filename in files: #Todo: this thing doesn't actually return the trial id...
