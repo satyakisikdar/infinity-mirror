@@ -1,16 +1,13 @@
 import csv
 import pickle
 from collections import namedtuple
-from typing import Any, List, Dict, Union
+from typing import Any, List
 
 import networkx as nx
 from tqdm import tqdm
 
-from src.Tree import TreeNode, LightTreeNode
-from src.graph_comparison import GraphPairCompare
-from src.graph_models import *
 from src.graph_stats import GraphStats
-from src.utils import borda_sort, ColorPrint as CP, load_pickle, check_file_exists
+from src.utils import ColorPrint as CP, load_pickle, check_file_exists
 
 Stats = namedtuple('Stats',
                    'name id graph score')  # stores the different stats for each graph. name: name of metric, id: graph_id
@@ -25,18 +22,18 @@ class InfinityMirror:
     Class for InfinityMirror
     """
     __slots__ = ('initial_graph', 'num_generations', 'num_graphs', 'model', 'initial_graph_stats', 'graphs',
-                 '_metrics', 'graphs_pickle_path', 'run_id', 'rewire')
+                 '_metrics', 'graphs_pickle_path', 'run_id', 'rewire', 'finish_path')
 
     def __init__(self, initial_graph: nx.Graph, model_obj: Any, num_generations: int,
-                 num_graphs: int, run_id: int, r: float) -> None:
+                 num_graphs: int, run_id: int, r: float, finish: str='') -> None:
         self.run_id = run_id
         self.initial_graph: nx.Graph = initial_graph  # the initial starting point H_0
         self.num_graphs: int = num_graphs  # number of graphs per generation
         self.num_generations: int = num_generations  # number of generations
 
-        self.model = model_obj # (input_graph=self.initial_graph, run_id=self.run_id)
+        self.model = model_obj  # (input_graph=self.initial_graph, run_id=self.run_id)
         self.model.input_graph = self.initial_graph
-        self.model.run_id = run_id # initialize and fit the model
+        self.model.run_id = run_id  # initialize and fit the model
 
         self.initial_graph_stats: GraphStats = GraphStats(run_id=run_id, graph=self.initial_graph)
         self._metrics: List[str] = ['deltacon0', 'lambda_dist', 'pagerank_cvm', 'node_diff', 'edge_diff', 'pgd_pearson',
@@ -44,6 +41,7 @@ class InfinityMirror:
         self.rewire = int(r * 100)
         self.graphs_pickle_path: str = f'./output/pickles/{self.initial_graph.name}/{self.model.model_name}/list_{self.num_generations}_{self.run_id}'
         self.graphs: List[nx.Graph] = []  # stores the list of graphs - one per generation
+        self.finish_path: str = finish
         if r != 0:
             self.graphs_pickle_path += f'_{r}'
         return
@@ -54,14 +52,15 @@ class InfinityMirror:
     def __repr__(self) -> str:
         return str(self)
 
-
     def run(self, use_pickle: bool) -> None:
         """
         New runner - uses LightTreeNode objects, so no graph comparison
         :param use_pickle:
         :return:
         """
+        temp_graphs = []
         pickle_ext = '.pkl.gz'
+
         if use_pickle and check_file_exists(self.graphs_pickle_path + pickle_ext):
             CP.print_green(f'Using pickle at "{self.graphs_pickle_path + pickle_ext}"')
             graphs = load_pickle(self.graphs_pickle_path + pickle_ext)
@@ -69,23 +68,40 @@ class InfinityMirror:
             self.graphs = graphs
             return
 
+        flag = False
+        if self.finish_path != '' and check_file_exists(self.finish_path):
+            temp_graphs = load_pickle(self.finish_path)
+            if len(temp_graphs) == 21:
+                CP.print_green(f'The pickle at {self.finish_path} has {len(temp_graphs)}/21 graphs')
+                return
+            CP.print_green(f'Trying to finish the pickle at {self.finish_path} has {len(temp_graphs)}/21 graphs')
+            self.graphs_pickle_path += '-continued'
+            flag = True
+
         tqdm.write(
             f'Running Infinity Mirror on "{self.initial_graph.name}" {self.initial_graph.order(), self.initial_graph.size()} "{self.model.model_name}" {self.num_generations} generations')
         pbar = tqdm(total=self.num_generations, bar_format='{l_bar}{bar}|[{elapsed}<{remaining}]', ncols=50)
 
-        self.initial_graph.level = 0
-        self.graphs = [self.initial_graph]
+        if len(temp_graphs) == 0:
+            self.initial_graph.level = 0
+            self.graphs = [self.initial_graph]
+        else:
+            self.graphs = temp_graphs
 
         for i in range(self.num_generations):
             if i == 0:
-                curr_graph = self.initial_graph  # current graph is the initial graph
+                if flag:
+                    i = len(self.graphs) - 1
+                    curr_graph = self.graphs[-1]  # use the last graph
+                else:
+                    curr_graph = self.initial_graph
 
             level = i + 1
             try:
                 self.model.update(new_input_graph=curr_graph)  # update the model
             except Exception as e:
                 print(f'Model fit failed {e}')
-                self.graphs_pickle_path += f'_failed-{level}'  # append the failed to filenam
+                # self.graphs_pickle_path += f'_failed-{level}'  # append the failed to filenam
                 break
 
             try:
@@ -93,7 +109,7 @@ class InfinityMirror:
                                                        gen_id=level)  # generate a new set of graphs
             except Exception as e:
                 print(f'Generation failed {e}')
-                self.graphs_pickle_path += f'_failed-{level}'  # append the failed to filename
+                # self.graphs_pickle_path += f'_failed-{level}'  # append the failed to filename
                 break
 
             curr_graph = generated_graphs[0]  # we are only generating one graph
@@ -105,8 +121,9 @@ class InfinityMirror:
             pbar.update(1)
 
         pbar.close()
-        CP.print_green(f'List of Graphs is pickled at "{self.graphs_pickle_path + pickle_ext}"')
-        pickle.dump(self.graphs, open(self.graphs_pickle_path + pickle_ext, 'wb'), protocol=-1)  # use highest possible protocol
+        CP.print_green(f'List of {len(self.graphs)} Graphs is pickled at "{self.graphs_pickle_path + pickle_ext}"')
+        pickle.dump(self.graphs, open(self.graphs_pickle_path + pickle_ext, 'wb'),
+                    protocol=-1)  # use highest possible protocol
         return
 
     def write_timing_stats(self, time_taken) -> None:
@@ -144,6 +161,6 @@ class InfinityMirror:
         with open(fail_file, 'a') as fp:
             writer = csv.DictWriter(fp, fieldnames=fieldnames)
             writer.writerow({'run_id': self.run_id, 'gname': self.initial_graph.name, 'model': self.model.model_name,
-                            'gens': self.num_generations, 'level': level})
+                             'gens': self.num_generations, 'level': level})
 
         return
