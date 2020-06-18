@@ -1,20 +1,25 @@
 """
 Container for different graph stats
 """
+import os
 import platform
 import subprocess as sub
+import sys
 from collections import Counter, deque
-from typing import Dict, Tuple, List
-
+from pathlib import Path
+from typing import Dict, Tuple, List, Union, Any
+sys.path.extend(['./../', './../../'])
+print('sys path: ', sys.path)
 import editdistance as ed
 import matplotlib.pyplot as plt
 import networkx as nx
+import NetLSD.netlsd as net
 import numpy as np
 import seaborn as sns
 import leidenalg as la
 import igraph as ig
 
-from src.utils import check_file_exists, ColorPrint as CP
+from src.utils import check_file_exists, ColorPrint as CP, save_pickle
 
 sns.set()
 sns.set_style("darkgrid")
@@ -24,12 +29,16 @@ class GraphStats:
     """
     GraphStats has methods for finding different statistics for a NetworkX graph
     """
-    __slots__ = ['graph', 'stats', 'run_id']
+    __slots__ = ['graph', 'dataset', 'model', 'iteration', 'stats', 'trial']
 
-    def __init__(self, graph: nx.Graph, run_id: int):
+    def __init__(self, graph: nx.Graph, dataset: str, model: str, iteration: int, trial: int):
         self.graph: nx.Graph = graph
-        self.run_id = run_id
-        self.stats: Dict[str, float] = {'n': graph.order(), 'm': graph.size()}
+        self.trial = trial
+        self.dataset = dataset
+        self.model = model
+        self.iteration = iteration
+        self.stats: Dict[str, Any] = {'dataset': dataset, 'model': model, 'iteration': iteration, 'trial': trial,
+                                      'n': graph.order(), 'm': graph.size()}
 
     def __str__(self) -> str:
         st = f'"{self.graph.name}" stats:'
@@ -81,6 +90,16 @@ class GraphStats:
 
         assert item in self.stats, f'stat: {item} is not updated after function call'
         return self.stats[item]
+
+    def write_stats_pickle(self, base_path: Union[str, Path]):
+        """
+        write the stats dictionary as a pickle
+        :return:
+        """
+        filename = os.path.join(base_path, 'graph_stats', self.dataset, self.model, f'gs_{self.trial}_{self.iteration}.pkl.gz')
+        CP.print_blue(f'Stats pickle stored at {filename}')
+        save_pickle(self.stats, filename)
+        return
 
     def plot(self, y, ax=None, kind='line', x=None, **kwargs) -> None:
         if isinstance(y, dict):
@@ -349,7 +368,7 @@ class GraphStats:
 
         return pagerank
 
-    def pgd_graphlet_counts(self, n_threads = 4) -> Dict:
+    def pgd_graphlet_counts(self, n_threads=4) -> Dict:
         """
         Return the dictionary of graphlets and their counts - based on Neville's PGD
         :return:
@@ -357,7 +376,7 @@ class GraphStats:
         pgd_path = './src/PGD'
         graphlet_counts = {}
 
-        if 'Linux' in platform.platform() and check_file_exists(f'{pgd_path}/pgd_{self.run_id}'):
+        if 'Linux' in platform.platform() and check_file_exists(f'{pgd_path}/pgd_0'):
             edgelist = '\n'.join(nx.generate_edgelist(self.graph, data=False))
             edgelist += '\nX'  # add the X
             dummy_path = f'{pgd_path}/dummy.txt'
@@ -390,9 +409,18 @@ class GraphStats:
 
         return graphlet_counts
 
+    def netlsd(self, kernel: str = 'heat', dim: int = 250, eigenvalues: int = 20) -> np.ndarray:
+        eigenvalues = min(eigenvalues, self.graph.order()//2 - 1)
+        vec = net.netlsd(g, kernel=kernel, timescales=np.logspace(-2, 2, dim), eigenvalues=eigenvalues)
+        self.stats['netlsd'] = vec
+        return vec
+
 
 if __name__ == '__main__':
-    g = nx.karate_club_graph()
-    gs = GraphStats(graph=g, run_id=-1)
-    gs._calculate_robustness_measures()
+    # g = nx.karate_club_graph()
+    # g = nx.ring_of_cliques(50, 4)
+    g = nx.erdos_renyi_graph(5, 0.2, seed=1)
+    # g = nx.path_graph(5)
+    gs = GraphStats(graph=g, trial=0, dataset='karate', model='blah', iteration=0)
+    print(gs.netlsd())
     print(gs.stats)

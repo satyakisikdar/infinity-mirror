@@ -205,7 +205,8 @@ def updown_linear_approx(eigvals_lower, eigvals_upper, nv):
     ret = np.zeros(nv)
     ret[:nal] = eigvals_lower
     ret[-nau:] = eigvals_upper
-    ret[nal-1:-nau+1] = np.linspace(eigvals_lower[-1], eigvals_upper[0], nv-nal-nau+2)
+    if nal != nau != 1:
+        ret[nal-1:-nau+1] = np.linspace(eigvals_lower[-1], eigvals_upper[0], nv-nal-nau+2)
     return ret
 
 
@@ -235,9 +236,10 @@ def eigenvalues_auto(mat, n_eivals='auto'):
 
     """
     do_full = True
-    n_lower = 150
-    n_upper = 150
     nv = mat.shape[0]
+    n_lower = min(nv, 150)
+    n_upper = min(nv, 150)
+
     if n_eivals == 'auto':
         if mat.shape[0] > 1024:
             do_full = False
@@ -251,6 +253,7 @@ def eigenvalues_auto(mat, n_eivals='auto'):
         do_full = False
     if do_full and sps.issparse(mat):
         mat = mat.todense()
+
     if sps.issparse(mat):
         if n_lower == n_upper:
             tr_eivals = spsl.eigsh(mat, 2*n_lower, which='BE', return_eigenvectors=False, maxiter=nv*50000)
