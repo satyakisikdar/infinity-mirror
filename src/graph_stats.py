@@ -8,6 +8,9 @@ import sys
 from collections import Counter, deque
 from pathlib import Path
 from typing import Dict, Tuple, List, Union, Any
+
+from src.portrait.portrait_divergence import _graph_or_portrait
+
 sys.path.extend(['./../', './../../'])
 print('sys path: ', sys.path)
 import editdistance as ed
@@ -414,6 +417,15 @@ class GraphStats:
         vec = net.netlsd(g, kernel=kernel, timescales=np.logspace(-2, 2, dim), eigenvalues=eigenvalues)
         self.stats['netlsd'] = vec
         return vec
+
+    def b_mat(self):
+        """
+        Function returns the b_matrix necessary for portrait divergence computations later
+        :return:
+        """
+        BG = _graph_or_portrait(self.graph)
+        self.stats['b_matrix'] = BG
+        return BG
 
 
 if __name__ == '__main__':
