@@ -113,9 +113,20 @@ class GraphPairCompare:
     # todo (trenton)
     def pagerank_js(self) -> float:
         """
-        Calculate the CVM distance of the pagerank
+        Calculate the js distance of the pagerank
         """
-        raise NotImplementedError()
+        g1_dist = self.gstats1['pagerank']
+        g2_dist = self.gstats2['pagerank']
+
+        hist_upperbound = max(g1_dist.max(), g2_dist.max())
+
+        g1_hist = np.histogram(g1_dist, range=(0, hist_upperbound), bins=100)[0] + 0.00001
+        g2_hist = np.histogram(g2_dist, range=(0, hist_upperbound), bins=100)[0] + 0.00001
+
+        js_distance = distance.jensenshannon(g1_hist, g2_hist, base=2.0)
+        self.stats['pagerank_js'] = js_distance
+
+        return js_distance
 
     def degree_js(self) -> float:
         """
