@@ -58,44 +58,7 @@ class GraphPairCompare:
         return
 
     def pgd_spearman(self) -> float:
-        graphlet_dict_1 = self.gstats1['pgd_graphlet_counts']
-        graphlet_dict_2 = self.gstats2['pgd_graphlet_counts']
-
-        if len(graphlet_dict_1) == 0 or len(graphlet_dict_2) == 0:
-            dist = float('inf')
-            self.stats['pgd_spearman'] = dist
-            return dist
-
-        sorted_counts_1: List[int] = list(
-            map(lambda item: item[1], graphlet_dict_1.items()))  # graphlet counts sorted by graphlet name
-
-        sorted_counts_2: List[int] = list(
-            map(lambda item: item[1], graphlet_dict_2.items()))  # graphlet counts sorted by graphlet name
-
-        dist = 1 - scipy.stats.spearmanr(sorted_counts_1, sorted_counts_2)[0]
-        self.stats['pgd_spearman'] = dist
-
-        return round(dist, 3)
-
-    def pgd_pearson(self) -> float:
-        graphlet_dict_1 = self.gstats1['pgd_graphlet_counts']
-        graphlet_dict_2 = self.gstats2['pgd_graphlet_counts']
-
-        if len(graphlet_dict_1) == 0 or len(graphlet_dict_2) == 0:
-            dist = float('inf')
-            self.stats['pgd_pearson'] = dist
-            return dist
-
-        sorted_counts_1 = list(
-            map(lambda item: item[1], graphlet_dict_1.items()))  # graphlet counts sorted by graphlet name
-
-        sorted_counts_2 = list(
-            map(lambda item: item[1], graphlet_dict_2.items()))  # graphlet counts sorted by graphlet name
-
-        dist = 1 - scipy.stats.pearsonr(sorted_counts_1, sorted_counts_2)[0]
-        self.stats['pgd_pearson'] = dist
-
-        return round(dist, 3)
+        raise NotImplementedError()
 
     def node_diff(self) -> float:
         """
@@ -147,90 +110,48 @@ class GraphPairCompare:
 
         return round(dist, 3)
 
-    def deltacon0(self, eps=None) -> float:
-        n1, n2 = self.graph1.order(), self.graph2.order()
-        N = max(n1, n2)
-
-        A1, A2 = [_pad(A, N) for A in [nx.to_numpy_array(self.graph1), nx.to_numpy_array(self.graph2)]]
-        S1, S2 = [fast_bp(A, eps=eps) for A in [A1, A2]]
-
-        d = np.sqrt(np.sum(np.power(np.sqrt(S1) - np.sqrt(S2), 2)))  # correct formula from paper
-        dist = d / (d + 1)
-        self.stats['deltacon0'] = round(dist, 7)
-
-        return round(dist, 7)
-
-    def cvm_pagerank(self) -> float:
+    # todo
+    def pagerank_js(self) -> float:
         """
         Calculate the CVM distance of the pagerank
         """
-        pr1 = list(self.gstats1['pagerank'].values())
-        pr2 = list(self.gstats2['pagerank'].values())
+        raise NotImplementedError()
 
-        dist = cvm_distance(pr1, pr2)
-        self.stats['pagerank_cvm'] = dist
-
-        return round(dist, 3)
-
-    def cvm_degree(self) -> float:
+    # todo
+    def degree_js(self) -> float:
         """
-        Calculate the CVM distance of the degree distr
+        Calculate the CVM distance of the pagerank
         """
-        # if deg1 is None:
-        #     deg1 = nx.degree_histogram(self.graph1)
-        # if deg2 is None:
-        #     deg2 = nx.degree_histogram(self.graph2)
-        deg1 = list(self.gstats1['degree_dist'].values())
-        deg2 = list(self.gstats2['degree_dist'].values())
+        raise NotImplementedError()
 
-        dist = cvm_distance(deg1, deg2)
-        self.stats['degree_cvm'] = dist
-
-        return round(dist, 3)
-
-    def ks_test(self) -> float:
+    # todo portrait
+    def portrait_divergence(self) -> float:
         """
-        Calculate the KS distance of the degree distr
+
+        :return:
         """
-        deg1 = list(self.gstats1['degree_dist'].values())
-        deg2 = list(self.gstats2['degree_dist'].values())
+        raise NotImplementedError()
 
-        dist = ks_distance(deg1, deg2)
-        self.stats['ks_dist'] = dist
-
-        return round(dist, 3)
-
-    def kl_divergence(self) -> float:
+    # todo embedding distance
+    def embedding_distance(self) -> float:
         """
-        Calculate the KL distance of the degree distr
+        :return:
         """
-        dist1 = self.gstats1['degree_dist']
-        dist2 = self.gstats2['degree_dist']
-        union = set(self.gstats1['degree_dist'].keys()) | set(self.gstats2['degree_dist'].keys())
-        for key in union:
-            dist1[key] = dist1.get(key, 0)
-            dist2[key] = dist2.get(key, 0)
-        deg1 = np.asarray(list(dist1.values())) + 0.00001
-        deg2 = np.asarray(list(dist2.values())) + 0.00001
+        raise NotImplementedError()
 
-        div = scipy.stats.entropy(deg1, deg2) + scipy.stats.entropy(deg2, deg1)
-        self.stats['kl_div'] = div
 
-        return np.round(div, 3)
+def js_distance(dist1: Dict, dist2: Dict):
+    union = set(dist1.keys()) | set(dist2.keys())
 
-    def js_distance(self):
-        dist1 = self.gstats1['degree_dist']
-        dist2 = self.gstats2['degree_dist']
-        union = set(self.gstats1['degree_dist'].keys()) | set(self.gstats2['degree_dist'].keys())
-        for key in union:
-            dist1[key] = dist1.get(key, 0)
-            dist2[key] = dist2.get(key, 0)
-        deg1 = np.asarray(list(dist1.values())) + 0.00001
-        deg2 = np.asarray(list(dist2.values())) + 0.00001
-        JS_distance = distance.jensenshannon(deg1, deg2, base=2.0)
-        self.stats['js_dis'] = JS_distance
+    for key in union:
+        dist1[key] = dist1.get(key, 0)
+        dist2[key] = dist2.get(key, 0)
 
-        return np.round(JS_distance, 3)
+    deg1 = np.asarray(list(dist1.values())) + 0.00001
+    deg2 = np.asarray(list(dist2.values())) + 0.00001
+    js_distance = distance.jensenshannon(deg1, deg2, base=2.0)
+
+    return np.round(js_distance, 3)
 
 
 def cvm_distance(data1, data2) -> float:
