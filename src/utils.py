@@ -12,10 +12,10 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
-import seaborn as sns;
+import seaborn as sns
+import statsmodels.stats.api as sm
 
 sns.set(); sns.set_style('darkgrid')
-import statsmodels.stats.api as sm
 
 
 def timer(func):
@@ -60,7 +60,6 @@ def get_graph_from_prob_matrix(p_mat: np.array, thresh: float = None) -> nx.Grap
 
     sampled_mat = rand_mat <= p_mat
     # sampled_mat = sampled_mat * sampled_mat.T  # to make sure it is symmetric
-
 
     sampled_mat = sampled_mat.astype(int)
     np.fill_diagonal(sampled_mat, 0)  # zero out the diagonals
@@ -109,6 +108,7 @@ def delete_files(*files) -> None:
     for file in files:
         if check_file_exists(file):
             os.remove(file)
+    return
 
 
 def print_float(x: float) -> float:
@@ -209,6 +209,7 @@ def verify_dir(path) -> None:
     p = Path(path)
     if not os.path.exists(path):
         p.mkdir(parents=True)
+    return
 
 
 def verify_file(path) -> bool:
