@@ -14,6 +14,7 @@ from scipy.spatial import distance
 
 from src.GCD import GCD
 from src.graph_stats import GraphStats
+from src.portrait.portrait_divergence import portrait_divergence
 
 
 class GraphPairCompare:
@@ -25,6 +26,7 @@ class GraphPairCompare:
     def __init__(self, gstats1: GraphStats, gstats2: GraphStats) -> None:
         self.gstats1: GraphStats = gstats1
         self.gstats2: GraphStats = gstats2
+        # todo: these objects probably need to be removed if we are not storing the graphs to disk in the stats object
         self.graph1: nx.Graph = gstats1.graph
         self.graph2: nx.Graph = gstats2.graph
         self.stats: Dict[str, float] = {}
@@ -155,7 +157,9 @@ class GraphPairCompare:
 
         :return:
         """
-        raise NotImplementedError()
+
+        d = portrait_divergence(G=self.gstats1.gstats['b_matrix'], H=self.gstats2.stats['b_matrix'])
+        return d
 
     def embedding_distance(self) -> float:
         """
