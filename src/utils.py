@@ -17,7 +17,6 @@ import statsmodels.stats.api as sm
 
 sns.set(); sns.set_style('darkgrid')
 
-
 def timer(func):
     @functools.wraps(func)
     def wrapper_timer(*args, **kwargs):
@@ -119,6 +118,10 @@ def print_float(x: float) -> float:
     """
     return round(x, 3)
 
+
+# todo implement this
+def save_pickle(path: Union[Path, str]) -> Any:
+    raise NotImplementedError
 
 def load_pickle(path: Union[Path, str]) -> Any:
     """
