@@ -110,21 +110,21 @@ class GraphPairCompare:
 
         return round(dist, 3)
 
-    # todo
+    # todo (trenton)
     def pagerank_js(self) -> float:
         """
         Calculate the CVM distance of the pagerank
         """
         raise NotImplementedError()
 
-    # todo
+    # todo (dan)
     def degree_js(self) -> float:
         """
         Calculate the CVM distance of the pagerank
         """
         raise NotImplementedError()
 
-    # todo portrait
+    # todo portrait (trenton)
     def portrait_divergence(self) -> float:
         """
 
@@ -132,7 +132,7 @@ class GraphPairCompare:
         """
         raise NotImplementedError()
 
-    # todo embedding distance
+    # todo embedding distance (dan)
     def embedding_distance(self) -> float:
         """
         :return:
