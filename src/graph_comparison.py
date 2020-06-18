@@ -112,15 +112,15 @@ class GraphPairCompare:
 
         return round(dist, 3)
 
-    # todo (trenton)
+    # todo testing
     def pagerank_js(self) -> float:
         """
         Calculate the js distance of the pagerank
         """
-        g1_dist = self.gstats1['pagerank']
-        g2_dist = self.gstats2['pagerank']
+        g1_dist = list(self.gstats1['pagerank'].values())
+        g2_dist = list(self.gstats2['pagerank'].values())
 
-        hist_upperbound = max(g1_dist.max(), g2_dist.max())
+        hist_upperbound = max(max(g1_dist), max(g2_dist))
 
         g1_hist = np.histogram(g1_dist, range=(0, hist_upperbound), bins=100)[0] + 0.00001
         g2_hist = np.histogram(g2_dist, range=(0, hist_upperbound), bins=100)[0] + 0.00001
