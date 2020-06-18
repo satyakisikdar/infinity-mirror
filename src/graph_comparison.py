@@ -2,15 +2,16 @@
 Graph Comparison Functions
 """
 from math import fabs
-from typing import Dict, List, Any
+from typing import Dict, List
 
 import networkx as nx
 import numpy as np
 import scipy.stats
-from scipy.spatial import distance
 from numpy import linalg as la
+from scipy import sparse as sps
+from scipy.sparse import issparse
+from scipy.spatial import distance
 
-from src.utils import fast_bp, _pad, cvm_distance, ks_distance
 from src.GCD import GCD
 from src.graph_stats import GraphStats
 
@@ -27,7 +28,7 @@ class GraphPairCompare:
         self.graph1: nx.Graph = gstats1.graph
         self.graph2: nx.Graph = gstats2.graph
         self.stats: Dict[str, float] = {}
-        #self.calculate()
+        # self.calculate()
         return
 
     def __str__(self) -> str:
@@ -230,3 +231,67 @@ class GraphPairCompare:
         self.stats['js_dis'] = JS_distance
 
         return np.round(JS_distance, 3)
+
+
+def cvm_distance(data1, data2) -> float:
+    data1, data2 = map(np.asarray, (data1, data2))
+    n1 = len(data1)
+    n2 = len(data2)
+    data1 = np.sort(data1)
+    data2 = np.sort(data2)
+    data_all = np.concatenate([data1, data2])
+    cdf1 = np.searchsorted(data1, data_all, side='right') / n1
+    cdf2 = np.searchsorted(data2, data_all, side='right') / n2
+    assert len(cdf1) == len(cdf2), 'CDFs should be of the same length'
+    d = np.sum(np.absolute(cdf1 - cdf2)) / len(cdf1)
+    return np.round(d, 3)
+
+
+def ks_distance(data1, data2) -> float:
+    data1, data2 = map(np.asarray, (data1, data2))
+    n1 = len(data1)
+    n2 = len(data2)
+    data1 = np.sort(data1)
+    data2 = np.sort(data2)
+    data_all = np.concatenate([data1, data2])
+    cdf1 = np.searchsorted(data1, data_all, side='right') / n1
+    cdf2 = np.searchsorted(data2, data_all, side='right') / n2
+    d = np.max(np.absolute(cdf1 - cdf2))
+    return np.round(d, 3)
+
+
+def _pad(A, N):
+    """Pad A so A.shape is (N,N)"""
+    n, _ = A.shape
+    if n >= N:
+        return A
+    else:
+        if issparse(A):
+            # thrown if we try to np.concatenate sparse matrices
+            side = sps.csr_matrix((n, N - n))
+            bottom = sps.csr_matrix((N - n, N))
+            A_pad = sps.hstack([A, side])
+            A_pad = sps.vstack([A_pad, bottom])
+        else:
+            side = np.zeros((n, N - n))
+            bottom = np.zeros((N - n, N))
+            A_pad = np.concatenate([A, side], axis=1)
+            A_pad = np.concatenate([A_pad, bottom])
+        return A_pad
+
+
+def fast_bp(A, eps=None):
+    n, m = A.shape
+    degs = np.array(A.sum(axis=1)).flatten()
+    if eps is None:
+        eps = 1 / (1 + max(degs))
+    I = sps.identity(n)
+    D = sps.dia_matrix((degs, [0]), shape=(n, n))
+    # form inverse of S and invert (slow!)
+    Sinv = I + eps ** 2 * D - eps * A
+    try:
+        S = la.inv(Sinv)
+    except:
+        Sinv = sps.csc_matrix(Sinv)
+        S = sps.linalg.inv(Sinv)
+    return S
