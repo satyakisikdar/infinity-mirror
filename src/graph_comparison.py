@@ -92,7 +92,7 @@ class GraphPairCompare:
 
     def lambda_dist(self, k=None, p=2) -> float:
         """
-        compare the euclidean distance between the top-k eigenvalues of the laplacian
+        Compare the euclidean distance between the top-k eigenvalues of the Laplacian
         :param k:
         :param p:
         :return:
@@ -117,12 +117,26 @@ class GraphPairCompare:
         """
         raise NotImplementedError()
 
-    # todo (dan)
     def degree_js(self) -> float:
         """
-        Calculate the CVM distance of the pagerank
+        Calculate the Jensen-Shannon distance of the degree distributions
+        :return:
         """
-        raise NotImplementedError()
+        dist1 = self.gstats1['degree_dist']
+        dist2 = self.gstats2['degree_dist']
+        union = set(dist1.keys()) | set(dist2.keys())
+
+        for key in union:
+            dist1(key) = dist1.get(key, 0)
+            dist2(key) = dist2.get(key, 0)
+
+        deg1 = np.asarray(list(dist1.values())) + 0.00001
+        deg2 = np.asarray(list(dist2.values())) + 0.00001
+
+        degree_js = distance.jensenshannon(deg1, deg2, base=2.0)
+        self.stats['degree_js'] = degree_js
+
+        return degree_js
 
     # todo portrait (trenton)
     def portrait_divergence(self) -> float:
@@ -132,29 +146,27 @@ class GraphPairCompare:
         """
         raise NotImplementedError()
 
-    # todo embedding distance (dan)
     def embedding_distance(self) -> float:
         """
+        Calculate the Euclidean distance between two NetLSD embedding vectors
         :return:
         """
-        raise NotImplementedError()
+        vec1 = np.asarray(self.gstats1['netlsd'])
+        vec2 = np.asarray(self.gstats2['netlsd'])
 
+        L2 = np.sqrt(np.sum(np.square(vec1 - vec2)))
+        self.stats['embedding_distance'] = L2
 
-def js_distance(dist1: Dict, dist2: Dict):
-    union = set(dist1.keys()) | set(dist2.keys())
+        return L2
 
-    for key in union:
-        dist1[key] = dist1.get(key, 0)
-        dist2[key] = dist2.get(key, 0)
-
-    deg1 = np.asarray(list(dist1.values())) + 0.00001
-    deg2 = np.asarray(list(dist2.values())) + 0.00001
-    js_distance = distance.jensenshannon(deg1, deg2, base=2.0)
+# todo maybe get rid of this?
+def js_distance(vec1: list, vec2: list):
+    js_distance = distance.jensenshannon(vec1, vec2, base=2.0)
 
     return np.round(js_distance, 3)
 
 
-def cvm_distance(data1, data2) -> float:
+def cvm_distance(data1: list, data2: list) -> float:
     data1, data2 = map(np.asarray, (data1, data2))
     n1 = len(data1)
     n2 = len(data2)
