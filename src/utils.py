@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns;
 
-sns.set(); sns.set_style("darkgrid")
+sns.set(); sns.set_style('darkgrid')
 import statsmodels.stats.api as sm
 
 
@@ -27,7 +27,7 @@ def timer(func):
         toc = time.perf_counter()
         elapsed_time = toc - tic
         ColorPrint.print_bold(f'End: {datetime.now().ctime()}')
-        ColorPrint.print_bold(f"Elapsed time: {elapsed_time:0.4f} seconds")
+        ColorPrint.print_bold(f'Elapsed time: {elapsed_time:0.4f} seconds')
         return value
     return wrapper_timer
 
@@ -45,7 +45,7 @@ def get_blank_graph(name=None) -> nx.Graph:
     return blank_graph
 
 
-def get_graph_from_prob_matrix(p_mat: np.array, thresh: float=None) -> nx.Graph:
+def get_graph_from_prob_matrix(p_mat: np.array, thresh: float = None) -> nx.Graph:
     """
     Generates a NetworkX graph from probability matrix
     :param p_mat: matrix of edge probabilities
@@ -228,9 +228,10 @@ def get_imt_output_directory() -> os.path:
     :return: data_dir: os.path
     """
     home_directory = os.environ['HOME']
-    infinity_mirror_directory_file = os.path.join(home_directory,"imt_dirs.csv").replace("\\","/")
+    infinity_mirror_directory_file = os.path.join(home_directory, 'imt_dirs.csv').replace('\\', '/')
     path_df = pd.read_csv(infinity_mirror_directory_file, sep='\t')
     return path_df['output'].values[0]
+
 
 def get_imt_input_directory() -> os.path:
     """
@@ -240,6 +241,6 @@ def get_imt_input_directory() -> os.path:
     :return: data_dir: os.path
     """
     home_directory = os.environ['HOME']
-    infinity_mirror_directory_file = os.path.join(home_directory,"imt_dirs.csv").replace("\\","/")
+    infinity_mirror_directory_file = os.path.join(home_directory, 'imt_dirs.csv').replace('\\', '/')
     path_df = pd.read_csv(infinity_mirror_directory_file, sep='\t')
     return path_df['input'].values[0]
