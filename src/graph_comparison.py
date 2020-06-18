@@ -140,8 +140,8 @@ class GraphPairCompare:
         union = set(dist1.keys()) | set(dist2.keys())
 
         for key in union:
-            dist1(key) = dist1.get(key, 0)
-            dist2(key) = dist2.get(key, 0)
+            dist1[key] = dist1.get(key, 0)
+            dist2[key] = dist2.get(key, 0)
 
         deg1 = np.asarray(list(dist1.values())) + 0.00001
         deg2 = np.asarray(list(dist2.values())) + 0.00001
@@ -173,12 +173,6 @@ class GraphPairCompare:
         self.stats['embedding_distance'] = L2
 
         return L2
-
-# todo maybe get rid of this?
-def js_distance(vec1: list, vec2: list):
-    js_distance = distance.jensenshannon(vec1, vec2, base=2.0)
-
-    return np.round(js_distance, 3)
 
 
 def cvm_distance(data1: list, data2: list) -> float:
