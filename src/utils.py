@@ -293,3 +293,19 @@ def get_imt_output_directory() -> os.path:
     :param: None
     :return: data_dir: os.path
     """
+    home_directory = os.environ['HOME']
+    infinity_mirror_directory_file = os.path.join(home_directory,"imt_dirs.csv").replace("\\","/")
+    path_df = pd.read_csv(infinity_mirror_directory_file, sep='\t')
+    return path_df['output'].values[0]
+
+def get_imt_input_directory() -> os.path:
+    """
+    This should look in a users' home directory for a file that contains a path to that user's data directory for
+    the IMT graph files.
+    :param: None
+    :return: data_dir: os.path
+    """
+    home_directory = os.environ['HOME']
+    infinity_mirror_directory_file = os.path.join(home_directory,"imt_dirs.csv").replace("\\","/")
+    path_df = pd.read_csv(infinity_mirror_directory_file, sep='\t')
+    return path_df['input'].values[0]
