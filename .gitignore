@@ -7,3 +7,7 @@ __pycache__/
 input/*
 src/cnrg/src/tmp/*.g
 output/pickles/
+src/bter/*
+src/hrg/*
+src/kronecker/*
+src/netgan/*
