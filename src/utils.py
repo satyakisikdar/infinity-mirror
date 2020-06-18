@@ -121,7 +121,7 @@ def print_float(x: float) -> float:
 
 # todo implement this
 def save_pickle(path: Union[Path, str]) -> Any:
-    raise NotImplementedError
+    raise NotImplementedError()
 
 def load_pickle(path: Union[Path, str]) -> Any:
     """
