@@ -177,11 +177,11 @@ def _graph_or_portrait(X):
     return X
 
 
-def portrait_divergence(G, H):
+def portrait_divergence(BG, BH):
     """Compute the network portrait divergence between graphs G and H."""
     
-    BG = _graph_or_portrait(G)
-    BH = _graph_or_portrait(H)
+    # BG = _graph_or_portrait(G)
+    # BH = _graph_or_portrait(H)
     BG, BH = pad_portraits_to_same_size(BG,BH)
     
     L, K = BG.shape
