@@ -133,7 +133,7 @@ def load_pickle(path: Union[Path, str]) -> Any:
     return pickle.load(open(path, 'rb'))
 
 
-def load_imt_trial(input_path, dataset, model) -> (pd.DataFrame,int):
+def load_imt_trial(input_path, dataset, model) -> (pd.DataFrame, int):
     """
     Loads graph list files and yields them to the caller one file at a time. This function loads
     each file that matches the imt_filename_pattern regex in the input directory and attempts to yield it.
@@ -144,13 +144,13 @@ def load_imt_trial(input_path, dataset, model) -> (pd.DataFrame,int):
     :return: Tuple(pd.Datafrome, int)
     """
     full_path = os.path.join(input_path, dataset, model)
-    imt_filename_pattern = re.compile('list\_(\d+)\_(\d+).pkl.gz')
-    input_filenames = [f for f in os.listdir(full_path) if os.path.isfile(os.path.join(full_path, f))
-                       if re.match(imt_filename_pattern, f)]
+    imt_filename_pattern = re.compile('list_(\d+)_(\d+).pkl.gz')
+    input_filenames = [f for f in os.listdir(full_path)
+                       if os.path.isfile(os.path.join(full_path, f)) and re.match(imt_filename_pattern, f)]
 
     for filename in input_filenames:
         imt_dataframe = load_pickle(os.path.join(full_path, filename))
-        generations,trial_id = imt_filename_pattern.fullmatch(filename).groups()
+        generations, trial_id = map(int, imt_filename_pattern.fullmatch(filename).groups())
         yield imt_dataframe, trial_id
 
 
