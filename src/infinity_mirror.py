@@ -25,7 +25,7 @@ class InfinityMirror:
                  '_metrics', 'graphs_pickle_path', 'run_id', 'rewire', 'finish_path')
 
     def __init__(self, initial_graph: nx.Graph, model_obj: Any, num_generations: int,
-                 num_graphs: int, run_id: int, r: float, finish: str='') -> None:
+            num_graphs: int, run_id: int, r: float, dataset: str, model: str, finish: str='') -> None:
         self.run_id = run_id
         self.initial_graph: nx.Graph = initial_graph  # the initial starting point H_0
         self.num_graphs: int = num_graphs  # number of graphs per generation
@@ -35,7 +35,8 @@ class InfinityMirror:
         self.model.input_graph = self.initial_graph
         self.model.run_id = run_id  # initialize and fit the model
 
-        self.initial_graph_stats: GraphStats = GraphStats(run_id=run_id, graph=self.initial_graph)
+        # todo figure out if we will remove this line or add `iteration` and `trial` information
+        #self.initial_graph_stats: GraphStats = GraphStats(graph=self.initial_graph, dataset=dataset, model=model, iteration=, trial=)
         self._metrics: List[str] = ['deltacon0', 'lambda_dist', 'pagerank_cvm', 'node_diff', 'edge_diff', 'pgd_pearson',
                                     'pgd_spearman', 'degree_cvm']  # list of metrics  ## GCD is removed
         self.rewire = int(r * 100)

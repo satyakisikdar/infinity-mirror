@@ -141,7 +141,7 @@ def run_infinity_mirror(args, run_id) -> None:
     assert selection == 'fast', 'invalid selection'
     num_graphs = 1  # only 1 graph per generation
     inf = InfinityMirror(initial_graph=g, num_generations=num_gens, model_obj=model_obj,
-                         num_graphs=num_graphs, run_id=run_id, r=rewire, finish=finish)
+                         num_graphs=num_graphs, run_id=run_id, r=rewire, dataset=g.name, model=args.model[0], finish=finish)
     tic = time.perf_counter()
     inf.run(use_pickle=use_pickle)
     toc = time.perf_counter()
