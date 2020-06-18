@@ -230,7 +230,7 @@ def get_imt_output_directory() -> os.path:
     """
     home_directory = os.environ['HOME']
     infinity_mirror_directory_file = os.path.join(home_directory, 'imt_dirs.csv').replace('\\', '/')
-    path_df = pd.read_csv(infinity_mirror_directory_file, sep='\t')
+    path_df = pd.read_csv(infinity_mirror_directory_file)
     return path_df['output'].values[0]
 
 
@@ -243,5 +243,5 @@ def get_imt_input_directory() -> os.path:
     """
     home_directory = os.environ['HOME']
     infinity_mirror_directory_file = os.path.join(home_directory, 'imt_dirs.csv').replace('\\', '/')
-    path_df = pd.read_csv(infinity_mirror_directory_file, sep='\t')
+    path_df = pd.read_csv(infinity_mirror_directory_file)
     return path_df['input'].values[0]
