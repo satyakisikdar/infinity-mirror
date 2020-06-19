@@ -104,6 +104,17 @@ class GraphStats:
         save_pickle(self.stats, filename)
         return
 
+    def write_stats_jsons(self, base_path: Union[str, Path]):
+        """
+        write the stats dictionary as a pickle
+        :return:
+        """
+        output_directory = get_imt_output_dir() 
+        filename = os.path.join(base_path, 'graph_stats', self.dataset, self.model, f'gs_{self.trial}_{self.iteration}.pkl.gz')
+        CP.print_blue(f'Stats pickle stored at {filename}')
+        save_pickle(self.stats, filename)
+        return
+
     def plot(self, y, ax=None, kind='line', x=None, **kwargs) -> None:
         if isinstance(y, dict):
             lists = sorted(y.items())
