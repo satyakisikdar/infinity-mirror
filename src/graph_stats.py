@@ -22,7 +22,7 @@ import seaborn as sns
 import leidenalg as la
 import igraph as ig
 
-from src.utils import check_file_exists, ColorPrint as CP, save_pickle
+from src.utils import check_file_exists, ColorPrint as CP, save_pickle, get_imt_output_directory
 
 sns.set()
 sns.set_style("darkgrid")
@@ -104,13 +104,18 @@ class GraphStats:
         save_pickle(self.stats, filename)
         return
 
-    def write_stats_jsons(self, base_path: Union[str, Path]):
+    def write_stats_jsons(self, base_path: Union[str, Path], stat: str):
         """
         write the stats dictionary as a pickle
         :return:
         """
-        output_directory = get_imt_output_dir() 
-        filename = os.path.join(base_path, 'graph_stats', self.dataset, self.model, f'gs_{self.trial}_{self.iteration}.pkl.gz')
+        assert stat in [method_name for method_name in dir(self)
+                          if callable(getattr(self, method_name)) and not method_name.startswith('_')]
+        output_directory = get_imt_output_directory()
+
+        stuff = self[stat]  # todo : maybe there's a better way?!
+
+        filename = os.path.join(base_path, 'graph_stats', self.dataset, self.model, stat, f'gs_{self.trial}_{self.iteration}.pkl.gz')
         CP.print_blue(f'Stats pickle stored at {filename}')
         save_pickle(self.stats, filename)
         return
