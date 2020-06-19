@@ -1,4 +1,5 @@
 import functools
+import json
 import os
 import pickle
 import re
@@ -8,6 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Union, Any, Tuple, List
 
+import gzip
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
@@ -118,10 +120,24 @@ def print_float(x: float) -> float:
     """
     return round(x, 3)
 
+#todoc: add some documentation to these new functions
+def save_pickle(obj: Any, path: Union[Path, str]) -> Any:
+    assert check_file_exists(path), f'"{path}" does not exist'
+    return pickle.dump(obj, open(path, 'wb'))
 
-# todo implement this
-def save_pickle(path: Union[Path, str]) -> Any:
-    raise NotImplementedError()
+
+# create a handler for writing sets to json (serializable)
+def set_default(obj):
+    if isinstance(obj, set):
+        return list(obj)
+    raise TypeError
+
+
+# write data structure to zipped json (filename should probably have a .json.gz extension)
+def save_zipped_json(data: Any, filename: Union[str, Path]) -> None:
+    with gzip.GzipFile(filename, 'w') as fout:
+        fout.write(json.dumps(data, default=set_default).encode('utf-8'))
+
 
 def load_pickle(path: Union[Path, str]) -> Any:
     """
@@ -131,6 +147,20 @@ def load_pickle(path: Union[Path, str]) -> Any:
     """
     assert check_file_exists(path), f'"{path}" does not exist'
     return pickle.load(open(path, 'rb'))
+
+def load_zipped_json(filename: Union[str, Path], keys_to_int=False, debug: bool = False) -> Any:
+    if debug:
+        print("Loading", filename)
+    with gzip.open(filename, "rb") as f:
+        text = f.read()
+        temp = text.decode("utf-8")
+        d = json.loads(temp)
+
+    # json sadness - convert all the keys to integer, if such a thing is possible
+    if keys_to_int:
+        d = utilities.data_utils.keys_to_int(d)
+
+    return d
 
 
 def load_imt_trial(input_path, dataset, model) -> (pd.DataFrame, int):
@@ -234,17 +264,4 @@ def get_imt_output_directory() -> os.path:
     home_directory = os.environ['HOME']
     infinity_mirror_directory_file = os.path.join(home_directory, 'imt_dirs.csv').replace('\\', '/')
     path_df = pd.read_csv(infinity_mirror_directory_file)
-    return path_df['output'].values[0]
-
-
-def get_imt_input_directory() -> os.path:
-    """
-    This should look in a users' home directory for a file that contains a path to that user's data directory for
-    the IMT graph files.
-    :param: None
-    :return: data_dir: os.path
-    """
-    home_directory = os.environ['HOME']
-    infinity_mirror_directory_file = os.path.join(home_directory, 'imt_dirs.csv').replace('\\', '/')
-    path_df = pd.read_csv(infinity_mirror_directory_file)
-    return path_df['input'].values[0]
+    return path_df['ou
