@@ -106,7 +106,7 @@ class GraphStats:
 
     def write_stats_jsons(self, stat: Union[str, list]):
         """
-        write the stats dictionary as a pickle
+        write the stats dictionary as a compressed json
         :return:
         """
         # standardize incoming type
