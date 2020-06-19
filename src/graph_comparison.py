@@ -158,7 +158,7 @@ class GraphPairCompare:
         :return:
         """
 
-        d = portrait_divergence(G=self.gstats1.gstats['b_matrix'], H=self.gstats2.stats['b_matrix'])
+        d = portrait_divergence(BG=self.gstats1.gstats['b_matrix'], BH=self.gstats2.stats['b_matrix'])
         return d
 
     def embedding_distance(self) -> float:
