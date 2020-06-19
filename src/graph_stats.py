@@ -104,21 +104,25 @@ class GraphStats:
         save_pickle(self.stats, filename)
         return
 
-    def write_stats_jsons(self, base_path: Union[str, Path], stat: str):
+    def write_stats_jsons(self, stat: Union[str, list]):
         """
         write the stats dictionary as a pickle
         :return:
         """
-        assert stat in [method_name for method_name in dir(self)
+        # standardize incoming type
+        if isinstance(stat, str):
+            stat = [stat]
+        
+        for statistic in stat:
+            assert statistic in [method_name for method_name in dir(self)
                           if callable(getattr(self, method_name)) and not method_name.startswith('_')]
-        output_directory = get_imt_output_directory()
+            output_directory = get_imt_output_directory()
 
-        stuff = self[stat]  # todo : maybe there's a better way?!
+            data = self[statistic]  # todo : maybe there's a better way?!
 
-        filename = os.path.join(base_path, 'graph_stats', self.dataset, self.model, stat, f'gs_{self.trial}_{self.iteration}.pkl.gz')
-        CP.print_blue(f'Stats pickle stored at {filename}')
-        save_pickle(self.stats, filename)
-        return
+            filename = os.path.join(output_directory, 'graph_stats', statistic, self.dataset, self.model, f'gs_{self.trial}_{self.iteration}.json.gz')
+            save_zipped_json(data, filename)
+            CP.print_blue(f'Stats pickle stored at {filename}')
 
     def plot(self, y, ax=None, kind='line', x=None, **kwargs) -> None:
         if isinstance(y, dict):
