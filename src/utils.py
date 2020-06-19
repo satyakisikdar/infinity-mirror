@@ -130,6 +130,8 @@ def save_pickle(obj: Any, path: Union[Path, str]) -> Any:
 def set_default(obj):
     if isinstance(obj, set):
         return list(obj)
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
     raise TypeError
 
 
