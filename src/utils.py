@@ -126,7 +126,7 @@ def save_pickle(obj: Any, path: Union[Path, str]) -> Any:
     if not isinstance(path, Path):
         path = Path(path)
     ensure_dir(path.parents[0])  # ensures the parent directories exist
-    return pickle.dump(obj, open(path, 'wb'))
+    return pickle.dump(obj, open(path, 'wb'), protocol=-1)  # use the highest possible protocol
 
 
 # create a handler for writing sets to json (serializable)
