@@ -1,13 +1,14 @@
 import csv
 import pickle
 from collections import namedtuple
+from os.path import join
 from typing import Any, List
 
 import networkx as nx
 from tqdm import tqdm
 
 from src.graph_stats import GraphStats
-from src.utils import ColorPrint as CP, load_pickle, check_file_exists
+from src.utils import ColorPrint as CP, load_pickle, check_file_exists, delete_files, save_pickle
 
 Stats = namedtuple('Stats',
                    'name id graph score')  # stores the different stats for each graph. name: name of metric, id: graph_id
@@ -22,25 +23,24 @@ class InfinityMirror:
     Class for InfinityMirror
     """
     __slots__ = ('initial_graph', 'num_generations', 'num_graphs', 'model', 'initial_graph_stats', 'graphs',
-                 '_metrics', 'graphs_pickle_path', 'run_id', 'rewire', 'finish_path')
+                 '_metrics', 'graphs_pickle_path', 'trial', 'rewire', 'finish_path')
 
     def __init__(self, initial_graph: nx.Graph, model_obj: Any, num_generations: int,
-            num_graphs: int, run_id: int, r: float, dataset: str, model: str, finish: str='') -> None:
-        self.run_id = run_id
+                 num_graphs: int, trial: int, r: float, dataset: str, model: str, finish: str='') -> None:
         self.initial_graph: nx.Graph = initial_graph  # the initial starting point H_0
         self.num_graphs: int = num_graphs  # number of graphs per generation
         self.num_generations: int = num_generations  # number of generations
-
-        self.model = model_obj  # (input_graph=self.initial_graph, run_id=self.run_id)
+        self.trial = trial
+        self.model = model_obj  # (input_graph=self.initial_graph, trial=self.trial)
         self.model.input_graph = self.initial_graph
-        self.model.run_id = run_id  # initialize and fit the model
+        self.model.trial = trial  # initialize and fit the model
 
         # todo figure out if we will remove this line or add `iteration` and `trial` information
         #self.initial_graph_stats: GraphStats = GraphStats(graph=self.initial_graph, dataset=dataset, model=model, iteration=, trial=)
         self._metrics: List[str] = ['deltacon0', 'lambda_dist', 'pagerank_cvm', 'node_diff', 'edge_diff', 'pgd_pearson',
                                     'pgd_spearman', 'degree_cvm']  # list of metrics  ## GCD is removed
         self.rewire = int(r * 100)
-        self.graphs_pickle_path: str = f'./output/pickles/{self.initial_graph.name}/{self.model.model_name}/list_{self.num_generations}_{self.run_id}'
+        self.graphs_pickle_path: str = f'./output/pickles/{self.initial_graph.name}/{self.model.model_name}/list_{self.num_generations}_{self.trial}'
         self.graphs: List[nx.Graph] = []  # stores the list of graphs - one per generation
         self.finish_path: str = finish
         if r != 0:
@@ -48,7 +48,7 @@ class InfinityMirror:
         return
 
     def __str__(self) -> str:
-        return f'({self.run_id}) model: "{self.model.model_name}"  initial graph: "{self.initial_graph.name}"  #gens: {self.num_generations}'
+        return f'({self.trial}) model: "{self.model.model_name}"  initial graph: "{self.initial_graph.name}"  #gens: {self.num_generations}'
 
     def __repr__(self) -> str:
         return str(self)
@@ -70,7 +70,7 @@ class InfinityMirror:
             return
 
         flag = False
-        if self.finish_path != '' and check_file_exists(self.finish_path):
+        if self.finish_path is not None and check_file_exists(self.finish_path):
             temp_graphs = load_pickle(self.finish_path)
             if len(temp_graphs) == 21:
                 CP.print_green(f'The pickle at {self.finish_path} has {len(temp_graphs)}/21 graphs')
@@ -114,17 +114,21 @@ class InfinityMirror:
                 break
 
             curr_graph = generated_graphs[0]  # we are only generating one graph
-            curr_graph.name = f'{self.initial_graph.name}_{level}_{self.run_id}'
+            curr_graph.name = f'{self.initial_graph.name}_{level}_{self.trial}'
             curr_graph.gen = level
             self.graphs.append(curr_graph)
-            pickle.dump(self.graphs, open(self.graphs_pickle_path + '_temp' + pickle_ext, 'wb'),
-                        protocol=-1)  # use highest possible protocol
+
+            temp_pickle_path = self.graphs_pickle_path + f'_temp_{level}{pickle_ext}'
+            prev_temp_pickle_path = self.graphs_pickle_path + f'_temp_{level-1}{pickle_ext}'
+            delete_files(prev_temp_pickle_path)
+            save_pickle(obj=self.graphs, path=temp_pickle_path)
+
             pbar.update(1)
 
         pbar.close()
+        delete_files(temp_pickle_path)  # delete the temp file if the loop finishes normally
         CP.print_green(f'List of {len(self.graphs)} Graphs is pickled at "{self.graphs_pickle_path + pickle_ext}"')
-        pickle.dump(self.graphs, open(self.graphs_pickle_path + pickle_ext, 'wb'),
-                    protocol=-1)  # use highest possible protocol
+        save_pickle(obj=self.graphs, path=self.graphs_pickle_path + pickle_ext)
         return
 
     def write_timing_stats(self, time_taken) -> None:
@@ -133,7 +137,7 @@ class InfinityMirror:
         Write model info and timing info
         :return:
         """
-        fieldnames = ['run_id', 'gname', 'model', 'sel', 'gens', 'time']
+        fieldnames = ['trial', 'gname', 'model', 'sel', 'gens', 'time']
 
         stats_file = './output/timing_stats.csv'
         if not check_file_exists(stats_file):  # initialize the file with headers
@@ -142,7 +146,7 @@ class InfinityMirror:
 
         with open(stats_file, 'a') as fp:
             writer = csv.DictWriter(fp, fieldnames=fieldnames)
-            writer.writerow({'run_id': self.run_id, 'gname': self.initial_graph.name, 'model': self.model.model_name,
+            writer.writerow({'trial': self.trial, 'gname': self.initial_graph.name, 'model': self.model.model_name,
                              'gens': self.num_generations, 'time': time_taken})
 
         return
@@ -152,7 +156,7 @@ class InfinityMirror:
         Write fail stats into a csv
         :return:
         """
-        fieldnames = ['run_id', 'gname', 'model', 'sel', 'gens', 'level']
+        fieldnames = ['trial', 'gname', 'model', 'sel', 'gens', 'level']
 
         fail_file = './output/fail_stats.csv'
         if not check_file_exists(fail_file):  # initialize the file with headers
@@ -161,7 +165,7 @@ class InfinityMirror:
 
         with open(fail_file, 'a') as fp:
             writer = csv.DictWriter(fp, fieldnames=fieldnames)
-            writer.writerow({'run_id': self.run_id, 'gname': self.initial_graph.name, 'model': self.model.model_name,
+            writer.writerow({'trial': self.trial, 'gname': self.initial_graph.name, 'model': self.model.model_name,
                              'gens': self.num_generations, 'level': level})
 
         return
