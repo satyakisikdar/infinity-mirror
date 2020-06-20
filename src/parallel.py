@@ -23,7 +23,7 @@ def doesathing(args):
     x, y, z = args
     return x + y + z
 
-# takes a function and an iterable structure of arguments
+# todo test this with GraphStats
 def parallel(func, args, num_workers=10):
     results = []
     print(len(args))
@@ -40,8 +40,7 @@ def sequential(func, args):
         result = func(arg)
         results.append(result)
     return results
-
-@timer
+#@timer
 def main():
     N = 100
     args = [(x, y, z) for (x, y, z) in zip(range(N), range(N), range(N))]
