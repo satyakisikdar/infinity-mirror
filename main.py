@@ -72,8 +72,10 @@ def process_args(args) -> Any:
                    for fname in glob.glob(f'./input/*{ext}')}
     graph_names.update(set(SyntheticGraph.implemented_methods))  # add the synthetic graph generators
     model_name = args.model[0]
-    finish_path = args.finish[0]
-
+    if args.finish != '':
+        finish_path = args.finish[0]
+    else:
+        finish_path = None
     # check input
     if len(args.input) > 1:
         kind = args.input[0]  # kind of synthetic graph
@@ -90,7 +92,7 @@ def process_args(args) -> Any:
         g = GraphReader(filename=args.input[0]).graph
         r = 0
 
-    if finish_path != '':
+    if finish_path is not None:
         finish_name = finish_path.split('/')[-3]
         finish_model = finish_path.split('/')[-2]
         assert finish_name == g.name, f'invalid name {finish_name}, expected {g.name}'
@@ -101,7 +103,7 @@ def process_args(args) -> Any:
     module = importlib.import_module(f'src.graph_models')
     model_obj = getattr(module, model_name)
 
-    return args.sel[0], g, model_obj, int(args.gens[0]), args.pickle, int(args.num_graphs[0]), r, args.finish[0]
+    return args.sel[0], g, model_obj, int(args.gens[0]), args.pickle, int(args.num_graphs[0]), r, finish_path
 
 
 def make_dirs(gname, model) -> None:
@@ -116,7 +118,7 @@ def make_dirs(gname, model) -> None:
     return
 
 
-def run_infinity_mirror(args, run_id) -> None:
+def run_infinity_mirror(args, trial) -> None:
     """
     Creates and runs infinity mirror
     :return:
@@ -130,24 +132,24 @@ def run_infinity_mirror(args, run_id) -> None:
     if args.model[0] in ('GCN_AE', 'GCN_VAE', 'Linear_AE', 'Linear_VAE', 'Deep_GCN_AE', 'Deep_GCN_VAE'):
         model_obj = model(
             input_graph=empty_g,
-            run_id=run_id,
+            trial=trial,
             kind=args.model[0])
     else:
         model_obj = model(
             input_graph=empty_g,
-            run_id=run_id)  # this is a roundabout way to ensure the name of GraphModel object is correct
+            trial=trial)  # this is a roundabout way to ensure the name of GraphModel object is correct
     make_dirs(g.name, model=model_obj.model_name)
 
     assert selection == 'fast', 'invalid selection'
     num_graphs = 1  # only 1 graph per generation
     inf = InfinityMirror(initial_graph=g, num_generations=num_gens, model_obj=model_obj,
-                         num_graphs=num_graphs, run_id=run_id, r=rewire, dataset=g.name, model=args.model[0], finish=finish)
+                         num_graphs=num_graphs, trial=trial, r=rewire, dataset=g.name, model=args.model[0], finish=finish)
     tic = time.perf_counter()
     inf.run(use_pickle=use_pickle)
     toc = time.perf_counter()
 
     inf.write_timing_stats(round(toc - tic, 3))
-    print(run_id, inf)
+    print(trial, inf)
     return
 
 
@@ -160,7 +162,7 @@ def main() -> None:
     # print(args)
     # exit(1)
     Parallel(n_jobs=num_jobs, backend='multiprocessing')(
-        delayed(run_infinity_mirror)(run_id=i + 1, args=args)
+        delayed(run_infinity_mirror)(trial=i + 1, args=args)
         for i in range(num_trials)
     )
 
