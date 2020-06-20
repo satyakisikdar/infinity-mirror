@@ -20,7 +20,8 @@ from collections import Counter, deque
 from pathlib import Path
 from typing import Dict, Tuple, List, Union, Any
 from src.portrait.portrait_divergence import _graph_or_portrait
-from src.utils import check_file_exists, ColorPrint as CP, save_pickle, get_imt_output_directory, save_zipped_json
+from src.utils import check_file_exists, ColorPrint as CP, save_pickle, get_imt_output_directory, save_zipped_json, \
+    load_zipped_json
 
 sns.set()
 sns.set_style("darkgrid")
@@ -455,7 +456,11 @@ if __name__ == '__main__':
     # g = nx.erdos_renyi_graph(5, 0.2, seed=1)
     # g = nx.path_graph(5)
     gs = GraphStats(graph=g, trial=0, dataset='karate', model='CNRG', iteration=0)
-    gs.netlsd()
-    gs.pagerank()
+    # gs.netlsd()
+    # gs.pagerank()
     gs.write_stats_jsons(stat='netlsd')
-    gs.write_stats_jsons(stat='pagerank')
+    # gs.write_stats_jsons(stat='pagerank')
+
+    json_data = load_zipped_json(filename='/data/infinity-mirror/output/graph_stats/karate/CNRG/netlsd/gs_0_0.json.gz',
+                                 keys_to_int=False, debug=True)
+    print(json_data)
