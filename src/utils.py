@@ -249,7 +249,7 @@ class ColorPrint:
         pass
         # sys.stdout.write(message + end)
 
-
+# todo: throw these things away and consolidate 
 def verify_dir(path) -> None:
     """
     Given a path, verify_dir will check if the directory exists and if not, it will create the directory.
