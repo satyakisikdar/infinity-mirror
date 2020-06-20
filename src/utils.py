@@ -257,9 +257,7 @@ def verify_dir(path) -> None:
     :return: None
     """
     p = Path(path)
-    if not os.path.exists(path):
-        p.mkdir(parents=True)
-    return
+    return os.path.exists(path)
 
 
 def verify_file(path) -> bool:
