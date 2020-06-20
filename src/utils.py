@@ -160,14 +160,14 @@ def load_pickle(path: Union[Path, str]) -> Any:
 
 def load_zipped_json(filename: Union[str, Path], keys_to_int: bool = False, debug: bool = False) -> Any:
     if debug:
-        print("Loading", filename)
-    with gzip.open(filename, "rb") as f:
+        ColorPrint.print_blue(f'Loading {filename!r}')
+    with gzip.open(filename, 'rb') as f:
         text = f.read()
-        temp = text.decode("utf-8")
+        temp = text.decode('utf-8')
         d = json.loads(temp)
 
     # json sadness - convert all the keys to integer, if such a thing is possible
-    if keys_to_int:
+    if isinstance(d, dict) and keys_to_int:
         d = {int(k): v for k, v in d.items()}
 
     return d
@@ -195,8 +195,8 @@ def load_imt_trial(input_path, dataset, model) -> (pd.DataFrame, int):
 
 
 def ensure_dir(path: Union[str, Path]) -> None:
-    ColorPrint.print_blue(f'Creating dir: {path!r}')
     if not Path(path).exists():
+        ColorPrint.print_blue(f'Creating dir: {path!r}')
         os.makedirs(path, exist_ok=True)
     return
 
