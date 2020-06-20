@@ -212,8 +212,7 @@ class ChungLu(BaseGraphModel):
             g = nx.configuration_model(self.params['degree_seq'])  # fit the model to the degree seq
 
         except nx.NetworkXError:  # config model failed
-            g = get_blank_graph(gname)
-            gname = 'blank_' + gname  # add blank to the name
+            raise Exception('Generation failed!')
 
         else:  # gets called only if the exception is not thrown
             g = nx.Graph(g)  # make it into a simple graph
@@ -305,13 +304,9 @@ class _BTER(BaseGraphModel):
                                     stdout=sub.DEVNULL, stderr=sub.DEVNULL)
         CP.print_blue(f'BTER ran in {round(time() - start_time, 3)} secs')
 
-        if completed_process.returncode != 0:
+        if completed_process.returncode != 0 or not check_file_exists(output_path):
             CP.print_blue('BTER failed!')
-            g_bter = get_blank_graph(gname)
-
-        elif not check_file_exists(output_path):
-            CP.print_blue('BTER failed!')
-            g_bter = get_blank_graph(gname)
+            raise Exception('Generation failed!')
 
         else:
             bter_mat = np.loadtxt(output_path, dtype=int)
@@ -515,24 +510,17 @@ class HRG(BaseGraphModel):
             f'. ./envs/hrg/bin/activate; cd src/hrg; python2 exact_phrg.py --orig {self.initial_gname}_{self.trial}.g --trials {num_graphs}; deactivate;',
             shell=True, stdout=sub.DEVNULL)
 
-        if completed_process.returncode != 0:
+        if completed_process.returncode != 0 or not check_file_exists(output_pickle_path):
             CP.print_blue(f'Error in HRG: "{self.input_graph.name}"')
-            generated_graphs = None
-
-        elif not check_file_exists(output_pickle_path):
-            CP.print_blue(f'Error in HRG: "{self.input_graph.name}"')
-            generated_graphs = None
+            raise Exception('Generation failed!')
 
         else:
             generated_graphs = []
             gen_graphs = load_pickle(output_pickle_path)
             if not isinstance(gen_graphs, list) or len(gen_graphs) != num_graphs:
-                print('HRG failed')
-                return None
+                raise Exception('Generation failed!')
 
             for i, gen_graph in enumerate(gen_graphs):
-                if gen_graph is None:
-                    continue
                 gen_graph = self._make_graph(gen_graph)
                 gen_graph.name = f'{self.input_graph.name}_{self.trial}_{i + 1}'  # adding the number of graph
                 gen_graph.gen_id = gen_id
@@ -541,7 +529,7 @@ class HRG(BaseGraphModel):
 
             if not isinstance(generated_graphs, list) or len(generated_graphs) != num_graphs:
                 print('HRG failed')
-                return None
+                raise Exception('Generation failed!')
 
         # delete_files(edgelist_path, output_pickle_path)
         return generated_graphs
@@ -580,11 +568,11 @@ class Kronecker(BaseGraphModel):
 
         if completed_process.returncode != 0:
             CP.print_blue(f'Error in KronFit: "{self.input_graph.name}"')
-            matrix = []
+            raise Exception('Generation failed!')
 
         elif not check_file_exists(output_file):
             CP.print_blue(f'Error in KronFit: "{self.input_graph.name}"')
-            matrix = []
+            raise Exception('Generation failed!')
 
         else:
             with open(output_file) as f:
@@ -612,20 +600,15 @@ class Kronecker(BaseGraphModel):
 
         if len(matrix) == 0:  # KronFit failed
             CP.print_blue(f'Error in KronGen: "{self.input_graph.name}"')
-            graph = get_blank_graph(gname)
+            raise Exception('Generation failed!')
 
         else:
             bash_code = f'cd src/kronecker; ./{self.krongen_exec} -o:{self.initial_gname}_{self.trial}_kron.txt -m:"{matrix}" -i:{kron_iters}'
             completed_process = sub.run(bash_code, shell=True, stdout=sub.PIPE)
 
-            if completed_process.returncode != 0:
+            if completed_process.returncode != 0 or not check_file_exists(output_file):
                 CP.print_blue(f'Error in KronGen: "{self.input_graph.name}"')
-                graph = get_blank_graph(gname)
-
-            elif not check_file_exists(output_file):
-                CP.print_blue(f'Error in KronGen: "{self.input_graph.name}"')
-                graph = get_blank_graph(gname)
-
+                raise Exception('Generation failed!')
             else:
                 graph = nx.read_edgelist(output_file, nodetype=int, create_using=nx.Graph())
                 graph.name = gname
@@ -666,6 +649,7 @@ class SBM(BaseGraphModel):
 
         return g
 
+
 class GraphAutoEncoder(BaseGraphModel):
     """
     Graph auto-encoders - AE, VAE, LinearAE, LinearVAE, DeepGAE, DeepGVAE
@@ -688,6 +672,7 @@ class GraphAutoEncoder(BaseGraphModel):
         g.gen_id = gen_id
         
         return g
+
 
 class GraphVAE(BaseGraphModel):
     """
@@ -787,7 +772,7 @@ class NetGAN(BaseGraphModel):
         assert 'tg_sum' in self.params
         if self.params['scores'] is None or self.params['tg_sum'] is None:
             CP.print_orange('NetGAN gen failed')
-            g = get_blank_graph(gname)
+            raise Exception('Generation failed!')
         else:
             gen_mat = graph_from_scores(self.params['scores'], self.params['tg_sum'])
             g = nx.from_numpy_array(gen_mat, create_using=nx.Graph())
