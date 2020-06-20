@@ -1,6 +1,5 @@
 import csv
 import os
-import pickle
 import re
 from collections import namedtuple
 from os.path import join
@@ -9,7 +8,6 @@ from typing import Any, List
 import networkx as nx
 from tqdm import tqdm
 
-from src.graph_stats import GraphStats
 from src.utils import ColorPrint as CP, load_pickle, check_file_exists, delete_files, save_pickle
 
 Stats = namedtuple('Stats',
@@ -81,7 +79,7 @@ class InfinityMirror:
                     input_file = input_files[0]
                     total_generations, progress = map(int, temp_file_pattern.fullmatch(input_file).groups())
                     graphs = load_pickle(join(dir_name, input_file))
-                    assert len(graphs) - 1 == progress, f'Found {len(graphs)}, expected: {progress}'
+                    assert len(graphs) == progress + 1, f'Found {len(graphs)}, expected: {progress}'
                     CP.print_blue(f'Partial pickle found at {input_file!r} trial: {self.trial} progress: {progress}/{total_generations}')
                     self.graphs = graphs
 
