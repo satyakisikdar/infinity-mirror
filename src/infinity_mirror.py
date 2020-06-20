@@ -1,5 +1,7 @@
 import csv
+import os
 import pickle
+import re
 from collections import namedtuple
 from os.path import join
 from typing import Any, List
@@ -55,62 +57,60 @@ class InfinityMirror:
 
     def run(self, use_pickle: bool) -> None:
         """
-        New runner - uses LightTreeNode objects, so no graph comparison
+        New runner - uses list of graphs
         :param use_pickle:
         :return:
         """
-        temp_graphs = []
         pickle_ext = '.pkl.gz'
+        self.graphs = []
 
-        if use_pickle and check_file_exists(self.graphs_pickle_path + pickle_ext):
-            CP.print_green(f'Using pickle at "{self.graphs_pickle_path + pickle_ext}"')
-            graphs = load_pickle(self.graphs_pickle_path + pickle_ext)
-            # assert isinstance(list, LightTreeNode), 'Invalid TreeNode format, needs to be a LightTreeNode object'
-            self.graphs = graphs
-            return
-
-        flag = False
-        if self.finish_path is not None and check_file_exists(self.finish_path):
-            temp_graphs = load_pickle(self.finish_path)
-            if len(temp_graphs) == 21:
-                CP.print_green(f'The pickle at {self.finish_path} has {len(temp_graphs)}/21 graphs')
+        if use_pickle:
+            if check_file_exists(self.graphs_pickle_path + pickle_ext):  # the whole pickle exists
+                graphs = load_pickle(self.graphs_pickle_path + pickle_ext)
+                assert len(graphs) == 21, f'Expected 21 graphs, found {len(graphs)}'
+                CP.print_green(f'Using completed pickle at {self.graphs_pickle_path + pickle_ext!r}. Loaded {len(graphs)} graphs')
                 return
-            CP.print_green(f'Trying to finish the pickle at {self.finish_path} has {len(temp_graphs)}/21 graphs')
-            self.graphs_pickle_path += '-continued'
-            flag = True
+            else:
+                temp_file_pattern = re.compile(f'list_(\d+)_{self.trial}_temp_(\d+).pkl.gz')
+                dir_name = '/'.join(self.graphs_pickle_path.split('/')[: -1])
+
+                input_files = [f for f in os.listdir(dir_name) if re.match(temp_file_pattern, f)]
+                if len(input_files) > 0:
+                    assert len(input_files) == 1, f'More than one matches found: {input_files}'
+
+                    input_file = input_files[0]
+                    total_generations, progress = map(int, temp_file_pattern.fullmatch(input_file).groups())
+                    graphs = load_pickle(join(dir_name, input_file))
+                    assert len(graphs) - 1 == progress, f'Found {len(graphs)}, expected: {progress}'
+                    CP.print_blue(f'Partial pickle found at {input_file!r} trial: {self.trial} progress: {progress}/{total_generations}')
+                    self.graphs = graphs
+
+        remaining_generations = self.num_generations - len(self.graphs)
 
         tqdm.write(
-            f'Running Infinity Mirror on "{self.initial_graph.name}" {self.initial_graph.order(), self.initial_graph.size()} "{self.model.model_name}" {self.num_generations} generations')
-        pbar = tqdm(total=self.num_generations, bar_format='{l_bar}{bar}|[{elapsed}<{remaining}]', ncols=50)
+            f'Running Infinity Mirror on {self.initial_graph.name!r} {self.initial_graph.order(), self.initial_graph.size()} {self.model.model_name!r} {remaining_generations} generations')
+        pbar = tqdm(total=remaining_generations, bar_format='{l_bar}{bar}|[{elapsed}<{remaining}]', ncols=50)
 
-        if len(temp_graphs) == 0:
+        if len(self.graphs) == 0:
             self.initial_graph.level = 0
             self.graphs = [self.initial_graph]
-        else:
-            self.graphs = temp_graphs
 
-        for i in range(self.num_generations):
-            if i == 0:
-                if flag:
-                    i = len(self.graphs) - 1
-                    curr_graph = self.graphs[-1]  # use the last graph
-                else:
-                    curr_graph = self.initial_graph
+        completed_trial = False
+        for i in range(len(self.graphs) - 1, self.num_generations):
+            if i == len(self.graphs) - 1:
+                curr_graph = self.graphs[-1]  # use the last graph
 
             level = i + 1
             try:
                 self.model.update(new_input_graph=curr_graph)  # update the model
             except Exception as e:
                 print(f'Model fit failed {e}')
-                # self.graphs_pickle_path += f'_failed-{level}'  # append the failed to filenam
                 break
 
             try:
-                generated_graphs = self.model.generate(num_graphs=self.num_graphs,
-                                                       gen_id=level)  # generate a new set of graphs
+                generated_graphs = self.model.generate(num_graphs=self.num_graphs, gen_id=level)  # generate a new set of graphs
             except Exception as e:
                 print(f'Generation failed {e}')
-                # self.graphs_pickle_path += f'_failed-{level}'  # append the failed to filename
                 break
 
             curr_graph = generated_graphs[0]  # we are only generating one graph
@@ -123,12 +123,15 @@ class InfinityMirror:
             delete_files(prev_temp_pickle_path)
             save_pickle(obj=self.graphs, path=temp_pickle_path)
 
+            if level == 20:
+                completed_trial = True
             pbar.update(1)
-
         pbar.close()
-        delete_files(temp_pickle_path)  # delete the temp file if the loop finishes normally
-        CP.print_green(f'List of {len(self.graphs)} Graphs is pickled at "{self.graphs_pickle_path + pickle_ext}"')
-        save_pickle(obj=self.graphs, path=self.graphs_pickle_path + pickle_ext)
+
+        if completed_trial:  # only delete the temp pickle if the trial finishes successfully
+            delete_files(temp_pickle_path)  # delete the temp file if the loop finishes normally
+            CP.print_green(f'List of {len(self.graphs)} Graphs is pickled at "{self.graphs_pickle_path + pickle_ext}"')
+            save_pickle(obj=self.graphs, path=self.graphs_pickle_path + pickle_ext)
         return
 
     def write_timing_stats(self, time_taken) -> None:
