@@ -5,14 +5,6 @@ import os
 import platform
 import subprocess as sub
 import sys
-from collections import Counter, deque
-from pathlib import Path
-from typing import Dict, Tuple, List, Union, Any
-
-from src.portrait.portrait_divergence import _graph_or_portrait
-
-sys.path.extend(['./../', './../../'])
-print('sys path: ', sys.path)
 import editdistance as ed
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -22,7 +14,14 @@ import seaborn as sns
 import leidenalg as la
 import igraph as ig
 
-from src.utils import check_file_exists, ColorPrint as CP, save_pickle, get_imt_output_directory
+sys.path.extend(['./../', './../../'])
+
+from collections import Counter, deque
+from pathlib import Path
+from typing import Dict, Tuple, List, Union, Any
+from src.portrait.portrait_divergence import _graph_or_portrait
+from src.utils import check_file_exists, ColorPrint as CP, save_pickle, get_imt_output_directory, save_zipped_json, \
+    load_zipped_json
 
 sns.set()
 sns.set_style("darkgrid")
@@ -99,7 +98,8 @@ class GraphStats:
         write the stats dictionary as a pickle
         :return:
         """
-        filename = os.path.join(base_path, 'graph_stats', self.dataset, self.model, f'gs_{self.trial}_{self.iteration}.pkl.gz')
+        filename = os.path.join(base_path, 'graph_stats', self.dataset, self.model,
+                                f'gs_{self.trial}_{self.iteration}.pkl.gz')
         CP.print_blue(f'Stats pickle stored at {filename}')
         save_pickle(self.stats, filename)
         return
@@ -112,17 +112,19 @@ class GraphStats:
         # standardize incoming type
         if isinstance(stat, str):
             stat = [stat]
-        
+
         for statistic in stat:
             assert statistic in [method_name for method_name in dir(self)
-                          if callable(getattr(self, method_name)) and not method_name.startswith('_')]
+                                 if callable(getattr(self, method_name)) and not method_name.startswith('_')]
             output_directory = get_imt_output_directory()
 
             data = self[statistic]  # todo : maybe there's a better way?!
 
-            filename = os.path.join(output_directory, 'graph_stats', statistic, self.dataset, self.model, f'gs_{self.trial}_{self.iteration}.json.gz')
+            filename = os.path.join(output_directory, 'graph_stats', self.dataset, self.model, statistic,
+                                    f'gs_{self.trial}_{self.iteration}.json.gz')
             save_zipped_json(data, filename)
             CP.print_blue(f'Stats pickle stored at {filename}')
+        return
 
     def plot(self, y, ax=None, kind='line', x=None, **kwargs) -> None:
         if isinstance(y, dict):
@@ -433,7 +435,7 @@ class GraphStats:
         return graphlet_counts
 
     def netlsd(self, kernel: str = 'heat', dim: int = 250, eigenvalues: int = 20) -> np.ndarray:
-        eigenvalues = min(eigenvalues, self.graph.order()//2 - 1)
+        eigenvalues = min(eigenvalues, self.graph.order() // 2 - 1)
         vec = net.netlsd(g, kernel=kernel, timescales=np.logspace(-2, 2, dim), eigenvalues=eigenvalues)
         self.stats['netlsd'] = vec
         return vec
@@ -449,10 +451,16 @@ class GraphStats:
 
 
 if __name__ == '__main__':
-    # g = nx.karate_club_graph()
+    g = nx.karate_club_graph()
     # g = nx.ring_of_cliques(50, 4)
-    g = nx.erdos_renyi_graph(5, 0.2, seed=1)
+    # g = nx.erdos_renyi_graph(5, 0.2, seed=1)
     # g = nx.path_graph(5)
-    gs = GraphStats(graph=g, trial=0, dataset='karate', model='blah', iteration=0)
-    print(gs.netlsd())
-    print(gs.stats)
+    gs = GraphStats(graph=g, trial=0, dataset='karate', model='CNRG', iteration=0)
+    # gs.netlsd()
+    # gs.pagerank()
+    gs.write_stats_jsons(stat='netlsd')
+    # gs.write_stats_jsons(stat='pagerank')
+
+    json_data = load_zipped_json(filename='/data/infinity-mirror/output/graph_stats/karate/CNRG/netlsd/gs_0_0.json.gz',
+                                 keys_to_int=False, debug=True)
+    print(json_data)

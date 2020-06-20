@@ -1,7 +1,7 @@
 # ignore pycache stuff
 .DS_Store
 *.pyc
-*.idea/
+*.idea/*
 __pycache__/
 *.g
 input/*
@@ -11,3 +11,4 @@ src/bter/*
 src/hrg/*
 src/kronecker/*
 src/netgan/*
+*.xml

@@ -120,10 +120,13 @@ def print_float(x: float) -> float:
     """
     return round(x, 3)
 
+
 #todoc: add some documentation to these new functions
 def save_pickle(obj: Any, path: Union[Path, str]) -> Any:
-    assert check_file_exists(path), f'"{path}" does not exist'
-    return pickle.dump(obj, open(path, 'wb'))
+    if not isinstance(path, Path):
+        path = Path(path)
+    ensure_dir(path.parents[0])  # ensures the parent directories exist
+    return pickle.dump(obj, open(path, 'wb'), protocol=-1)  # use the highest possible protocol
 
 
 # create a handler for writing sets to json (serializable)
@@ -137,8 +140,12 @@ def set_default(obj):
 
 # write data structure to zipped json (filename should probably have a .json.gz extension)
 def save_zipped_json(data: Any, filename: Union[str, Path]) -> None:
+    if not isinstance(filename, Path):
+        filename = Path(filename)
+    ensure_dir(filename.parents[0])  # ensures the parent directories exist
     with gzip.GzipFile(filename, 'w') as fout:
-        fout.write(json.dumps(data, default=set_default).encode('utf-8'))
+        fout.write(json.dumps(data, default=set_default, indent=4).encode('utf-8'))
+    return
 
 
 def load_pickle(path: Union[Path, str]) -> Any:
@@ -150,17 +157,18 @@ def load_pickle(path: Union[Path, str]) -> Any:
     assert check_file_exists(path), f'"{path}" does not exist'
     return pickle.load(open(path, 'rb'))
 
-def load_zipped_json(filename: Union[str, Path], keys_to_int=False, debug: bool = False) -> Any:
+
+def load_zipped_json(filename: Union[str, Path], keys_to_int: bool = False, debug: bool = False) -> Any:
     if debug:
-        print("Loading", filename)
-    with gzip.open(filename, "rb") as f:
+        ColorPrint.print_blue(f'Loading {filename!r}')
+    with gzip.open(filename, 'rb') as f:
         text = f.read()
-        temp = text.decode("utf-8")
+        temp = text.decode('utf-8')
         d = json.loads(temp)
 
     # json sadness - convert all the keys to integer, if such a thing is possible
-    if keys_to_int:
-        d = utilities.data_utils.keys_to_int(d)
+    if isinstance(d, dict) and keys_to_int:
+        d = {int(k): v for k, v in d.items()}
 
     return d
 
@@ -184,6 +192,13 @@ def load_imt_trial(input_path, dataset, model) -> (pd.DataFrame, int):
         imt_dataframe = load_pickle(os.path.join(full_path, filename))
         generations, trial_id = map(int, imt_filename_pattern.fullmatch(filename).groups())
         yield imt_dataframe, trial_id
+
+
+def ensure_dir(path: Union[str, Path]) -> None:
+    if not Path(path).exists():
+        ColorPrint.print_blue(f'Creating dir: {path!r}')
+        os.makedirs(path, exist_ok=True)
+    return
 
 
 def make_plot(y, kind='line', x=None, title='', xlabel='', ylabel='') -> None:
