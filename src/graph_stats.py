@@ -104,7 +104,7 @@ class GraphStats:
         save_pickle(self.stats, filename)
         return
 
-    def write_stats_jsons(self, stat: Union[str, list]):
+    def write_stats_jsons(self, stat: Union[str, list]) -> None:
         """
         write the stats dictionary as a compressed json
         :return:
