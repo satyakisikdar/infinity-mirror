@@ -19,18 +19,36 @@ def timer(function):
     return new_function()
 
 def doesathing(args):
-    time.sleep(1)
     x, y, z = args
+    time.sleep(x // 5)
     return x + y + z
 
 # todo test this with GraphStats
-def parallel(func, args, num_workers=10):
+def parallel_imap(func, args, num_workers=10):
     results = []
-    print(len(args))
-
     with Pool(num_workers) as pool:
         for result in pool.imap(func, args, chunksize=len(args)//num_workers):
             results.append(result)
+
+    return results
+
+def parallel_async(func, args, num_workers=10):
+    def write_result(result):
+        print(result)
+        return result
+
+    results = []
+    async_promises = []
+    with Pool(num_workers) as pool:
+        for arg in args:
+            r = pool.apply_async(func, [arg], callback=write_result)
+            async_promises.append(r)
+        for r in async_promises:
+            try:
+                r.wait()
+                results.append(r.get())
+            except Exception as e:
+                results.append(r.get())
 
     return results
 
@@ -40,11 +58,14 @@ def sequential(func, args):
         result = func(arg)
         results.append(result)
     return results
-#@timer
-def main():
-    N = 100
-    args = [(x, y, z) for (x, y, z) in zip(range(N), range(N), range(N))]
 
-    results = sequential(doesathing, args)
-    print(f'SUCCESS: there are {len(results)} results')
-    return
+#@timer
+#def main():
+#    N = 100
+#    args = [(x, y, z) for (x, y, z) in zip(range(N), range(N), range(N))]
+#
+#    #results = parallel_imap(doesathing, args)
+#    results = parallel_async(doesathing, args)
+#    #print(f'SUCCESS: there are {len(results)} results')
+#    print(results)
+#    return
