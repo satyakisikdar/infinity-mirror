@@ -123,7 +123,7 @@ class GraphStats:
             filename = os.path.join(output_directory, 'graph_stats', self.dataset, self.model, statistic,
                                     f'gs_{self.trial}_{self.iteration}.json.gz')
             save_zipped_json(data, filename)
-            CP.print_blue(f'Stats pickle stored at {filename}')
+            CP.print_blue(f'Stats json stored at {filename}')
         return
 
     def plot(self, y, ax=None, kind='line', x=None, **kwargs) -> None:
