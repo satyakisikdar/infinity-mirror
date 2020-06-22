@@ -1,14 +1,7 @@
-import os
-import sys
 import time
 import timeit
-#import multiprocessing as mp
-from multiprocessing import Pool
-
-import numpy as np
-import networkx as nx
-
 from tqdm import tqdm
+from multiprocessing import Pool
 
 def timer(function):
     def new_function():
@@ -33,7 +26,7 @@ def parallel_imap(func, args, num_workers=10):
     return results
 
 def parallel_async(func, args, num_workers=10):
-    def write_result(result):
+    def update_result(result):
         print(result)
         return result
 
@@ -41,7 +34,7 @@ def parallel_async(func, args, num_workers=10):
     async_promises = []
     with Pool(num_workers) as pool:
         for arg in args:
-            r = pool.apply_async(func, [arg], callback=write_result)
+            r = pool.apply_async(func, arg, callback=update_result)
             async_promises.append(r)
         for r in async_promises:
             try:
