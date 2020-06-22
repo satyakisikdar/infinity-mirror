@@ -118,8 +118,8 @@ class InfinityMirror:
 
             temp_pickle_path = self.graphs_pickle_path + f'_temp_{level}{pickle_ext}'
             prev_temp_pickle_path = self.graphs_pickle_path + f'_temp_{level-1}{pickle_ext}'
-            delete_files(prev_temp_pickle_path)
             save_pickle(obj=self.graphs, path=temp_pickle_path)
+            delete_files(prev_temp_pickle_path)
 
             if level == 20:
                 completed_trial = True
