@@ -7,6 +7,7 @@ from src.parallel import parallel_async
 from src.utils import load_pickle, get_imt_input_directory, ColorPrint
 
 # todo maybe let this deal with a list of stats to compute once a pickle is loaded
+# todo add check to see if stat has already been computed
 def stats_computation(dataset, model, trial, filename, stats):
     path = os.path.join(get_imt_input_directory(), dataset, model, filename)
     graph_list = load_pickle(path)
