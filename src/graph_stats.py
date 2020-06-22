@@ -5,14 +5,16 @@ import os
 import platform
 import subprocess as sub
 import sys
+
 import editdistance as ed
+import igraph as ig
+import leidenalg as la
 import matplotlib.pyplot as plt
 import networkx as nx
-import NetLSD.netlsd as net
 import numpy as np
 import seaborn as sns
-import leidenalg as la
-import igraph as ig
+
+import NetLSD.netlsd as net
 
 sys.path.extend(['./../', './../../'])
 
@@ -21,7 +23,7 @@ from pathlib import Path
 from typing import Dict, Tuple, List, Union, Any
 from src.portrait.portrait_divergence import _graph_or_portrait
 from src.utils import check_file_exists, ColorPrint as CP, save_pickle, get_imt_output_directory, save_zipped_json, \
-    load_zipped_json
+    load_zipped_json, verify_file
 
 sns.set()
 sns.set_style("darkgrid")
@@ -104,7 +106,7 @@ class GraphStats:
         save_pickle(self.stats, filename)
         return
 
-    def write_stats_jsons(self, stats: Union[str, list]) -> None:
+    def write_stats_jsons(self, stats: Union[str, list], overwrite: bool=False) -> None:
         """
         write the stats dictionary as a compressed json
         :return:
@@ -118,10 +120,16 @@ class GraphStats:
                                  if callable(getattr(self, method_name)) and not method_name.startswith('_')]
             output_directory = get_imt_output_directory()
 
-            data = self[statistic]  # todo : maybe there's a better way?!
-
             filename = os.path.join(output_directory, 'graph_stats', self.dataset, self.model, statistic,
                                     f'gs_{self.trial}_{self.iteration}.json.gz')
+
+            # if the file already exists and overwrite flag is not set, then don't rework.
+            if not overwrite and verify_file(filename):
+                CP.print_orange(f'Statistic: {statistic} output file for {self.model}-{self.dataset}-{self.trial} already exists. Skipping.')
+                return
+
+            data = self[statistic]  # todo : maybe there's a better way?!
+
             save_zipped_json(data, filename)
             CP.print_blue(f'Stats json stored at {filename}')
         return
