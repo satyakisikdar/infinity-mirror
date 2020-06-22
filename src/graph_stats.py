@@ -106,7 +106,7 @@ class GraphStats:
         save_pickle(self.stats, filename)
         return
 
-    def write_stats_jsons(self, stats: Union[str, list], overwrite=False) -> None:
+    def write_stats_jsons(self, stats: Union[str, list], overwrite: bool=False) -> None:
         """
         write the stats dictionary as a compressed json
         :return:
@@ -124,7 +124,7 @@ class GraphStats:
                                     f'gs_{self.trial}_{self.iteration}.json.gz')
 
             # if the file already exists and overwrite flag is not set, then don't rework.
-            if overwrite and verify_file(filename):
+            if not overwrite and verify_file(filename):
                 CP.print_orange(f'Statistic: {statistic} output file for {self.model}-{self.dataset}-{self.trial} already exists. Skipping.')
                 return
 
