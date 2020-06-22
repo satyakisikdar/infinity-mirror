@@ -104,16 +104,16 @@ class GraphStats:
         save_pickle(self.stats, filename)
         return
 
-    def write_stats_jsons(self, stat: Union[str, list]) -> None:
+    def write_stats_jsons(self, stats: Union[str, list]) -> None:
         """
         write the stats dictionary as a compressed json
         :return:
         """
         # standardize incoming type
-        if isinstance(stat, str):
-            stat = [stat]
+        if isinstance(stats, str):
+            stats = [stats]
 
-        for statistic in stat:
+        for statistic in stats:
             assert statistic in [method_name for method_name in dir(self)
                                  if callable(getattr(self, method_name)) and not method_name.startswith('_')]
             output_directory = get_imt_output_directory()
@@ -458,7 +458,7 @@ if __name__ == '__main__':
     gs = GraphStats(graph=g, trial=0, dataset='karate', model='CNRG', iteration=0)
     # gs.netlsd()
     # gs.pagerank()
-    gs.write_stats_jsons(stat='netlsd')
+    gs.write_stats_jsons(stats='netlsd')
     # gs.write_stats_jsons(stat='pagerank')
 
     json_data = load_zipped_json(filename='/data/infinity-mirror/output/graph_stats/karate/CNRG/netlsd/gs_0_0.json.gz',
