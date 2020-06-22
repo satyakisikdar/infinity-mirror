@@ -24,7 +24,7 @@ def stats_computation(dataset, model, trial, filename, stats):
 if __name__ == '__main__':
     stat = 'pagerank'
     #datasets, models, trials, filenames = walker(input_path)
-    datasets, models, trials, filenames = ['eucore'], ['BTER'], ['1'], ['list_20_1.pkl.gz']
+    datasets, models, trials, filenames = ['eucore']*10, ['BTER']*10, [str(x) for x in range(1, 11)], [f'list_20_{x}.pkl.gz' for x in range(1, 11)]
 
     args = [(dataset, model, trial, filename, stat) for dataset, model, trial, filename in zip(datasets, models, trials, filenames)]
 
