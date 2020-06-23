@@ -300,15 +300,16 @@ def walker():
     datasets, models, trials, filenames = [], [], [], []
 
     for subdir, dirs, files in os.walk(base_path):
-        for filename in files:
-            subdir_list = subdir.split('/')
-            dataset = subdir_list[-2]
-            model = subdir_list[-1]
-            trial = int(filename.split('_')[-1].strip('.pkl.gz'))
+        if 'bucket3' not in subdir:
+            for filename in files:
+                subdir_list = subdir.split('/')
+                dataset = subdir_list[-2]
+                model = subdir_list[-1]
+                trial = int(filename.split('_')[-1].strip('.pkl.gz'))
 
-            datasets.append(dataset)
-            models.append(model)
-            trials.append(trial)
-            filenames.append(filename)
+                datasets.append(dataset)
+                models.append(model)
+                trials.append(trial)
+                filenames.append(filename)
 
     return datasets, models, trials, filenames
