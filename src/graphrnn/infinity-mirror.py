@@ -84,6 +84,7 @@ def fit(graphs: List[nx.Graph], model_type: str, gname: str, gen_id: int):
                            has_output=True, output_size=1).cuda()
 
     ### start training
+    # todo try to catch the log data (might be the actual console logs)
     output_graphs = train(args, dataset_loader, rnn, output, gen_id)
     print(f'len: {len(output_graphs)}')
     for og in output_graphs[: 10]:
@@ -180,10 +181,10 @@ def preprocess(graph: nx.Graph, reindex_nodes: bool, first_label: int = 0, take_
 if __name__ == '__main__':
     size = 10
     ratio = 5
-    if False:
-        #g = nx.karate_club_graph(); gname = 'karate'
-        n = 500
-        g = nx.ring_of_cliques(n, 4); gname = f'ring-cliq-{n}-4_size{size}_ratio{ratio}'
+    if True:
+        g = nx.karate_club_graph(); gname = 'karate'
+        #n = 500
+        #g = nx.ring_of_cliques(n, 4); gname = f'ring-cliq-{n}-4_size{size}_ratio{ratio}'
         g.name = gname
         graphs = [nx.Graph(g) for _ in range(50)]
     else:
