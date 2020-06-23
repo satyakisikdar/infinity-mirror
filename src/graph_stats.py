@@ -129,7 +129,6 @@ class GraphStats:
                 return
 
             data = self[statistic]  # todo : maybe there's a better way?!
-
             save_zipped_json(data, filename)
             CP.print_blue(f'Stats json stored at {filename}')
         return
@@ -397,6 +396,7 @@ class GraphStats:
         CP.print_none('Calculating PageRank')
 
         pagerank = nx.pagerank_scipy(self.graph)
+        pagerank = {int(k): v for k, v in pagerank.items()}
         self.stats['pagerank'] = pagerank
 
         return pagerank
