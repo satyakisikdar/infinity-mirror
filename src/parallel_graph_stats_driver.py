@@ -5,8 +5,6 @@ from src.graph_stats import GraphStats
 from src.parallel import parallel_async
 from src.utils import load_pickle, get_imt_input_directory, walker, ColorPrint
 
-# todo maybe let this deal with a list of stats to compute once a pickle is loaded
-# todo add check to see if stat has already been computed
 def stats_computation(dataset, model, trial, filename, stats):
     path = os.path.join(get_imt_input_directory(), dataset, model, filename)
     graph_list = load_pickle(path)
@@ -22,9 +20,8 @@ def stats_computation(dataset, model, trial, filename, stats):
     return None
 
 if __name__ == '__main__':
-    stat = 'pagerank'
+    stat = ['pagerank', 'degree_dist']
     datasets, models, trials, filenames = walker()
-    # TODO: create walker function (probably rename it)
     #datasets, models, trials, filenames = ['eucore']*10, ['BTER']*10, [str(x) for x in range(1, 11)], [f'list_20_{x}.pkl.gz' for x in range(1, 11)]
 
     args = [(dataset, model, trial, filename, stat) for dataset, model, trial, filename in zip(datasets, models, trials, filenames)]
