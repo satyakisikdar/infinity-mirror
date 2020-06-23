@@ -1,23 +1,5 @@
-import time
-import timeit
-from tqdm import tqdm
-from utils import timer
 from multiprocessing import Pool
 
-#def timer(function):
-#    def new_function():
-#        start_time = timeit.default_timer()
-#        function()
-#        elapsed = timeit.default_timer() - start_time
-#        print(f'Function "{function.__name__}" took {elapsed} seconds to complete.')
-#    return new_function()
-
-def doesathing(args):
-    x, y, z = args
-    time.sleep(x // 5)
-    return x + y + z
-
-# todo test this with GraphStats
 def parallel_imap(func, args, num_workers=10):
     results = []
     with Pool(num_workers) as pool:
@@ -28,7 +10,6 @@ def parallel_imap(func, args, num_workers=10):
 
 def parallel_async(func, args, num_workers=10):
     def update_result(result):
-        #print(result)
         return result
 
     results = []
@@ -52,14 +33,3 @@ def sequential(func, args):
         result = func(arg)
         results.append(result)
     return results
-
-#@timer
-#def main():
-#    N = 100
-#    args = [(x, y, z) for (x, y, z) in zip(range(N), range(N), range(N))]
-#
-#    #results = parallel_imap(doesathing, args)
-#    results = parallel_async(doesathing, args)
-#    #print(f'SUCCESS: there are {len(results)} results')
-#    print(results)
-#    return
