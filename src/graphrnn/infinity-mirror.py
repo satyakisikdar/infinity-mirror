@@ -157,7 +157,6 @@ if __name__ == '__main__':
     datasets = 'tree', 'clique-ring-500-4', 'flights', 'eucore', 'chess'
     dataset = argv[1]
     assert dataset in datasets, f'Invalid {dataset}, pick from {datasets}'
-
     path_to_pickles = join(base_path, f'{dataset}_size10_ratio5')
     ensure_dir(path_to_pickles)
 
@@ -169,18 +168,14 @@ if __name__ == '__main__':
         most_recent_completed_file, current_iteration = max(completed_files, key=lambda x: x[1])
         most_recent_completed_file = join(base_path, f'{dataset}_size10_ratio5', most_recent_completed_file)
         graphs = load_pickle(most_recent_completed_file)
-        if graphs[0].name != '':
-            gname = graphs[0].name
-        else:
-            gname = f'{dataset}_{current_iteration}'
-
+        CP.print_orange(f'Resuming pickle from iteration {current_iteration}')
         assert len(graphs) == 50, f'Expected 50 graphs, found {len(graphs)}'
     else:
         most_recent_completed_file, current_iteration = f'/home/danielgonzalez/repos/infinity-mirror/input/{dataset}.g', 0
         g = init(filename=most_recent_completed_file)
-        gname = f'{dataset}_0'
         graphs = [nx.Graph(g)] * 50
 
+    gname = f'{dataset}_size10_ratio5'
     for iteration in range(current_iteration + 1, 21):
         print(f'\niteration {iteration}\n')
         print(f'input graph: {gname}')
