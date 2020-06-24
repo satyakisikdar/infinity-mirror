@@ -11,12 +11,20 @@ from random import shuffle
 from src.graphrnn.args import Args
 from src.graphrnn.data import Graph_sequence_sampler_pytorch
 from src.graphrnn.train import *
+from src.utils import ColorPrint as CP
 
 
 def fit(graphs: List[nx.Graph], model_type: str, gname: str, iteration: int, batch_size: int, batch_ratio: int):
     note_dict = {'mlp': 'GraphRNN_MLP', 'rnn': 'GraphRNN_RNN'}
     assert len(graphs) == 50, f'Expected graphs: 50, got: {len(graphs)}'
     assert model_type in note_dict
+
+    cleaned_graphs = [g for g in graphs if g.order() != 0 and g.size() != 0]  # GraphRNN doesn't like empty graphs
+    if len(cleaned_graphs) != len(graphs):
+        CP.print_orange(f'Discared {len(graphs) - len(cleaned_graphs)} empty graphs')
+
+    assert len(cleaned_graphs) > 0, 'All 50 graphs were discarded!!'
+    graphs = cleaned_graphs
 
     args = Args(graph_type=gname, note=note_dict[model_type.lower()], batch_size=batch_size, batch_ratio=batch_ratio)
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.cuda)
@@ -40,6 +48,7 @@ def fit(graphs: List[nx.Graph], model_type: str, gname: str, iteration: int, bat
     args.max_num_node = max(g.order() for g in graphs)
     max_num_edge = max(g.size() for g in graphs)
     min_num_edge = min(g.size() for g in graphs)
+    args.max_prev_node = 7
 
     # show graphs statistics
     print('total graph num: {}, training set: {}'.format(len(graphs), len(graphs_train)))
@@ -140,14 +149,17 @@ if __name__ == '__main__':
     model_type = 'mlp'
 
     # g = nx.karate_club_graph(); gname = 'karate'
+    g = nx.ring_of_cliques(500, 4); gname = 'clique-ring-500-4'
     # g = nx.cycle_graph(10); gname = 'cycle-10'
+    # g = nx.ring_of_cliques(500, 4); gname = 'clique-ring-500-4'
 
-    base_path = '/home/danielgonzalez/repos/infinity-mirror/input/'
-    dataset = 'eucore'
-    g = init(os.path.join(base_path, dataset + '.g')); gname = dataset
+    # base_path = '/home/danielgonzalez/repos/infinity-mirror/input/'
+    # dataset = 'eucore'
+    # g = init(os.path.join(base_path, dataset + '.g')); gname = dataset
 
     g.name = f'{gname}_size{batch_size}_ratio{batch_ratio}'
-    graphs = [nx.Graph(g) for _ in range(50)]
+    graphs = [nx.Graph(g)] * 50
+    # graphs = [nx.Graph(g) for _ in range(50)]
 
     for iteration in range(1, 21):
         print(f'\niteration {iteration}\n')
