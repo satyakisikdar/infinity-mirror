@@ -8,11 +8,12 @@ import os
 from os.path import join
 from pathlib import Path
 from random import shuffle
+from sys import argv
 
 from src.graphrnn.args import Args
 from src.graphrnn.data import Graph_sequence_sampler_pytorch
 from src.graphrnn.train import *
-from src.utils import ColorPrint as CP
+from src.utils import ColorPrint as CP, load_pickle, ensure_dir
 
 
 def fit(graphs: List[nx.Graph], model_type: str, gname: str, iteration: int, batch_size: int, batch_ratio: int):
@@ -49,7 +50,6 @@ def fit(graphs: List[nx.Graph], model_type: str, gname: str, iteration: int, bat
     args.max_num_node = max(g.order() for g in graphs)
     max_num_edge = max(g.size() for g in graphs)
     min_num_edge = min(g.size() for g in graphs)
-    args.max_prev_node = 7
 
     # show graphs statistics
     print('total graph num: {}, training set: {}'.format(len(graphs), len(graphs_train)))
@@ -146,31 +146,42 @@ def preprocess(graph: nx.Graph, reindex_nodes: bool, first_label: int = 0, take_
 
 
 if __name__ == '__main__':
+    if len(argv) < 2:
+        print('Enter dataset as an arg')
+        exit(1)
+
     batch_size, batch_ratio = 10, 5  # 10, 5 is faster
     model_type = 'mlp'
 
-    # g = nx.karate_club_graph(); gname = 'karate'
-    # g = nx.ring_of_cliques(500, 4); gname = 'clique-ring-500-4'
-    # g = nx.cycle_graph(10); gname = 'cycle-10'
-    # g = nx.ring_of_cliques(500, 4); gname = 'clique-ring-500-4'
-
-    # # base_path = '/home/danielgonzalez/repos/infinity-mirror/input/'
-    # # dataset = 'eucore'
-    # # g = init(os.path.join(base_path, dataset + '.g')); gname = dataset
-
-    # g.name = f'{gname}_size{batch_size}_ratio{batch_ratio}'
-    # graphs = [nx.Graph(g)] * 50
-
     base_path = '/home/danielgonzalez/repos/infinity-mirror/src/graphrnn/graphs/GraphRNN_MLP/'
     datasets = 'tree', 'clique-ring-500-4', 'flights', 'eucore', 'chess'
-    dataset = datasets[0]
+    dataset = argv[1]
+    assert dataset in datasets, f'Invalid {dataset}, pick from {datasets}'
+
+    path_to_pickles = join(base_path, f'{dataset}_size10_ratio5')
+    ensure_dir(path_to_pickles)
 
     pattern = re.compile('pred_(\d+)_1000.dat')
-    completed_files = [(f, int(re.fullmatch(pattern, f).groups()[0])) for f in os.listdir(join(base_path, f'{dataset}_size10_ratio5'))
+    completed_files = [(f, int(re.fullmatch(pattern, f).groups()[0])) for f in os.listdir(path_to_pickles)
                        if re.fullmatch(pattern, f)]
-    most_recent_completed_file = max(completed_files, key=lambda x: x[1])[0]
 
-    for iteration in range(1, 21):
+    if len(completed_files) != 0:
+        most_recent_completed_file, current_iteration = max(completed_files, key=lambda x: x[1])
+        most_recent_completed_file = join(base_path, f'{dataset}_size10_ratio5', most_recent_completed_file)
+        graphs = load_pickle(most_recent_completed_file)
+        if graphs[0].name != '':
+            gname = graphs[0].name
+        else:
+            gname = f'{dataset}_{current_iteration}'
+
+        assert len(graphs) == 50, f'Expected 50 graphs, found {len(graphs)}'
+    else:
+        most_recent_completed_file, current_iteration = f'/home/danielgonzalez/repos/infinity-mirror/input/{dataset}.g', 0
+        g = init(filename=most_recent_completed_file)
+        gname = f'{dataset}_0'
+        graphs = [nx.Graph(g)] * 50
+
+    for iteration in range(current_iteration + 1, 21):
         print(f'\niteration {iteration}\n')
         print(f'input graph: {gname}')
         graphs = fit(graphs=graphs, model_type=model_type, gname=gname, iteration=iteration, batch_size=batch_size,
