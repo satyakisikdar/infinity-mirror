@@ -2,11 +2,10 @@
 Graph Comparison Functions
 """
 from math import fabs
-from typing import Dict, List
+from typing import Dict
 
 import networkx as nx
 import numpy as np
-import scipy.stats
 from numpy import linalg as la
 from scipy import sparse as sps
 from scipy.sparse import issparse
@@ -44,7 +43,7 @@ class GraphPairCompare:
         return self.stats[item]
 
     def calculate(self) -> None:
-        self.lambda_dist(k=10)
+        self.lambda_dist()
         self.node_diff()
         self.edge_diff()
         self.pgd_pearson()
