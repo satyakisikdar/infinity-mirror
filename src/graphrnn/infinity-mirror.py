@@ -166,11 +166,9 @@ if __name__ == '__main__':
     dataset = datasets[0]
 
     pattern = re.compile('pred_(\d+)_1000.dat')
-    completed_files = [(f, re.fullmatch(pattern, f).groups()[0]) for f in os.listdir(join(base_path, f'{dataset}_size10_ratio5'))
+    completed_files = [(f, int(re.fullmatch(pattern, f).groups()[0])) for f in os.listdir(join(base_path, f'{dataset}_size10_ratio5'))
                        if re.fullmatch(pattern, f)]
-    most_recent_completed_file = max(completed_files, key=lambda x: int(x.split('_')[1]))
-    print(completed_files)
-    exit(1)
+    most_recent_completed_file = max(completed_files, key=lambda x: x[1])[0]
 
     for iteration in range(1, 21):
         print(f'\niteration {iteration}\n')
