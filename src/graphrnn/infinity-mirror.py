@@ -5,10 +5,13 @@ this is slightly different from the normal ones
 2. Gen should take a model object and generate 50 graphs
 """
 import os
+import sys
 from os.path import join
 from pathlib import Path
 from random import shuffle
 from sys import argv
+
+sys.path.extend(['./', './..', './../..'])
 
 from src.graphrnn.args import Args
 from src.graphrnn.data import Graph_sequence_sampler_pytorch
