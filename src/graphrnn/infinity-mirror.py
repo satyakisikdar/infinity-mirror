@@ -5,6 +5,7 @@ this is slightly different from the normal ones
 2. Gen should take a model object and generate 50 graphs
 """
 import os
+from os.path import join
 from pathlib import Path
 from random import shuffle
 
@@ -149,17 +150,27 @@ if __name__ == '__main__':
     model_type = 'mlp'
 
     # g = nx.karate_club_graph(); gname = 'karate'
-    g = nx.ring_of_cliques(500, 4); gname = 'clique-ring-500-4'
+    # g = nx.ring_of_cliques(500, 4); gname = 'clique-ring-500-4'
     # g = nx.cycle_graph(10); gname = 'cycle-10'
     # g = nx.ring_of_cliques(500, 4); gname = 'clique-ring-500-4'
 
-    # base_path = '/home/danielgonzalez/repos/infinity-mirror/input/'
-    # dataset = 'eucore'
-    # g = init(os.path.join(base_path, dataset + '.g')); gname = dataset
+    # # base_path = '/home/danielgonzalez/repos/infinity-mirror/input/'
+    # # dataset = 'eucore'
+    # # g = init(os.path.join(base_path, dataset + '.g')); gname = dataset
 
-    g.name = f'{gname}_size{batch_size}_ratio{batch_ratio}'
-    graphs = [nx.Graph(g)] * 50
-    # graphs = [nx.Graph(g) for _ in range(50)]
+    # g.name = f'{gname}_size{batch_size}_ratio{batch_ratio}'
+    # graphs = [nx.Graph(g)] * 50
+
+    base_path = '/home/danielgonzalez/repos/infinity-mirror/src/graphrnn/graphs/GraphRNN_MLP/'
+    datasets = 'tree', 'clique-ring-500-4', 'flights', 'eucore', 'chess'
+    dataset = datasets[0]
+
+    pattern = re.compile('pred_(\d+)_1000.dat')
+    completed_files = [(f, re.fullmatch(pattern, f).groups()[0]) for f in os.listdir(join(base_path, f'{dataset}_size10_ratio5'))
+                       if re.fullmatch(pattern, f)]
+    most_recent_completed_file = max(completed_files, key=lambda x: int(x.split('_')[1]))
+    print(completed_files)
+    exit(1)
 
     for iteration in range(1, 21):
         print(f'\niteration {iteration}\n')
