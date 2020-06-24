@@ -1,20 +1,29 @@
 """
 Container for different graph stats
 """
+import os
 import platform
 import subprocess as sub
-from collections import Counter, deque
-from typing import Dict, Tuple, List
+import sys
 
 import editdistance as ed
+import igraph as ig
+import leidenalg as la
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import seaborn as sns
-import leidenalg as la
-import igraph as ig
 
-from src.utils import check_file_exists, ColorPrint as CP
+import NetLSD.netlsd as net
+
+sys.path.extend(['./../', './../../'])
+
+from collections import Counter, deque
+from pathlib import Path
+from typing import Dict, Tuple, List, Union, Any
+from src.portrait.portrait_divergence import _graph_or_portrait
+from src.utils import check_file_exists, ColorPrint as CP, save_pickle, get_imt_output_directory, save_zipped_json, \
+    load_zipped_json, verify_file
 
 sns.set()
 sns.set_style("darkgrid")
@@ -24,12 +33,16 @@ class GraphStats:
     """
     GraphStats has methods for finding different statistics for a NetworkX graph
     """
-    __slots__ = ['graph', 'stats', 'run_id']
+    __slots__ = ['graph', 'dataset', 'model', 'iteration', 'stats', 'trial']
 
-    def __init__(self, graph: nx.Graph, run_id: int):
+    def __init__(self, graph: nx.Graph, dataset: str, model: str, iteration: int, trial: int):
         self.graph: nx.Graph = graph
-        self.run_id = run_id
-        self.stats: Dict[str, float] = {'n': graph.order(), 'm': graph.size()}
+        self.trial = trial
+        self.dataset = dataset
+        self.model = model
+        self.iteration = iteration
+        self.stats: Dict[str, Any] = {'dataset': dataset, 'model': model, 'iteration': iteration, 'trial': trial,
+                                      'n': graph.order(), 'm': graph.size()}
 
     def __str__(self) -> str:
         st = f'"{self.graph.name}" stats:'
@@ -81,6 +94,44 @@ class GraphStats:
 
         assert item in self.stats, f'stat: {item} is not updated after function call'
         return self.stats[item]
+
+    def write_stats_pickle(self, base_path: Union[str, Path]):
+        """
+        write the stats dictionary as a pickle
+        :return:
+        """
+        filename = os.path.join(base_path, 'graph_stats', self.dataset, self.model,
+                                f'gs_{self.trial}_{self.iteration}.pkl.gz')
+        CP.print_blue(f'Stats pickle stored at {filename}')
+        save_pickle(self.stats, filename)
+        return
+
+    def write_stats_jsons(self, stats: Union[str, list], overwrite: bool=False) -> None:
+        """
+        write the stats dictionary as a compressed json
+        :return:
+        """
+        # standardize incoming type
+        if isinstance(stats, str):
+            stats = [stats]
+
+        for statistic in stats:
+            assert statistic in [method_name for method_name in dir(self)
+                                 if callable(getattr(self, method_name)) and not method_name.startswith('_')]
+            output_directory = get_imt_output_directory()
+
+            filename = os.path.join(output_directory, 'graph_stats', self.dataset, self.model, statistic,
+                                    f'gs_{self.trial}_{self.iteration}.json.gz')
+
+            # if the file already exists and overwrite flag is not set, then don't rework.
+            if not overwrite and verify_file(filename):
+                CP.print_orange(f'Statistic: {statistic} output file for {self.model}-{self.dataset}-{self.trial} already exists. Skipping.')
+                return
+
+            data = self[statistic]  # todo : maybe there's a better way?!
+            save_zipped_json(data, filename)
+            CP.print_blue(f'Stats json stored at {filename}')
+        return
 
     def plot(self, y, ax=None, kind='line', x=None, **kwargs) -> None:
         if isinstance(y, dict):
@@ -345,11 +396,12 @@ class GraphStats:
         CP.print_none('Calculating PageRank')
 
         pagerank = nx.pagerank_scipy(self.graph)
+        pagerank = {int(k): v for k, v in pagerank.items()}
         self.stats['pagerank'] = pagerank
 
         return pagerank
 
-    def pgd_graphlet_counts(self) -> Dict:
+    def pgd_graphlet_counts(self, n_threads=4) -> Dict:
         """
         Return the dictionary of graphlets and their counts - based on Neville's PGD
         :return:
@@ -357,27 +409,29 @@ class GraphStats:
         pgd_path = './src/PGD'
         graphlet_counts = {}
 
-        if 'Linux' in platform.platform() and check_file_exists(f'{pgd_path}/pgd_{self.run_id}'):
+        if 'Linux' in platform.platform() and check_file_exists(f'{pgd_path}/pgd_0'):
             edgelist = '\n'.join(nx.generate_edgelist(self.graph, data=False))
             edgelist += '\nX'  # add the X
             dummy_path = f'{pgd_path}/dummy.txt'
 
             try:
-                bash_script = f'{pgd_path}/pgd_{self.run_id} -w 1 -f {dummy_path} -c {dummy_path}'
+                bash_script = f'{pgd_path}/pgd -w {n_threads} -f {dummy_path} -c {dummy_path}'
 
                 pipe = sub.run(bash_script, shell=True, capture_output=True, input=edgelist.encode(), check=True,
-                               timeout=30)  # timeout of 10s
+                               timeout=30000)  # timeout of heat death of universe
 
                 output_data = pipe.stdout.decode()
 
-            except sub.TimeoutExpired:
-                CP.print_blue('PGD timeout!')
+            except sub.TimeoutExpired as e:
+                CP.print_blue(f'PGD timeout!{e.stderr}')
                 graphlet_counts = {}
 
-            except sub.CalledProcessError:
-                CP.print_blue('PGD error')
+            except sub.CalledProcessError as e:
+                CP.print_blue(f'PGD error {e.stderr}')
                 graphlet_counts = {}
-
+            except Exception as e:
+                CP.print_blue(str(e))
+                graphlet_counts = {}
             else:  # pgd is successfully run
                 for line in output_data.split('\n')[: -1]:  # last line blank
                     graphlet_name, count = map(lambda st: st.strip(), line.split('='))
@@ -388,9 +442,33 @@ class GraphStats:
 
         return graphlet_counts
 
+    def netlsd(self, kernel: str = 'heat', dim: int = 250, eigenvalues: int = 20) -> np.ndarray:
+        eigenvalues = min(eigenvalues, self.graph.order() // 2 - 1)
+        vec = net.netlsd(g, kernel=kernel, timescales=np.logspace(-2, 2, dim), eigenvalues=eigenvalues)
+        self.stats['netlsd'] = vec
+        return vec
+
+    def b_mat(self):
+        """
+        Function returns the b_matrix necessary for portrait divergence computations later
+        :return:
+        """
+        BG = _graph_or_portrait(self.graph)
+        self.stats['b_matrix'] = BG
+        return BG
+
 
 if __name__ == '__main__':
     g = nx.karate_club_graph()
-    gs = GraphStats(graph=g, run_id=-1)
-    gs._calculate_robustness_measures()
-    print(gs.stats)
+    # g = nx.ring_of_cliques(50, 4)
+    # g = nx.erdos_renyi_graph(5, 0.2, seed=1)
+    # g = nx.path_graph(5)
+    gs = GraphStats(graph=g, trial=0, dataset='karate', model='CNRG', iteration=0)
+    # gs.netlsd()
+    # gs.pagerank()
+    gs.write_stats_jsons(stats='netlsd')
+    # gs.write_stats_jsons(stat='pagerank')
+
+    json_data = load_zipped_json(filename='/data/infinity-mirror/output/graph_stats/karate/CNRG/netlsd/gs_0_0.json.gz',
+                                 keys_to_int=False, debug=True)
+    print(json_data)

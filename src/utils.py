@@ -1,23 +1,23 @@
 import functools
+import json
 import os
 import pickle
+import re
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
 from typing import Union, Any, Tuple, List
 
+import gzip
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-import seaborn as sns;
-
-sns.set(); sns.set_style("darkgrid")
+import pandas as pd
+import seaborn as sns
 import statsmodels.stats.api as sm
-from numpy import linalg as la
-from scipy import sparse as sps
-from scipy.sparse import issparse
 
+sns.set(); sns.set_style('darkgrid')
 
 def timer(func):
     @functools.wraps(func)
@@ -28,7 +28,7 @@ def timer(func):
         toc = time.perf_counter()
         elapsed_time = toc - tic
         ColorPrint.print_bold(f'End: {datetime.now().ctime()}')
-        ColorPrint.print_bold(f"Elapsed time: {elapsed_time:0.4f} seconds")
+        ColorPrint.print_bold(f'Elapsed time: {elapsed_time:0.4f} seconds')
         return value
     return wrapper_timer
 
@@ -46,7 +46,7 @@ def get_blank_graph(name=None) -> nx.Graph:
     return blank_graph
 
 
-def get_graph_from_prob_matrix(p_mat: np.array, thresh: float=None) -> nx.Graph:
+def get_graph_from_prob_matrix(p_mat: np.array, thresh: float = None) -> nx.Graph:
     """
     Generates a NetworkX graph from probability matrix
     :param p_mat: matrix of edge probabilities
@@ -61,7 +61,6 @@ def get_graph_from_prob_matrix(p_mat: np.array, thresh: float=None) -> nx.Graph:
 
     sampled_mat = rand_mat <= p_mat
     # sampled_mat = sampled_mat * sampled_mat.T  # to make sure it is symmetric
-
 
     sampled_mat = sampled_mat.astype(int)
     np.fill_diagonal(sampled_mat, 0)  # zero out the diagonals
@@ -110,6 +109,7 @@ def delete_files(*files) -> None:
     for file in files:
         if check_file_exists(file):
             os.remove(file)
+    return
 
 
 def print_float(x: float) -> float:
@@ -121,6 +121,33 @@ def print_float(x: float) -> float:
     return round(x, 3)
 
 
+#todoc: add some documentation to these new functions
+def save_pickle(obj: Any, path: Union[Path, str]) -> Any:
+    if not isinstance(path, Path):
+        path = Path(path)
+    ensure_dir(path.parents[0])  # ensures the parent directories exist
+    return pickle.dump(obj, open(path, 'wb'), protocol=-1)  # use the highest possible protocol
+
+
+# create a handler for writing sets to json (serializable)
+def set_default(obj):
+    if isinstance(obj, set):
+        return list(obj)
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    raise TypeError
+
+
+# write data structure to zipped json (filename should probably have a .json.gz extension)
+def save_zipped_json(data: Any, filename: Union[str, Path]) -> None:
+    if not isinstance(filename, Path):
+        filename = Path(filename)
+    ensure_dir(filename.parents[0])  # ensures the parent directories exist
+    with gzip.GzipFile(filename, 'w') as fout:
+        fout.write(json.dumps(data, default=set_default, indent=4).encode('utf-8'))
+    return
+
+
 def load_pickle(path: Union[Path, str]) -> Any:
     """
     Loads a pickle from the path
@@ -129,6 +156,49 @@ def load_pickle(path: Union[Path, str]) -> Any:
     """
     assert check_file_exists(path), f'"{path}" does not exist'
     return pickle.load(open(path, 'rb'))
+
+
+def load_zipped_json(filename: Union[str, Path], keys_to_int: bool = False, debug: bool = False) -> Any:
+    if debug:
+        ColorPrint.print_blue(f'Loading {filename!r}')
+    with gzip.open(filename, 'rb') as f:
+        text = f.read()
+        temp = text.decode('utf-8')
+        d = json.loads(temp)
+
+    # json sadness - convert all the keys to integer, if such a thing is possible
+    if isinstance(d, dict) and keys_to_int:
+        d = {int(k): v for k, v in d.items()}
+
+    return d
+
+
+def load_imt_trial(input_path, dataset, model) -> (pd.DataFrame, int):
+    """
+    Loads graph list files and yields them to the caller one file at a time. This function loads
+    each file that matches the imt_filename_pattern regex in the input directory and attempts to yield it.
+    :param
+        input_path: str or os.path object
+        dataset:    str
+        model:      str
+    :return: Tuple(pd.Datafrome, int)
+    """
+    full_path = os.path.join(input_path, dataset, model)
+    imt_filename_pattern = re.compile('list_(\d+)_(\d+).pkl.gz')
+    input_filenames = [f for f in os.listdir(full_path)
+                       if os.path.isfile(os.path.join(full_path, f)) and re.match(imt_filename_pattern, f)]
+
+    for filename in input_filenames:
+        imt_dataframe = load_pickle(os.path.join(full_path, filename))
+        generations, trial_id = map(int, imt_filename_pattern.fullmatch(filename).groups())
+        yield imt_dataframe, trial_id
+
+
+def ensure_dir(path: Union[str, Path]) -> None:
+    if not Path(path).exists():
+        ColorPrint.print_blue(f'Creating dir: {path!r}')
+        os.makedirs(path, exist_ok=True)
+    return
 
 
 def make_plot(y, kind='line', x=None, title='', xlabel='', ylabel='') -> None:
@@ -150,56 +220,6 @@ def make_plot(y, kind='line', x=None, title='', xlabel='', ylabel='') -> None:
     plt.show()
 
     return
-
-
-def cvm_distance(data1, data2) -> float:
-    data1, data2 = map(np.asarray, (data1, data2))
-    n1 = len(data1)
-    n2 = len(data2)
-    data1 = np.sort(data1)
-    data2 = np.sort(data2)
-    data_all = np.concatenate([data1, data2])
-    cdf1 = np.searchsorted(data1, data_all, side='right') / n1
-    cdf2 = np.searchsorted(data2, data_all, side='right') / n2
-    d = np.sum(np.absolute(cdf1 - cdf2))
-    return np.round(d / len(cdf1), 3)
-
-
-def _pad(A,N):
-    """Pad A so A.shape is (N,N)"""
-    n,_ = A.shape
-    if n>=N:
-        return A
-    else:
-        if issparse(A):
-            # thrown if we try to np.concatenate sparse matrices
-            side = sps.csr_matrix((n,N-n))
-            bottom = sps.csr_matrix((N-n,N))
-            A_pad = sps.hstack([A,side])
-            A_pad = sps.vstack([A_pad,bottom])
-        else:
-            side = np.zeros((n,N-n))
-            bottom = np.zeros((N-n,N))
-            A_pad = np.concatenate([A,side],axis=1)
-            A_pad = np.concatenate([A_pad,bottom])
-        return A_pad
-
-
-def fast_bp(A,eps=None):
-    n, m = A.shape
-    degs = np.array(A.sum(axis=1)).flatten()
-    if eps is None:
-        eps = 1 / (1 + max(degs))
-    I = sps.identity(n)
-    D = sps.dia_matrix((degs,[0]),shape=(n,n))
-    # form inverse of S and invert (slow!)
-    Sinv = I + eps**2*D - eps*A
-    try:
-        S = la.inv(Sinv)
-    except:
-        Sinv = sps.csc_matrix(Sinv)
-        S = sps.linalg.inv(Sinv)
-    return S
 
 
 class ColorPrint:
@@ -228,3 +248,70 @@ class ColorPrint:
     def print_none(message, end='\n'):
         pass
         # sys.stdout.write(message + end)
+
+# todo: throw these things away and consolidate 
+def verify_dir(path) -> None:
+    """
+    Given a path, verify_dir will check if the directory exists and if not, it will create the directory.
+    :param path:
+    :return: None
+    """
+    p = Path(path)
+    return os.path.exists(path)
+
+
+def verify_file(path) -> bool:
+    """
+    Given a filepath, verify_file will return true or false depending on the existence of the file.
+    :param path:
+    :return: bool
+    """
+    return os.path.exists(path)
+
+
+def get_imt_output_directory() -> os.path:
+    """
+    This should look in a users' home directory for a file that contains a path to that user's data directory for
+    the IMT graph files.
+    :param: None
+    :return: data_dir: os.path
+    """
+    home_directory = os.environ['HOME']
+    infinity_mirror_directory_file = os.path.join(home_directory, 'imt_dirs.csv').replace('\\', '/')
+    path_df = pd.read_csv(infinity_mirror_directory_file)
+    return path_df['output'].values[0]
+
+
+def get_imt_input_directory() -> os.path:
+    """
+    This should look in a users' home directory for a file that contains a path to that user's data directory for
+    the IMT graph files.
+    :param: None
+    :return: data_dir: os.path
+    """
+    home_directory = os.environ['HOME']
+    infinity_mirror_directory_file = os.path.join(home_directory, 'imt_dirs.csv').replace('\\', '/')
+    path_df = pd.read_csv(infinity_mirror_directory_file)
+    return path_df['input'].values[0]
+
+
+def walker():
+    base_path = get_imt_input_directory()
+    buckets, datasets, models, trials, filenames = [], [], [], [], []
+
+    for subdir, dirs, files in os.walk(base_path):
+        if 'bucket3' not in subdir:
+            for filename in files:
+                subdir_list = subdir.split('/')
+                bucket = subdir_list[-3]
+                dataset = subdir_list[-2]
+                model = subdir_list[-1]
+                trial = int(filename.split('_')[-1].strip('.pkl.gz'))
+
+                buckets.append(bucket)
+                datasets.append(dataset)
+                models.append(model)
+                trials.append(trial)
+                filenames.append(filename)
+
+    return buckets, datasets, models, trials, filenames

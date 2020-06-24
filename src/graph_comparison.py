@@ -2,16 +2,19 @@
 Graph Comparison Functions
 """
 from math import fabs
-from typing import Dict, List, Any
+from typing import Dict, List
 
 import networkx as nx
 import numpy as np
 import scipy.stats
 from numpy import linalg as la
+from scipy import sparse as sps
+from scipy.sparse import issparse
+from scipy.spatial import distance
 
-from src.utils import fast_bp, _pad, cvm_distance
 from src.GCD import GCD
 from src.graph_stats import GraphStats
+from src.portrait.portrait_divergence import portrait_divergence
 
 
 class GraphPairCompare:
@@ -23,10 +26,11 @@ class GraphPairCompare:
     def __init__(self, gstats1: GraphStats, gstats2: GraphStats) -> None:
         self.gstats1: GraphStats = gstats1
         self.gstats2: GraphStats = gstats2
+        # todo: these objects probably need to be removed if we are not storing the graphs to disk in the stats object
         self.graph1: nx.Graph = gstats1.graph
         self.graph2: nx.Graph = gstats2.graph
         self.stats: Dict[str, float] = {}
-        self.calculate()
+        # self.calculate()
         return
 
     def __str__(self) -> str:
@@ -48,6 +52,7 @@ class GraphPairCompare:
         self.deltacon0()
         self.cvm_degree()
         self.cvm_pagerank()
+        self.js_distance()
 
         if self.graph2.order() == 1 or 'blank' in self.graph2.name:  # empty graph
             for key in self.stats:
@@ -55,45 +60,7 @@ class GraphPairCompare:
         return
 
     def pgd_spearman(self) -> float:
-        graphlet_dict_1 = self.gstats1['pgd_graphlet_counts']
-        graphlet_dict_2 = self.gstats2['pgd_graphlet_counts']
-
-        if len(graphlet_dict_1) == 0 or len(graphlet_dict_2) == 0:
-            dist = float('inf')
-            self.stats['pgd_spearman'] = dist
-            return dist
-
-        sorted_counts_1: List[int] = list(
-            map(lambda item: item[1], graphlet_dict_1.items()))  # graphlet counts sorted by graphlet name
-
-        sorted_counts_2: List[int] = list(
-            map(lambda item: item[1], graphlet_dict_2.items()))  # graphlet counts sorted by graphlet name
-
-        dist = 1 - scipy.stats.spearmanr(sorted_counts_1, sorted_counts_2)[0]
-        self.stats['pgd_spearman'] = dist
-
-        return round(dist, 3)
-
-
-    def pgd_pearson(self) -> float:
-        graphlet_dict_1 = self.gstats1['pgd_graphlet_counts']
-        graphlet_dict_2 = self.gstats2['pgd_graphlet_counts']
-
-        if len(graphlet_dict_1) == 0 or len(graphlet_dict_2) == 0:
-            dist = float('inf')
-            self.stats['pgd_pearson'] = dist
-            return dist
-
-        sorted_counts_1 = list(
-            map(lambda item: item[1], graphlet_dict_1.items()))  # graphlet counts sorted by graphlet name
-
-        sorted_counts_2 = list(
-            map(lambda item: item[1], graphlet_dict_2.items()))  # graphlet counts sorted by graphlet name
-
-        dist = 1 - scipy.stats.pearsonr(sorted_counts_1, sorted_counts_2)[0]
-        self.stats['pgd_pearson'] = dist
-
-        return round(dist, 3)
+        raise NotImplementedError()
 
     def node_diff(self) -> float:
         """
@@ -127,7 +94,7 @@ class GraphPairCompare:
 
     def lambda_dist(self, k=None, p=2) -> float:
         """
-        compare the euclidean distance between the top-k eigenvalues of the laplacian
+        Compare the euclidean distance between the top-k eigenvalues of the Laplacian
         :param k:
         :param p:
         :return:
@@ -145,42 +112,128 @@ class GraphPairCompare:
 
         return round(dist, 3)
 
-    def deltacon0(self, eps=None) -> float:
-        n1, n2 = self.graph1.order(), self.graph2.order()
-        N = max(n1, n2)
-
-        A1, A2 = [_pad(A, N) for A in [nx.to_numpy_array(self.graph1), nx.to_numpy_array(self.graph2)]]
-        S1, S2 = [fast_bp(A, eps=eps) for A in [A1, A2]]
-        dist = np.abs(np.sqrt(S1) - np.sqrt(S2)).sum()
-
-        self.stats['deltacon0'] = round(dist, 3)
-
-        return round(dist, 3)
-
-    def cvm_pagerank(self) -> float:
+    # todo testing
+    def pagerank_js(self) -> float:
         """
-        Calculate the CVM distance of the pagerank
+        Calculate the js distance of the pagerank
         """
-        pr1 = list(self.gstats1['pagerank'].values())
-        pr2 = list(self.gstats2['pagerank'].values())
+        g1_dist = list(self.gstats1['pagerank'].values())
+        g2_dist = list(self.gstats2['pagerank'].values())
 
-        dist = cvm_distance(pr1, pr2)
-        self.stats['pagerank_cvm'] = dist
+        hist_upperbound = max(max(g1_dist), max(g2_dist))
 
-        return round(dist, 3)
+        g1_hist = np.histogram(g1_dist, range=(0, hist_upperbound), bins=100)[0] + 0.00001
+        g2_hist = np.histogram(g2_dist, range=(0, hist_upperbound), bins=100)[0] + 0.00001
 
-    def cvm_degree(self) -> float:
+        js_distance = distance.jensenshannon(g1_hist, g2_hist, base=2.0)
+        self.stats['pagerank_js'] = js_distance
+
+        return js_distance
+
+    def degree_js(self) -> float:
         """
-        Calculate the CVM distance of the degree distr
+        Calculate the Jensen-Shannon distance of the degree distributions
+        :return:
         """
-        # if deg1 is None:
-        #     deg1 = nx.degree_histogram(self.graph1)
-        # if deg2 is None:
-        #     deg2 = nx.degree_histogram(self.graph2)
-        deg1 = list(self.gstats1['degree_dist'].values())
-        deg2 = list(self.gstats2['degree_dist'].values())
+        dist1 = self.gstats1['degree_dist']
+        dist2 = self.gstats2['degree_dist']
+        union = set(dist1.keys()) | set(dist2.keys())
 
-        dist = cvm_distance(deg1, deg2)
-        self.stats['degree_cvm'] = dist
+        for key in union:
+            dist1[key] = dist1.get(key, 0)
+            dist2[key] = dist2.get(key, 0)
 
-        return round(dist, 3)
+        deg1 = np.asarray(list(dist1.values())) + 0.00001
+        deg2 = np.asarray(list(dist2.values())) + 0.00001
+
+        degree_js = distance.jensenshannon(deg1, deg2, base=2.0)
+        self.stats['degree_js'] = degree_js
+
+        return degree_js
+
+    # todo portrait (trenton)
+    def portrait_divergence(self) -> float:
+        """
+
+        :return:
+        """
+
+        d = portrait_divergence(BG=self.gstats1.gstats['b_matrix'], BH=self.gstats2.stats['b_matrix'])
+        return d
+
+    def embedding_distance(self) -> float:
+        """
+        Calculate the Euclidean distance between two NetLSD embedding vectors
+        :return:
+        """
+        vec1 = np.asarray(self.gstats1['netlsd'])
+        vec2 = np.asarray(self.gstats2['netlsd'])
+
+        L2 = np.sqrt(np.sum(np.square(vec1 - vec2)))
+        self.stats['embedding_distance'] = L2
+
+        return L2
+
+
+def cvm_distance(data1: list, data2: list) -> float:
+    data1, data2 = map(np.asarray, (data1, data2))
+    n1 = len(data1)
+    n2 = len(data2)
+    data1 = np.sort(data1)
+    data2 = np.sort(data2)
+    data_all = np.concatenate([data1, data2])
+    cdf1 = np.searchsorted(data1, data_all, side='right') / n1
+    cdf2 = np.searchsorted(data2, data_all, side='right') / n2
+    assert len(cdf1) == len(cdf2), 'CDFs should be of the same length'
+    d = np.sum(np.absolute(cdf1 - cdf2)) / len(cdf1)
+    return np.round(d, 3)
+
+
+def ks_distance(data1, data2) -> float:
+    data1, data2 = map(np.asarray, (data1, data2))
+    n1 = len(data1)
+    n2 = len(data2)
+    data1 = np.sort(data1)
+    data2 = np.sort(data2)
+    data_all = np.concatenate([data1, data2])
+    cdf1 = np.searchsorted(data1, data_all, side='right') / n1
+    cdf2 = np.searchsorted(data2, data_all, side='right') / n2
+    d = np.max(np.absolute(cdf1 - cdf2))
+    return np.round(d, 3)
+
+
+def _pad(A, N):
+    """Pad A so A.shape is (N,N)"""
+    n, _ = A.shape
+    if n >= N:
+        return A
+    else:
+        if issparse(A):
+            # thrown if we try to np.concatenate sparse matrices
+            side = sps.csr_matrix((n, N - n))
+            bottom = sps.csr_matrix((N - n, N))
+            A_pad = sps.hstack([A, side])
+            A_pad = sps.vstack([A_pad, bottom])
+        else:
+            side = np.zeros((n, N - n))
+            bottom = np.zeros((N - n, N))
+            A_pad = np.concatenate([A, side], axis=1)
+            A_pad = np.concatenate([A_pad, bottom])
+        return A_pad
+
+
+def fast_bp(A, eps=None):
+    n, m = A.shape
+    degs = np.array(A.sum(axis=1)).flatten()
+    if eps is None:
+        eps = 1 / (1 + max(degs))
+    I = sps.identity(n)
+    D = sps.dia_matrix((degs, [0]), shape=(n, n))
+    # form inverse of S and invert (slow!)
+    Sinv = I + eps ** 2 * D - eps * A
+    try:
+        S = la.inv(Sinv)
+    except:
+        Sinv = sps.csc_matrix(Sinv)
+        S = sps.linalg.inv(Sinv)
+    return S

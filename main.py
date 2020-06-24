@@ -28,7 +28,7 @@ def parse_args():
     model_names = {'ErdosRenyi', 'ChungLu', 'BTER', 'CNRG', 'HRG', 'Kronecker', 'UniformRandom', 'GCN_AE',
                    'GCN_VAE', 'Linear_AE', 'Linear_VAE', 'Deep_GCN_AE', 'Deep_GCN_VAE', 'SBM', 'GraphForge',
                    'NetGAN', 'GraphRNN', '_BTER', 'BUGGE'}
-    selections = {'best', 'worst', 'median', 'all', 'fast'}
+    selections = {'fast', }
 
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)  # formatter class shows defaults in help
@@ -40,7 +40,7 @@ def parse_args():
 
     parser.add_argument('-n', '--gens', help='#generations', nargs=1, metavar='', type=int, required=True)
 
-    parser.add_argument('-s', '--sel', help='Selection policy', choices=selections, nargs=1, metavar='', required=True)
+    parser.add_argument('-s', '--sel', help='Selection policy', choices=selections, nargs=1, default='fast')
 
     parser.add_argument('-o', '--outdir', help='Name of the output directory', nargs=1, default='output', metavar='')
 
@@ -53,6 +53,8 @@ def parse_args():
     parser.add_argument('-t', '--trials', help='#trials', nargs=1, metavar='', type=int, required=True)
 
     parser.add_argument('-r', '--rewire', help='edge rewire prob', nargs=1, default=[0], metavar='', type=float)
+
+    parser.add_argument('-f', '--finish', help='try to finish an incomplete file', nargs=1, type=str, default='')
 
     return parser.parse_args()
 
@@ -69,7 +71,11 @@ def process_args(args) -> Any:
                    for ext in possible_extensions
                    for fname in glob.glob(f'./input/*{ext}')}
     graph_names.update(set(SyntheticGraph.implemented_methods))  # add the synthetic graph generators
-
+    model_name = args.model[0]
+    if args.finish != '':
+        finish_path = args.finish[0]
+    else:
+        finish_path = None
     # check input
     if len(args.input) > 1:
         kind = args.input[0]  # kind of synthetic graph
@@ -86,13 +92,18 @@ def process_args(args) -> Any:
         g = GraphReader(filename=args.input[0]).graph
         r = 0
 
-    model_name = args.model[0]
+    if finish_path is not None:
+        finish_name = finish_path.split('/')[-3]
+        finish_model = finish_path.split('/')[-2]
+        assert finish_name == g.name, f'invalid name {finish_name}, expected {g.name}'
+        assert finish_model == model_name, f'invalid name {finish_model}, expect {model_name}'
+
     if model_name in ('GCN_AE', 'GCN_VAE', 'Linear_AE', 'Linear_VAE', 'Deep_GCN_AE', 'Deep_GCN_VAE'):
         model_name = 'GraphAutoEncoder'  # one class for all autoencoder business
     module = importlib.import_module(f'src.graph_models')
     model_obj = getattr(module, model_name)
 
-    return args.sel[0], g, model_obj, int(args.gens[0]), args.pickle, int(args.num_graphs[0]), r
+    return args.sel[0], g, model_obj, int(args.gens[0]), args.pickle, int(args.num_graphs[0]), r, finish_path
 
 
 def make_dirs(gname, model) -> None:
@@ -107,12 +118,12 @@ def make_dirs(gname, model) -> None:
     return
 
 
-def run_infinity_mirror(args, run_id) -> None:
+def run_infinity_mirror(args, trial) -> None:
     """
     Creates and runs infinity mirror
     :return:
     """
-    selection, g, model, num_gens, use_pickle, num_graphs, rewire = process_args(args)
+    selection, g, model, num_gens, use_pickle, num_graphs, rewire, finish = process_args(args)
 
     # process args returns the Class and not an object
     empty_g = nx.empty_graph(1)
@@ -120,37 +131,26 @@ def run_infinity_mirror(args, run_id) -> None:
 
     if args.model[0] in ('GCN_AE', 'GCN_VAE', 'Linear_AE', 'Linear_VAE', 'Deep_GCN_AE', 'Deep_GCN_VAE'):
         model_obj = model(
-                input_graph=empty_g,
-                run_id=run_id,
-                kind=args.model[0])
+            input_graph=empty_g,
+            trial=trial,
+            kind=args.model[0])
     else:
         model_obj = model(
-                input_graph=empty_g,
-                run_id=run_id)  # this is a roundabout way to ensure the name of GraphModel object is correct
+            input_graph=empty_g,
+            trial=trial)  # this is a roundabout way to ensure the name of GraphModel object is correct
     make_dirs(g.name, model=model_obj.model_name)
 
-    if selection == 'all':
-        for sel in 'best', 'median', 'worst':
-            inf = InfinityMirror(selection=sel, initial_graph=g, num_generations=num_gens, model_obj=model_obj,
-                                 num_graphs=num_graphs, run_id=run_id, r=rewire)
-            tic = time.perf_counter()
-            inf.run(use_pickle=use_pickle)
-            toc = time.perf_counter()
+    assert selection == 'fast', 'invalid selection'
+    num_graphs = 1  # only 1 graph per generation
+    inf = InfinityMirror(initial_graph=g, num_generations=num_gens, model_obj=model_obj,
+                         num_graphs=num_graphs, trial=trial, r=rewire, dataset=g.name, model=args.model[0], finish=finish)
+    tic = time.perf_counter()
+    inf.run(use_pickle=use_pickle)
+    toc = time.perf_counter()
 
-            inf.write_timing_stats(round(toc - tic, 3))
-            print(run_id, inf)
-    else:
-        if selection == 'fast':
-            num_graphs = 1  # only 1 graph per generation
-        inf = InfinityMirror(selection=selection, initial_graph=g, num_generations=num_gens, model_obj=model_obj,
-                             num_graphs=num_graphs, run_id=run_id, r=rewire)
-        tic = time.perf_counter()
-        inf.run(use_pickle=use_pickle)
-        toc = time.perf_counter()
-
-        inf.write_timing_stats(round(toc - tic, 3))
-        print(run_id, inf)
-        return
+    inf.write_timing_stats(round(toc - tic, 3))
+    print(trial, inf)
+    return
 
 
 @timer
@@ -159,9 +159,10 @@ def main() -> None:
     num_jobs, num_trials = int(args.cores[0]), int(args.trials[0])
 
     CP.print_green(f'Running infinity mirror on {num_jobs} cores for {num_trials} trials')
-
+    # print(args)
+    # exit(1)
     Parallel(n_jobs=num_jobs, backend='multiprocessing')(
-        delayed(run_infinity_mirror)(run_id=i+1, args=args)
+        delayed(run_infinity_mirror)(trial=i + 1, args=args)
         for i in range(num_trials)
     )
 

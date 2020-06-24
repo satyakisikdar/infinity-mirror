@@ -1,9 +1,15 @@
 # ignore pycache stuff
 .DS_Store
 *.pyc
-*.idea/
+*.idea/*
+.idea/*
 __pycache__/
 *.g
 input/*
 src/cnrg/src/tmp/*.g
 output/pickles/
+src/bter/*
+src/hrg/*
+src/kronecker/*
+src/netgan/*
+*.xml

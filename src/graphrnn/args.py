@@ -1,9 +1,9 @@
 import os
-from pathlib import Path 
+
 
 ### program configuration
-class Args():
-    def __init__(self, note='GraphRNN_MLP', graph_type='DD'):
+class Args:
+    def __init__(self, batch_size: int, batch_ratio: int, note: str = 'GraphRNN_MLP', graph_type: str = 'DD'):
         ### if clean tensorboard
         self.clean_tensorboard = False
         ### Which CUDA GPU device is used for training
@@ -12,42 +12,11 @@ class Args():
         ### Which GraphRNN model variant is used.
         # The simple version of Graph RNN
         self.note = note
-        ## The dependent Bernoulli sequence version of GraphRNN
-        # self.note = 'GraphRNN_RNN'
-
-        ## for comparison, removing the BFS compoenent
-        # self.note = 'GraphRNN_MLP_nobfs'
-        # self.note = 'GraphRNN_RNN_nobfs'
-
-        ### Which dataset is used to train the model
         self.graph_type = graph_type
-        # self.graph_type = 'DD'
-        # self.graph_type = 'caveman'
-        # self.graph_type = 'caveman_small'
-        # self.graph_type = 'caveman_small_single'
-        # self.graph_type = 'community4'
-        # self.graph_type = 'grid'
-        # self.graph_type = 'grid_small'
-        # self.graph_type = 'ladder_small'
-        # self.graph_type = 'karate'
-        # self.graph_type = 'grid_100'
-
-        # self.graph_type = 'enzymes'
-        # self.graph_type = 'enzymes_small'
-        # self.graph_type = 'barabasi'
-        # self.graph_type = 'barabasi_small'
-        # self.graph_type = 'citeseer'
-        # self.graph_type = 'citeseer_small'
-
-        # self.graph_type = 'barabasi_noise'
-        # self.noise = 10
-        #
-        # if self.graph_type == 'barabasi_noise':
-        #     self.graph_type = self.graph_type+str(self.noise)
 
         # if none, then auto calculate
-        self.max_num_node = None # max number of nodes in a graph
-        self.max_prev_node = None # max previous node that looks back
+        self.max_num_node = None  # max number of nodes in a graph
+        self.max_prev_node = None  # max previous node that looks back
 
         ### network config
         ## GraphRNN
@@ -55,30 +24,26 @@ class Args():
             self.parameter_shrink = 2
         else:
             self.parameter_shrink = 1
-        self.hidden_size_rnn = int(128/self.parameter_shrink) # hidden size for main RNN
-        self.hidden_size_rnn_output = 16 # hidden size for output RNN
-        self.embedding_size_rnn = int(64/self.parameter_shrink) # the size for LSTM input
-        self.embedding_size_rnn_output = 8 # the embedding size for output rnn
-        self.embedding_size_output = int(64/self.parameter_shrink) # the embedding size for output (VAE/MLP)
+        self.hidden_size_rnn = int(128/self.parameter_shrink)  # hidden size for main RNN
+        self.hidden_size_rnn_output = 16  # hidden size for output RNN
+        self.embedding_size_rnn = int(64/self.parameter_shrink)  # the size for LSTM input
+        self.embedding_size_rnn_output = 8  # the embedding size for output rnn
+        self.embedding_size_output = int(64/self.parameter_shrink)  # the embedding size for output (VAE/MLP)
 
-        self.batch_size = 32 # normal: 32, and the rest should be changed accordingly
-        self.test_batch_size = 32
+        self.batch_size = batch_size  # normal: 32, and the rest should be changed accordingly
+        self.test_batch_size = batch_size
         self.num_layers = 4
 
-        ### training config
-        self.num_workers = 4 # num workers to load data, default 4
-        self.batch_ratio = 32 # how many batches of samples per epoch, default 32, e.g., 1 epoch = 32 batches
+        ## training config
+        self.num_workers = 1  # num workers to load data, default 4
+        self.batch_ratio = batch_ratio  # how many batches of samples per epoch, default 32, e.g., 1 epoch = 32 batches
         self.test_total_size = self.batch_ratio * self.batch_size
-        self.epochs = 3_000 # now one epoch means self.batch_ratio x batch_size
-        # self.epochs = 100  # now one epoch means self.batch_ratio x batch_size
+        self.epochs = 1_000  # now one epoch means self.batch_ratio x batch_size
+
         self.epochs_test_start = 100
-        # self.epochs_test_start = 50
         self.epochs_test = 500
-        # self.epochs_test = 50
         self.epochs_log = 100
-        # self.epochs_log = 100
-        self.epochs_save = 750
-        # self.epochs_save = 100
+        self.epochs_save = 500
 
         self.lr = 0.003
         self.milestones = [400, 1000]
