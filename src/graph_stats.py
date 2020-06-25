@@ -447,7 +447,7 @@ class GraphStats:
 
     def netlsd(self, kernel: str = 'heat', dim: int = 250, eigenvalues: int = 20) -> np.ndarray:
         eigenvalues = min(eigenvalues, self.graph.order() // 2 - 1)
-        vec = net.netlsd(g, kernel=kernel, timescales=np.logspace(-2, 2, dim), eigenvalues=eigenvalues)
+        vec = net.netlsd(self.graph, kernel=kernel, timescales=np.logspace(-2, 2, dim), eigenvalues=eigenvalues)
         self.stats['netlsd'] = vec
         return vec
 
