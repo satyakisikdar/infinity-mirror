@@ -383,8 +383,11 @@ class GraphStats:
         :return:
         """
         CP.print_none('Calculating Laplacian Eigenvalues')
-
-        laplacian_eigs = nx.laplacian_spectrum(self.graph)
+        if self.graph.order() == 0 or self.graph.size() == 0:
+            CP.print_orange(f'Graph has {self.graph.order()} nodes and {self.graph.size()} edges!')
+            laplacian_eigs = []
+        else:
+            laplacian_eigs = nx.laplacian_spectrum(self.graph)
         self.stats['laplacian_eigenvalues'] = laplacian_eigs
 
         return laplacian_eigs
@@ -448,7 +451,7 @@ class GraphStats:
         self.stats['netlsd'] = vec
         return vec
 
-    def b_mat(self):
+    def b_matrix(self):
         """
         Function returns the b_matrix necessary for portrait divergence computations later
         :return:
@@ -459,14 +462,17 @@ class GraphStats:
 
 
 if __name__ == '__main__':
-    g = nx.karate_club_graph()
+    # g = nx.karate_club_graph()
+    g = nx.empty_graph(3)
     # g = nx.ring_of_cliques(50, 4)
     # g = nx.erdos_renyi_graph(5, 0.2, seed=1)
     # g = nx.path_graph(5)
     gs = GraphStats(graph=g, trial=0, dataset='karate', model='CNRG', iteration=0)
     # gs.netlsd()
     # gs.pagerank()
-    gs.write_stats_jsons(stats='netlsd')
+    # gs.laplacian_eigenvalues()
+    gs.write_stats_jsons(stats='laplacian_eigenvalues')
+    # gs.write_stats_jsons(stats='netlsd')
     # gs.write_stats_jsons(stat='pagerank')
 
     json_data = load_zipped_json(filename='/data/infinity-mirror/output/graph_stats/karate/CNRG/netlsd/gs_0_0.json.gz',
