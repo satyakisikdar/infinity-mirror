@@ -451,7 +451,7 @@ class GraphStats:
         self.stats['netlsd'] = vec
         return vec
 
-    def b_mat(self):
+    def b_matrix(self):
         """
         Function returns the b_matrix necessary for portrait divergence computations later
         :return:
