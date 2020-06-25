@@ -30,9 +30,9 @@ class GraphDistance:
         self.dataset = dataset
         self.model = model
         self.iteration = iteration
-        assert all(metric in GraphDistance.implemented_metrics for metric in metrics), f'Invalid metrics: {metrics}, choose {GraphDistance.implemented_metrics}'
+        assert all(metric in GraphDistance.implemented_metrics for metric in metrics), f'Invalid metric(s) in: {metrics}, choose {GraphDistance.implemented_metrics}'
         self.stats: Dict[str, Any] = {'dataset': dataset, 'model': model, 'iteration': iteration, 'trial': trial}
-
+        self.root = None
         for metric in metrics:
             func = getattr(self, metric)  # get the function obj corresponding to the metric
             func()  # call the function
@@ -45,12 +45,15 @@ class GraphDistance:
         :return:
         """
         imt_output_directory = get_imt_output_directory()
-        obj_root = load_zipped_json(filename=join(imt_output_directory, 'graph_stats', self.dataset, self.model,
-                                                   metric, f'gs_{self.trial}_0.json.gz'), keys_to_int=True)
+        #TODO: why are we reloading this object repeatedly? Nevermind, it is pretty cheap.
+        if not self.root:
+            self.root = load_zipped_json(filename=join(imt_output_directory, 'graph_stats', self.dataset, self.model,
+                                                       metric, f'gs_{self.trial}_0.json.gz'), keys_to_int=True)
+
         obj_iter = load_zipped_json(filename=join(imt_output_directory, 'graph_stats', self.dataset, self.model,
                                                    metric, f'gs_{self.trial}_{self.iteration}.json.gz'), keys_to_int=True)
 
-        return obj_root, obj_iter
+        return self.root, obj_iter
 
     def lambda_distance(self, p=2) -> float:
         """
