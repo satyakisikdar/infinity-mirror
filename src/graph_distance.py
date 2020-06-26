@@ -12,14 +12,14 @@ flights     BTER       1        0              0
 
 
 from os.path import join
-from typing import Dict, Any, Tuple, List
+from typing import Dict, Any, Tuple, List, Union
 
 import numpy as np
 from numpy import linalg as la
 from scipy.spatial import distance
 from scipy.stats import entropy
 
-from src.utils import get_imt_output_directory, load_zipped_json
+from src.utils import get_imt_output_directory, load_zipped_json, verify_file
 
 
 class GraphDistance:
@@ -33,10 +33,30 @@ class GraphDistance:
         assert all(metric in GraphDistance.implemented_metrics for metric in metrics), f'Invalid metric(s) in: {metrics}, choose {GraphDistance.implemented_metrics}'
         self.stats: Dict[str, Any] = {'dataset': dataset, 'model': model, 'iteration': iteration, 'trial': trial}
         self.root = None
-        for metric in metrics:
-            func = getattr(self, metric)  # get the function obj corresponding to the metric
-            func()  # call the function
+        self.rootMetric: Union[None, str] = None
+        self.total_iterations: Union[None, int] = None
+
         return
+
+    def set_iteration(self, iteration: int = 0) -> None:
+        self.iteration = iteration
+
+    def set_root_object(self, metric) -> Any :
+        # initialize the root object
+        imt_output_directory = get_imt_output_directory()
+        # TODO: why are we reloading this object repeatedly? Nevermind, it is pretty cheap.
+        if not self.root or not self.rootMetric == metric:
+            self.root = load_zipped_json(filename=join(imt_output_directory, 'graph_stats', self.dataset, self.model,
+                                                       metric, f'gs_{self.trial}_0.json.gz'), keys_to_int=True)
+            # look for the last iterable file for this dataset and model combination
+            iterates = list(range(0, 21))
+            iterates.reverse()
+            for iteration in iterates:
+                filename = join(imt_output_directory, 'graph_stats', self.dataset, self.model,
+                                metric, f'gs_{self.trial}_{iteration}.json.gz')
+                if verify_file(filename):
+                    self.total_iterations = iteration
+                    break
 
     def get_pair_of_zipped_objects(self, metric: str) -> Tuple:
         """
@@ -45,10 +65,8 @@ class GraphDistance:
         :return:
         """
         imt_output_directory = get_imt_output_directory()
-        #TODO: why are we reloading this object repeatedly? Nevermind, it is pretty cheap.
-        if not self.root:
-            self.root = load_zipped_json(filename=join(imt_output_directory, 'graph_stats', self.dataset, self.model,
-                                                       metric, f'gs_{self.trial}_0.json.gz'), keys_to_int=True)
+
+        self.set_root_object(metric=metric)
 
         obj_iter = load_zipped_json(filename=join(imt_output_directory, 'graph_stats', self.dataset, self.model,
                                                    metric, f'gs_{self.trial}_{self.iteration}.json.gz'), keys_to_int=True)
@@ -126,6 +144,11 @@ class GraphDistance:
     def netlsd_distance(self):  # todo
         raise NotImplementedError()
 
+    def compute_distances(self, metrics):
+        for metric in metrics:
+            self.set_root_object(metric=metric)
+            func = getattr(self, metric)  # get the function obj corresponding to the metric
+            func()  # call the function
 
 def _pad_portraits_to_same_size(B1, B2):
     """
