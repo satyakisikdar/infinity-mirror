@@ -317,3 +317,25 @@ def walker():
                 filenames.append(filename)
 
     return buckets, datasets, models, trials, filenames
+
+def walker_texas_ranger():
+    base_path = os.join(get_imt_output_directory(), 'graph_stats')
+    datasets, models, metrics, trials, iterations, filenames = [], [], [], [], []
+
+    for subdir, dirs, files in os.walk(base_path):
+        for filename in files:
+            subdir_list = subdir.split('/')
+            dataset = subdir_list[-3]
+            model = subdir_list[-2]
+            metric = subdir_list[-1]
+            trial = int(filename.split('_')[-2])
+            iteration = int(filename.split('_')[-1].strip('.json.gz'))
+
+            datasets.append(dataset)
+            models.append(model)
+            metrics.append(metric)
+            trials.append(trial)
+            iterations.append(iteration)
+            filenames.append(filename)
+
+    return datasets, models, metrics, trials, iterations, filenames
