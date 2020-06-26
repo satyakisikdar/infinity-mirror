@@ -50,9 +50,7 @@ class GraphDistance:
             self.root = load_zipped_json(filename=join(imt_output_directory, 'graph_stats', self.dataset, self.model,
                                                        metric, f'gs_{self.trial}_0.json.gz'), keys_to_int=True)
             # look for the last iterable file for this dataset and model combination
-            iterates = list(range(0, 22))
-            iterates.reverse()
-            for iteration in iterates:
+            for iteration in reversed(range(21)):
                 filename = join(imt_output_directory, 'graph_stats', self.dataset, self.model,
                                 metric, f'gs_{self.trial}_{iteration}.json.gz')
                 if verify_file(filename):

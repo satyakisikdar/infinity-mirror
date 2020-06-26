@@ -45,10 +45,10 @@ def distance_computation(dataset, model, trial, stats):
 if __name__ == '__main__':
     stat = ['pagerank_js']
     # buckets, datasets, models, trials, filenames = walker()
-    datasets, models, trials = ['eucore'], ['BTER'], [8]
+    datasets, models, trials = ['eucore']*4, ['BTER']*4, [1,2,3,4]
 
     args = [(dataset, model, trial, stat) for dataset, model, trial in zip(datasets, models, trials)]
 
-    # parallel_async(distance_computation, args, num_workers=1)
-    for arg in args:
-        distance_computation(*arg)
+    parallel_async(distance_computation, args, num_workers=1)
+    # for arg in args:
+    #     distance_computation(*arg)
