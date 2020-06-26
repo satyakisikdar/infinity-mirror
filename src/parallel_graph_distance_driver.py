@@ -38,6 +38,7 @@ def distance_computation(dataset, model, trial, stats):
     return results_df
 
 if __name__ == '__main__':
+
     datasets = ['eucore']
     models = ['BTER']
     stats = ['pagerank_js']
@@ -55,6 +56,6 @@ if __name__ == '__main__':
 
                 output_dir = f'/data/infinity-mirror/output/distances/{dataset}/{model}/{stat}/'
                 ensure_dir(output_dir, recursive=False)
-                df.to_csv(output_dir+f'{stat}.csv')
+                df.to_csv(output_dir+f'{dataset}_{model}_{stat}.csv')
                 # for arg in args:
                 #     distance_computation(*arg)
