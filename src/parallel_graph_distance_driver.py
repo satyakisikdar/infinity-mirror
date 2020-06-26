@@ -38,7 +38,7 @@ def distance_computation(dataset, model, trial, stats):
     return results_df
 
 if __name__ == '__main__':
-
+    #TODO: add arg stuff to pass in stat dataset and other junk
     datasets = ['eucore']
     models = ['BTER']
     stats = ['pagerank_js']
