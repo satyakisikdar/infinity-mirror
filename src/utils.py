@@ -318,25 +318,23 @@ def walker():
 
     return buckets, datasets, models, trials, filenames
 
-def walker_texas_ranger(fixed_stat=''):
-    base_path = os.path.join(get_imt_output_directory(), 'graph_stats')
-    datasets, models, stats, trials, iterations, filenames = [], [], [], [], [], []
+def walker_texas_ranger(dataset='eucore', model='BTER', stat='pagerank'):
+    base_path = os.path.join(get_imt_output_directory(), 'graph_stats', dataset, model, stat)
+    trials, iterations, filenames = [], [], []
 
     for subdir, dirs, files in os.walk(base_path):
-        if fixed_stat in subdir:
-            for filename in files:
-                subdir_list = subdir.split('/')
-                dataset = subdir_list[-3]
-                model = subdir_list[-2]
-                stat = subdir_list[-1]
-                trial = int(filename.split('_')[-2])
-                iteration = int(filename.split('_')[-1].strip('.json.gz'))
+        for filename in files:
+            subdir_list = subdir.split('/')
+            dataset = subdir_list[-3]
+            model = subdir_list[-2]
+            stat = subdir_list[-1]
+            trial = int(filename.split('_')[-2])
+            iteration = int(filename.split('_')[-1].strip('.json.gz'))
 
-                datasets.append(dataset)
-                models.append(model)
-                stats.append(stat)
-                trials.append(trial)
-                iterations.append(iteration)
-                filenames.append(filename)
+            trials.append(trial)
+            iterations.append(iteration)
+            filenames.append(filename)
 
-    return datasets, models, stats, trials, iterations, filenames
+    if unique:
+        return list(np.unique(trials))
+    return trials, iterations, filenames
