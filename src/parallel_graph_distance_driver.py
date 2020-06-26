@@ -22,7 +22,7 @@ def distance_computation(dataset, model, trial, stats):
 
         rows = []
 
-        for iteration in range(total_iterations):
+        for iteration in range(total_iterations+1):
             GD.set_iteration(iteration=iteration)
             GD.compute_distances([stat])
             results = GD.stats[stat]
@@ -38,18 +38,23 @@ def distance_computation(dataset, model, trial, stats):
     return results_df
 
 if __name__ == '__main__':
+    datasets = ['eucore']
+    models = ['BTER']
     stats = ['pagerank_js']
+
     # buckets, datasets, models, trials, filenames = walker()
     # datasets, models, trials = ['eucore']*4, ['BTER']*4, [1,2,3,4]
 
     for stat in stats:
-        datasets, models,_, trials, _, _  = walker_texas_ranger("pagerank")
-        for dataset
-        args = [(dataset, model, trial, stat) for dataset, model, trial in zip(datasets, models, trials)]
-        # results = parallel_async(distance_computation, args, num_workers=16)
-        # df = pd.concat(results)
+        for dataset in datasets:
+            for model in models:
+                trials = walker_texas_ranger(dataset, model, stat='pagerank', unique=True)
+                args = [[dataset, model, trial, stat] for trial in trials]
+                results = parallel_async(distance_computation, args, num_workers=16)
+                df = pd.concat(results)
 
-        for arg in args:
-            distance_computation(*arg)
-        output_dir = f'/data/infinity-mirror/output/distances/{dataset}/{model}/{stat}/'
-        ensure_dir(output_dir, recursive=False)
+                output_dir = f'/data/infinity-mirror/output/distances/{dataset}/{model}/{stat}/'
+                ensure_dir(output_dir, recursive=False)
+                df.to_csv(output_dir+f'{stat}.csv')
+                # for arg in args:
+                #     distance_computation(*arg)

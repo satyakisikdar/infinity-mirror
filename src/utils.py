@@ -318,7 +318,7 @@ def walker():
 
     return buckets, datasets, models, trials, filenames
 
-def walker_texas_ranger(dataset='eucore', model='BTER', stat='pagerank'):
+def walker_texas_ranger(dataset='eucore', model='BTER', stat='pagerank', unique=False):
     base_path = os.path.join(get_imt_output_directory(), 'graph_stats', dataset, model, stat)
     trials, iterations, filenames = [], [], []
 
