@@ -10,7 +10,6 @@ flights     CNRG       1        0               0
 flights     BTER       1        0              0
 """
 
-
 from os.path import join
 from typing import Dict, Any, Tuple, List, Union
 
@@ -23,7 +22,8 @@ from src.utils import get_imt_output_directory, load_zipped_json, verify_file
 
 
 class GraphDistance:
-    implemented_metrics = {'pagerank_js':'pagerank', 'degree_js':'degree_dist', 'pgd_': '', 'netlsd_distance': '', 'lambda_distance':'', 'portrait_divergence':''}
+    implemented_metrics = {'pagerank_js': 'pagerank', 'degree_js': 'degree_dist', 'pgd_distance': 'pgd_graphlet_counts', 'netlsd_distance': 'netlsd',
+                           'lambda_distance': 'laplacian_eigenvalues', 'portrait_divergence': 'portrait'}
 
     def __init__(self, dataset: str, trial: int, model: str, metrics: List[str], iteration: Union[None, int] = None):
 
@@ -31,22 +31,21 @@ class GraphDistance:
         self.dataset = dataset
         self.model = model
         self.iteration = iteration
-        assert all(metric in GraphDistance.implemented_metrics.keys() for metric in metrics), f'Invalid metric(s) in: {metrics}, choose {GraphDistance.implemented_metrics.keys()}'
+        assert all(metric in GraphDistance.implemented_metrics.keys() for metric in
+                   metrics), f'Invalid metric(s) in: {metrics}, choose {GraphDistance.implemented_metrics.keys()}'
         self.stats: Dict[str, Any] = {'dataset': dataset, 'model': model, 'iteration': iteration, 'trial': trial}
         self.root = None
-        self.rootMetric: Union[None, str] = None
+        self.root_metric: Union[None, str] = None
         self.total_iterations: Union[None, int] = None
-
         return
 
     def set_iteration(self, iteration: int = 0) -> None:
         self.iteration = iteration
 
-    def set_root_object(self, metric) -> Any :
+    def set_root_object(self, metric) -> Any:
         # initialize the root object
         imt_output_directory = get_imt_output_directory()
-        # TODO: why are we reloading this object repeatedly? Nevermind, it is pretty cheap.
-        if not self.root or not self.rootMetric == metric:
+        if not self.root or not self.root_metric == metric:
             self.root = load_zipped_json(filename=join(imt_output_directory, 'graph_stats', self.dataset, self.model,
                                                        metric, f'gs_{self.trial}_0.json.gz'), keys_to_int=True)
             # look for the last iterable file for this dataset and model combination
@@ -55,7 +54,7 @@ class GraphDistance:
                                 metric, f'gs_{self.trial}_{iteration}.json.gz')
                 if verify_file(filename):
                     self.total_iterations = iteration
-                    self.rootMetric = metric
+                    self.root_metric = metric
                     break
 
     def get_pair_of_zipped_objects(self, metric: str) -> Tuple:
@@ -69,7 +68,8 @@ class GraphDistance:
         self.set_root_object(metric=metric)
 
         obj_iter = load_zipped_json(filename=join(imt_output_directory, 'graph_stats', self.dataset, self.model,
-                                                   metric, f'gs_{self.trial}_{self.iteration}.json.gz'), keys_to_int=True)
+                                                  metric, f'gs_{self.trial}_{self.iteration}.json.gz'),
+                                    keys_to_int=True)
 
         return self.root, obj_iter
 
@@ -148,7 +148,8 @@ class GraphDistance:
         for metric in metrics:
             self.set_root_object(metric=self.implemented_metrics[metric])
             func = getattr(self, metric)  # get the function obj corresponding to the metric
-        func()  # call the function
+            func()  # call the function
+
 
 def _pad_portraits_to_same_size(B1, B2):
     """
@@ -198,6 +199,7 @@ def _calculate_portrait_divergence(BG, BH):
     JSDpq = 0.5 * (KLDpm + KLDqm)
 
     return JSDpq
+
 
 if __name__ == '__main__':
     gd = GraphDistance(dataset='chess', iteration=13, trial=3, model='BTER', metrics=['lambda_distance', 'degree_js',
