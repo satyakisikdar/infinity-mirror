@@ -318,24 +318,25 @@ def walker():
 
     return buckets, datasets, models, trials, filenames
 
-def walker_texas_ranger():
+def walker_texas_ranger(fixed_stat=''):
     base_path = os.join(get_imt_output_directory(), 'graph_stats')
     datasets, models, stats, trials, iterations, filenames = [], [], [], [], []
 
     for subdir, dirs, files in os.walk(base_path):
-        for filename in files:
-            subdir_list = subdir.split('/')
-            dataset = subdir_list[-3]
-            model = subdir_list[-2]
-            stat = subdir_list[-1]
-            trial = int(filename.split('_')[-2])
-            iteration = int(filename.split('_')[-1].strip('.json.gz'))
+        if fixed_stat in subdir:
+            for filename in files:
+                subdir_list = subdir.split('/')
+                dataset = subdir_list[-3]
+                model = subdir_list[-2]
+                stat = subdir_list[-1]
+                trial = int(filename.split('_')[-2])
+                iteration = int(filename.split('_')[-1].strip('.json.gz'))
 
-            datasets.append(dataset)
-            models.append(model)
-            stats.append(stat)
-            trials.append(trial)
-            iterations.append(iteration)
-            filenames.append(filename)
+                datasets.append(dataset)
+                models.append(model)
+                stats.append(stat)
+                trials.append(trial)
+                iterations.append(iteration)
+                filenames.append(filename)
 
     return datasets, models, stats, trials, iterations, filenames
