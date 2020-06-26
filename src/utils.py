@@ -194,10 +194,12 @@ def load_imt_trial(input_path, dataset, model) -> (pd.DataFrame, int):
         yield imt_dataframe, trial_id
 
 
-def ensure_dir(path: Union[str, Path]) -> None:
-    if not Path(path).exists():
+def ensure_dir(path: Union[str, Path], recursive: bool=False, exist_ok: bool=True) -> None:
+    path = Path(path)
+    if not path.exists():
         ColorPrint.print_blue(f'Creating dir: {path!r}')
-        os.makedirs(path, exist_ok=True)
+        path.mkdir(parents=recursive, exist_ok=exist_ok)
+        # os.makedirs(path, exist_ok=True)
     return
 
 

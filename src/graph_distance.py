@@ -23,14 +23,15 @@ from src.utils import get_imt_output_directory, load_zipped_json, verify_file
 
 
 class GraphDistance:
-    implemented_metrics = ['pagerank_js', 'degree_js', 'pgd_', 'netlsd_distance', 'lambda_distance', 'portrait_divergence']
+    implemented_metrics = {'pagerank_js':'pagerank', 'degree_js':'degree_dist', 'pgd_': '', 'netlsd_distance': '', 'lambda_distance':'', 'portrait_divergence':''}
 
-    def __init__(self, dataset: str, iteration: int, trial: int, model: str, metrics: List[str]):
+    def __init__(self, dataset: str, trial: int, model: str, metrics: List[str], iteration: Union[None, int] = None):
+
         self.trial = trial
         self.dataset = dataset
         self.model = model
         self.iteration = iteration
-        assert all(metric in GraphDistance.implemented_metrics for metric in metrics), f'Invalid metric(s) in: {metrics}, choose {GraphDistance.implemented_metrics}'
+        assert all(metric in GraphDistance.implemented_metrics.keys() for metric in metrics), f'Invalid metric(s) in: {metrics}, choose {GraphDistance.implemented_metrics.keys()}'
         self.stats: Dict[str, Any] = {'dataset': dataset, 'model': model, 'iteration': iteration, 'trial': trial}
         self.root = None
         self.rootMetric: Union[None, str] = None
@@ -49,13 +50,14 @@ class GraphDistance:
             self.root = load_zipped_json(filename=join(imt_output_directory, 'graph_stats', self.dataset, self.model,
                                                        metric, f'gs_{self.trial}_0.json.gz'), keys_to_int=True)
             # look for the last iterable file for this dataset and model combination
-            iterates = list(range(0, 21))
+            iterates = list(range(0, 22))
             iterates.reverse()
             for iteration in iterates:
                 filename = join(imt_output_directory, 'graph_stats', self.dataset, self.model,
                                 metric, f'gs_{self.trial}_{iteration}.json.gz')
                 if verify_file(filename):
                     self.total_iterations = iteration
+                    self.rootMetric = metric
                     break
 
     def get_pair_of_zipped_objects(self, metric: str) -> Tuple:
@@ -146,9 +148,9 @@ class GraphDistance:
 
     def compute_distances(self, metrics):
         for metric in metrics:
-            self.set_root_object(metric=metric)
+            self.set_root_object(metric=self.implemented_metrics[metric])
             func = getattr(self, metric)  # get the function obj corresponding to the metric
-            func()  # call the function
+        func()  # call the function
 
 def _pad_portraits_to_same_size(B1, B2):
     """
