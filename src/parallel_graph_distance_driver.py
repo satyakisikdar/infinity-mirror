@@ -8,7 +8,7 @@ sys.path.extend('../')
 import networkx as nx
 from src.graph_stats import GraphStats
 from src.parallel import parallel_async
-from src.utils import load_pickle, get_imt_input_directory, walker, ColorPrint, ensure_dir
+from src.utils import load_pickle, get_imt_input_directory, walker, ColorPrint, ensure_dir, walker_texas_ranger
 
 
 def distance_computation(dataset, model, trial, stats):
@@ -16,8 +16,6 @@ def distance_computation(dataset, model, trial, stats):
         stats = [stats]
 
     for stat in stats:
-        columns = ['dataset', 'model', 'trial', 'iteration'].append(stat)
-
         GD = GraphDistance(dataset=dataset, trial=trial, model=model, metrics=[stat], iteration=None)
         GD.set_root_object(GD.implemented_metrics[stat])
         total_iterations = GD.total_iterations
@@ -28,27 +26,30 @@ def distance_computation(dataset, model, trial, stats):
             GD.set_iteration(iteration=iteration)
             GD.compute_distances([stat])
             results = GD.stats[stat]
-            if not isinstance(results, list):
-                results = [results]
 
             row = {}
             row.update({'dataset': dataset, 'model': model, 'trial': trial, 'iteration': iteration, stat: results})
             rows.append(row)
-        output_dir = f'/data/infinity-mirror/output/distances/{dataset}/{model}/{stat}/'
-        ensure_dir(output_dir, recursive=False)
+
 
         results_df = pd.DataFrame(rows)
-        results_df.to_csv(path_or_buf=f'{output_dir}/{stat}_{trial}.csv')
+        # results_df.to_csv(path_or_buf=f'{output_dir}/{stat}_{trial}.csv', index=False)
 
-    return None
+    return results_df
 
 if __name__ == '__main__':
-    stat = ['pagerank_js']
+    stats = ['pagerank_js']
     # buckets, datasets, models, trials, filenames = walker()
-    datasets, models, trials = ['eucore']*4, ['BTER']*4, [1,2,3,4]
+    # datasets, models, trials = ['eucore']*4, ['BTER']*4, [1,2,3,4]
 
-    args = [(dataset, model, trial, stat) for dataset, model, trial in zip(datasets, models, trials)]
+    for stat in stats:
+        datasets, models,_, trials, _, _  = walker_texas_ranger("pagerank")
+        for dataset
+        args = [(dataset, model, trial, stat) for dataset, model, trial in zip(datasets, models, trials)]
+        # results = parallel_async(distance_computation, args, num_workers=16)
+        # df = pd.concat(results)
 
-    parallel_async(distance_computation, args, num_workers=1)
-    # for arg in args:
-    #     distance_computation(*arg)
+        for arg in args:
+            distance_computation(*arg)
+        output_dir = f'/data/infinity-mirror/output/distances/{dataset}/{model}/{stat}/'
+        ensure_dir(output_dir, recursive=False)

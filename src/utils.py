@@ -319,8 +319,8 @@ def walker():
     return buckets, datasets, models, trials, filenames
 
 def walker_texas_ranger(fixed_stat=''):
-    base_path = os.join(get_imt_output_directory(), 'graph_stats')
-    datasets, models, stats, trials, iterations, filenames = [], [], [], [], []
+    base_path = os.path.join(get_imt_output_directory(), 'graph_stats')
+    datasets, models, stats, trials, iterations, filenames = [], [], [], [], [], []
 
     for subdir, dirs, files in os.walk(base_path):
         if fixed_stat in subdir:
