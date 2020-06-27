@@ -1,10 +1,9 @@
 import os
-import sys;
+import sys; sys.path.extend('../')
 import pandas as pd
 
 from src.graph_distance import GraphDistance
 
-sys.path.extend('../')
 import networkx as nx
 from src.graph_stats import GraphStats
 from src.parallel import parallel_async
