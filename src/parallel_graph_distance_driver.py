@@ -38,23 +38,26 @@ def distance_computation(dataset, model, trial, stats):
 
 if __name__ == '__main__':
     #TODO: add arg stuff to pass in stat dataset and other junk
-    datasets = ['eucore']
-    models = ['BTER']
+    implemented_metrics = {'pagerank_js': 'pagerank', 'degree_js': 'degree_dist', 'pgd_distance': 'pgd_graphlet_counts', 'netlsd_distance': 'netlsd',
+                           'lambda_distance': 'laplacian_eigenvalues', 'portrait_divergence': 'portrait'}
+    datasets = ['clique-ring-500-4', 'eucore']
+    models = ['BTER', 'BUGGE', 'Chung-Lu', 'CNRG', 'Erdos-Renyi', 'HRG', 'Kronecker', 'NetGAN', 'SBM', 'GCN_AE', 'Linear_AE', 'GraphRNN']
     stats = ['pagerank_js']
 
     # buckets, datasets, models, trials, filenames = walker()
     # datasets, models, trials = ['eucore']*4, ['BTER']*4, [1,2,3,4]
 
-    for stat in stats:
-        for dataset in datasets:
-            for model in models:
-                trials = walker_texas_ranger(dataset, model, stat='pagerank', unique=True)
+    for dataset in datasets:
+        for model in models:
+            for stat in stats:
+                print(f'computing {stat} distances for {dataset} {model}')
+                trials = walker_texas_ranger(dataset, model, stat=implemented_metrics[stat], unique=True)
                 args = [[dataset, model, trial, stat] for trial in trials]
                 results = parallel_async(distance_computation, args, num_workers=16)
                 df = pd.concat(results)
 
                 output_dir = f'/data/infinity-mirror/output/distances/{dataset}/{model}/{stat}/'
-                ensure_dir(output_dir, recursive=False)
+                ensure_dir(output_dir, recursive=True)
                 df.to_csv(output_dir+f'{dataset}_{model}_{stat}.csv')
                 # for arg in args:
                 #     distance_computation(*arg)
