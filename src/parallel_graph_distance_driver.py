@@ -36,16 +36,15 @@ def distance_computation(dataset, model, trial, stats):
 
     return results_df
 
+# TODO: fix support for GraphRNN (max arg is an empty sequence) and HRG (no objects to contatenate)
 if __name__ == '__main__':
-    #TODO: add arg stuff to pass in stat dataset and other junk
     implemented_metrics = {'pagerank_js': 'pagerank', 'degree_js': 'degree_dist', 'pgd_distance': 'pgd_graphlet_counts', 'netlsd_distance': 'netlsd',
                            'lambda_distance': 'laplacian_eigenvalues', 'portrait_divergence': 'portrait'}
-    datasets = ['clique-ring-500-4', 'eucore']
-    models = ['BTER', 'BUGGE', 'Chung-Lu', 'CNRG', 'Erdos-Renyi', 'HRG', 'Kronecker', 'NetGAN', 'SBM', 'GCN_AE', 'Linear_AE', 'GraphRNN']
-    stats = ['pagerank_js']
 
-    # buckets, datasets, models, trials, filenames = walker()
-    # datasets, models, trials = ['eucore']*4, ['BTER']*4, [1,2,3,4]
+    datasets = ['clique-ring-500-4', 'eucore']
+    models = ['BTER', 'BUGGE', 'Chung-Lu', 'CNRG', 'Erdos-Renyi', 'Kronecker', 'SBM', 'GCN_AE', 'Linear_AE']
+    #stats = ['pagerank_js', 'degree_js', 'pgd_distance', 'netlsd_distance', 'lambda_distance', 'portrait_divergence']
+    stats = ['pagerank_js']
 
     for dataset in datasets:
         for model in models:
