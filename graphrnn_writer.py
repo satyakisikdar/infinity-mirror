@@ -1,7 +1,7 @@
 from collections import Counter
 import os
 import sys#; sys.path.append('./../../')
-import pickle
+import pickle as pkl
 import numpy as np
 import pandas as pd
 import networkx as nx
@@ -12,7 +12,7 @@ from src.Tree import TreeNode
 from src.utils import load_pickle
 from src.graph_stats import GraphStats
 from src.graph_comparison import GraphPairCompare
-from src.utils import verify_dir
+from src.utils import ensure_dir
 
 def init(filename: str, gname: str = '', reindex_nodes: bool = False, first_label: int = 0, take_lcc: bool = True) -> nx.Graph:
     """
@@ -101,7 +101,7 @@ def preprocess(graph: nx.Graph, reindex_nodes: bool, first_label: int = 0, take_
     return graph
 
 def load_data(base_path, dataset):
-    path = os.path.join(base_path, 'GraphRNN', f'{dataset}_size10_ratio5')
+    path = os.path.join(base_path, f'{dataset}_size10_ratio5')
     for subdir, dirs, files in os.walk(path):
         for filename in files:
             if '1000' in filename:
@@ -125,13 +125,13 @@ def construct_full_table(abs_lambda, seq_lambda, model, trials):
     return df
 
 def main():
-    base_path = '/data/infinity-mirror/'
+    base_path = '/data/infinity-mirror/buckets/bucket1/temp-graphrnn'
     input_path = '/home/dgonza26/infinity-mirror/input'
-    dataset = 'flights'
+    dataset = 'eucore'
     model = 'GraphRNN'
 
-    output_path = os.path.join(base_path, 'cleaned-new-new', dataset, model)
-    verify_dir(output_path)
+    output_path = os.path.join(base_path, 'cleaned', dataset, model)
+    ensure_dir(output_path, recursive=True)
 
     R = [(root, generation) for root, generation in load_data(base_path, dataset)]
     R.sort(key=lambda x: x[1])
@@ -147,7 +147,7 @@ def main():
 
     for idx, r in enumerate(roots, 1):
         print('writing', os.path.join(output_path, f'list_{len(r)}_{idx}.pkl.gz'))
-        pkl.dump(r, os.path.join(output_path, f'list_{len(r)}_{idx}.pkl.gz'))
+        pkl.dump(r, open(os.path.join(output_path, f'list_{len(r)}_{idx}.pkl.gz'), 'wb'))
 
     return
 
