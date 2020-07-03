@@ -128,9 +128,15 @@ class GraphStats:
                 CP.print_orange(f'Statistic: {statistic} output file for {self.model}-{self.dataset}-{self.trial} already exists. Skipping.')
                 return
 
-            data = self[statistic]  # todo : maybe there's a better way?!
-            save_zipped_json(data, filename)
-            CP.print_blue(f'Stats json stored at {filename}')
+            try:
+                data = self[statistic]  # todo : maybe there's a better way?!
+                save_zipped_json(data, filename)
+                CP.print_blue(f'Stats json stored at {filename}')
+            except Exception as e:
+                CP.print_red(f'Exception occurred on {filename}!')
+                CP.print_red(e)
+                if statistic == 'netlsd':
+                    save_zipped_json(data, filename + '.failed')
         return
 
     def plot(self, y, ax=None, kind='line', x=None, **kwargs) -> None:
