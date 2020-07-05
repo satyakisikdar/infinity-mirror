@@ -426,7 +426,8 @@ class GraphStats:
             try:
                 bash_script = f'{pgd_path}/pgd_0 -w {n_threads} -f {dummy_path} -c {dummy_path}'
 
-                pipe = sub.run(bash_script, shell=True, capture_output=True, input=edgelist.encode(), check=True, timeout=300000)
+                #pipe = sub.run(bash_script, shell=True, capture_output=True, input=edgelist.encode(), check=True, timeout=30000)
+                pipe = sub.run(bash_script, shell=True, capture_output=True, input=edgelist.encode(), check=True)
 
                 output_data = pipe.stdout.decode()
 
