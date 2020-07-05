@@ -125,7 +125,7 @@ class GraphStats:
 
             # if the file already exists and overwrite flag is not set, then don't rework.
             if not overwrite and verify_file(filename):
-                CP.print_orange(f'Statistic: {statistic} output file for {self.model}-{self.dataset}-{self.trial} already exists. Skipping.')
+                CP.print_green(f'Statistic: {statistic} output file for {self.model}-{self.dataset}-{self.trial} already exists. Skipping.')
                 return
 
             try:
@@ -426,7 +426,7 @@ class GraphStats:
             try:
                 bash_script = f'{pgd_path}/pgd_0 -w {n_threads} -f {dummy_path} -c {dummy_path}'
 
-                pipe = sub.run(bash_script, shell=True, capture_output=True, input=edgelist.encode(), check=True)
+                pipe = sub.run(bash_script, shell=True, capture_output=True, input=edgelist.encode(), check=True, timeout=300000)
 
                 output_data = pipe.stdout.decode()
 
@@ -445,7 +445,7 @@ class GraphStats:
                     graphlet_name, count = map(lambda st: st.strip(), line.split('='))
                     graphlet_counts[graphlet_name] = int(count)
         else:
-            CP.print_orange(f'PGD executable not found at {pgd_path}/pgd')
+            CP.print_red(f'PGD executable not found at {pgd_path}/pgd')
             graphlet_counts = {}
         self.stats['pgd_graphlet_counts'] = graphlet_counts
 
