@@ -134,7 +134,7 @@ class GraphStats:
                 CP.print_blue(f'Stats json stored at {filename}')
             except Exception as e:
                 CP.print_red(f'Exception occurred on {filename}!')
-                CP.print_red(e)
+                CP.print_red(str(e))
                 if statistic == 'netlsd':
                     save_zipped_json(data, filename + '.failed')
         return
