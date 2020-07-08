@@ -39,21 +39,15 @@ def unravel(root):
         return graphs
 
 def absolute(graphs):
-    density0 = graphs[0].size()/graphs[0].order()
+    density0 = nx.density(graphs[0])
     for G in graphs[1:]:
-        if G.order() == 0:
-            density = np.nan
-        else:
-            density = G.size()/G.order() - density0
+        density = nx.density(G) - density0
         yield density
 
 def sequential(graphs):
     prev = graphs[0]
     for curr in graphs[1:]:
-        if curr.size() == 0 or curr.order() == 0 or prev.size() == 0 or prev.order() == 0:
-            density = np.nan
-        else:
-            density = curr.size()/curr.order() - prev.size()/prev.order()
+        density = nx.density(curr) - nx.density(prev)
         yield density
         prev = curr
 
@@ -110,7 +104,7 @@ def construct_table(abs_densities, seq_densities, model):
 
 def main():
     base_path = '/data/infinity-mirror/buckets'
-    dataset = 'chess'
+    dataset = 'tree'
     models = ['BTER', 'BUGGE', 'Chung-Lu', 'CNRG', 'Erdos-Renyi', 'HRG', 'SBM', 'NetGAN', 'GCN_AE', 'Linear_AE', 'GraphRNN', 'Kronecker']
 
     for model in models:
