@@ -41,7 +41,7 @@ if __name__ == '__main__':
     implemented_metrics = {'pagerank_js': 'pagerank', 'degree_js': 'degree_dist', 'pgd_distance': 'pgd_graphlet_counts', 'netlsd_distance': 'netlsd',
                            'lambda_distance': 'laplacian_eigenvalues', 'portrait_divergence': 'portrait'}
 
-    datasets = ['clique-ring-500-4', 'eucore']
+    datasets = ['clique-ring-500-4', 'eucore', 'flights', 'tree']
     models = ['BTER', 'BUGGE', 'Chung-Lu', 'CNRG', 'Erdos-Renyi', 'Kronecker', 'SBM', 'GCN_AE', 'Linear_AE']
     #stats = ['pagerank_js', 'degree_js', 'pgd_distance', 'netlsd_distance', 'lambda_distance', 'portrait_divergence']
     stats = ['pagerank_js']
