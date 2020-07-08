@@ -36,7 +36,7 @@ def distance_computation(dataset, model, trial, stats):
 
     return results_df
 
-# TODO: fix support for GraphRNN (max arg is an empty sequence) and HRG (no objects to contatenate)
+# TODO: fix support for HRG (no objects to contatenate)
 if __name__ == '__main__':
     implemented_metrics = {'pagerank_js': 'pagerank', 'degree_js': 'degree_dist', 'pgd_distance': 'pgd_graphlet_counts', 'netlsd_distance': 'netlsd',
                            'lambda_distance': 'laplacian_eigenvalues', 'portrait_divergence': 'portrait'}

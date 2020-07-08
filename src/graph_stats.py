@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Dict, Tuple, List, Union, Any
 from src.portrait.portrait_divergence import _graph_or_portrait
 from src.utils import check_file_exists, ColorPrint as CP, save_pickle, get_imt_output_directory, save_zipped_json, \
-    load_zipped_json, verify_file
+    verify_file
 
 sns.set()
 sns.set_style("darkgrid")
@@ -125,12 +125,18 @@ class GraphStats:
 
             # if the file already exists and overwrite flag is not set, then don't rework.
             if not overwrite and verify_file(filename):
-                CP.print_orange(f'Statistic: {statistic} output file for {self.model}-{self.dataset}-{self.trial} already exists. Skipping.')
+                CP.print_green(f'Statistic: {statistic} output file for {self.model}-{self.dataset}-{self.trial} already exists. Skipping.')
                 return
 
-            data = self[statistic]  # todo : maybe there's a better way?!
-            save_zipped_json(data, filename)
-            CP.print_blue(f'Stats json stored at {filename}')
+            try:
+                data = self[statistic]  # todo : maybe there's a better way?!
+                save_zipped_json(data, filename)
+                CP.print_blue(f'Stats json stored at {filename}')
+            except Exception as e:
+                CP.print_red(f'Exception occurred on {filename}!')
+                CP.print_red(str(e))
+                if statistic == 'netlsd':
+                    save_zipped_json(data, filename + '.failed')
         return
 
     def plot(self, y, ax=None, kind='line', x=None, **kwargs) -> None:
@@ -418,8 +424,9 @@ class GraphStats:
             dummy_path = f'{pgd_path}/dummy.txt'
 
             try:
-                bash_script = f'{pgd_path}/pgd -w {n_threads} -f {dummy_path} -c {dummy_path}'
+                bash_script = f'{pgd_path}/pgd_0 -w {n_threads} -f {dummy_path} -c {dummy_path}'
 
+                #pipe = sub.run(bash_script, shell=True, capture_output=True, input=edgelist.encode(), check=True, timeout=30000)
                 pipe = sub.run(bash_script, shell=True, capture_output=True, input=edgelist.encode(), check=True)
 
                 output_data = pipe.stdout.decode()
@@ -439,6 +446,7 @@ class GraphStats:
                     graphlet_name, count = map(lambda st: st.strip(), line.split('='))
                     graphlet_counts[graphlet_name] = int(count)
         else:
+            CP.print_red(f'PGD executable not found at {pgd_path}/pgd')
             graphlet_counts = {}
         self.stats['pgd_graphlet_counts'] = graphlet_counts
 
@@ -461,19 +469,21 @@ class GraphStats:
 
 
 if __name__ == '__main__':
-    # g = nx.karate_club_graph()
-    g = nx.empty_graph(3)
-    # g = nx.ring_of_cliques(50, 4)
-    # g = nx.erdos_renyi_graph(5, 0.2, seed=1)
+    g = nx.karate_club_graph(); dataset = 'karate'
+    # g = nx.empty_graph(3); dataset = 'empty'
+    # g = nx.ring_of_cliques(50, 4); dataset = 'clique-ring-50-4'
+    # g = nx.erdos_renyi_graph(5, 0.2, seed=1); dataset = 'ER-5-2'
     # g = nx.path_graph(5)
-    gs = GraphStats(graph=g, trial=0, dataset='karate', model='CNRG', iteration=0)
+    gs = GraphStats(graph=g, trial=0, dataset=dataset, model='CNRG', iteration=0)
+    graphlets = gs.pgd_graphlet_counts()
+    print(graphlets)
     # gs.netlsd()
     # gs.pagerank()
     # gs.laplacian_eigenvalues()
-    gs.write_stats_jsons(stats='laplacian_eigenvalues')
-    # gs.write_stats_jsons(stats='netlsd')
-    # gs.write_stats_jsons(stat='pagerank')
-
-    json_data = load_zipped_json(filename='/data/infinity-mirror/output/graph_stats/karate/CNRG/netlsd/gs_0_0.json.gz',
-                                 keys_to_int=False, debug=True)
-    print(json_data)
+    # gs.write_stats_jsons(stats='laplacian_eigenvalues')
+    # # gs.write_stats_jsons(stats='netlsd')
+    # # gs.write_stats_jsons(stat='pagerank')
+    #
+    # json_data = load_zipped_json(filename='/data/infinity-mirror/output/graph_stats/karate/CNRG/netlsd/gs_0_0.json.gz',
+    #                              keys_to_int=False, debug=True)
+    # print(json_data)
