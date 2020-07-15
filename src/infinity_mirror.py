@@ -22,7 +22,7 @@ class InfinityMirror:
     """
     Class for InfinityMirror
     """
-    __slots__ = ('initial_graph', 'num_generations', 'num_graphs', 'model', 'initial_graph_stats', 'graphs', 'features'
+    __slots__ = ('initial_graph', 'num_generations', 'num_graphs', 'model', 'initial_graph_stats', 'graphs', 'features',
                  '_metrics', 'graphs_pickle_path', 'graphs_features_path', 'trial', 'rewire', 'finish_path')
 
     def __init__(self, initial_graph: nx.Graph, model_obj: Any, num_generations: int,
@@ -124,8 +124,12 @@ class InfinityMirror:
 
             temp_pickle_path = self.graphs_pickle_path + f'_temp_{level}{pickle_ext}'
             prev_temp_pickle_path = self.graphs_pickle_path + f'_temp_{level-1}{pickle_ext}'
+            temp_features_path = self.graphs_features_path + f'_temp_{level}{pickle_ext}'
+            prev_temp_features_path = self.graphs_features_path + f'_temp_{level-1}{pickle_ext}'
             save_pickle(obj=self.graphs, path=temp_pickle_path)
+            save_pickle(obj=self.params, path=temp_features_path)
             delete_files(prev_temp_pickle_path)
+            delete_files(prev_temp_features_path)
 
             if level == 20:
                 completed_trial = True
