@@ -22,11 +22,11 @@ class InfinityMirror:
     """
     Class for InfinityMirror
     """
-    __slots__ = ('initial_graph', 'num_generations', 'num_graphs', 'model', 'initial_graph_stats', 'graphs',
-                 '_metrics', 'graphs_pickle_path', 'trial', 'rewire', 'finish_path')
+    __slots__ = ('initial_graph', 'num_generations', 'num_graphs', 'model', 'initial_graph_stats', 'graphs', 'features'
+                 '_metrics', 'graphs_pickle_path', 'graphs_features_path', 'trial', 'rewire', 'finish_path')
 
     def __init__(self, initial_graph: nx.Graph, model_obj: Any, num_generations: int,
-                 num_graphs: int, trial: int, r: float, dataset: str, model: str, finish: str='') -> None:
+                 num_graphs: int, trial: int, r: float, dataset: str, model: str, finish: str='', features_bool: bool=False) -> None:
         self.initial_graph: nx.Graph = initial_graph  # the initial starting point H_0
         self.num_graphs: int = num_graphs  # number of graphs per generation
         self.num_generations: int = num_generations  # number of generations
@@ -41,7 +41,10 @@ class InfinityMirror:
                                     'pgd_spearman', 'degree_cvm']  # list of metrics  ## GCD is removed
         self.rewire = int(r * 100)
         self.graphs_pickle_path: str = f'./output/pickles/{self.initial_graph.name}/{self.model.model_name}/list_{self.num_generations}_{self.trial}'
+        self.graphs_features_path: str = f'./output/features/{self.initial_graph.name}/{self.model.model_name}/list_{self.num_generations}_{self.trial}'
         self.graphs: List[nx.Graph] = []  # stores the list of graphs - one per generation
+        self.features: List[Any] = []  # stores the learned features used to generate the graph at the same index in self.graphs - one per generation
+        self.features_bool: bool = features_bool  # decides whether features are going to be extracted or not
         self.finish_path: str = finish
         if r != 0:
             self.graphs_pickle_path += f'_{r}'
@@ -92,6 +95,7 @@ class InfinityMirror:
         if len(self.graphs) == 0:
             self.initial_graph.level = 0
             self.graphs = [self.initial_graph]
+            self.features = [None]
 
         completed_trial = False
         for i in range(len(self.graphs) - 1, self.num_generations):
@@ -111,6 +115,8 @@ class InfinityMirror:
                 print(f'Generation failed {e}')
                 break
 
+            if self.features:
+                self.features.append(self.model.params)
             curr_graph = generated_graphs[0]  # we are only generating one graph
             curr_graph.name = f'{self.initial_graph.name}_{level}_{self.trial}'
             curr_graph.gen = level
