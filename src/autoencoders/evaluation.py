@@ -15,7 +15,7 @@ def get_prob_mat_from_emb(emb, thresh=0.5):
     """
     mat = sigmoid(emb.dot(emb.T))
     thresh_mat = sigmoid(emb.dot(emb.T)) > thresh
-    np.fill_diagonal(prob_mat, 0)
+    #np.fill_diagonal(prob_mat, 0)
     np.fill_diagonal(thresh_mat, False)
     return thresh_mat, mat
 
