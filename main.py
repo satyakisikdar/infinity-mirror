@@ -56,7 +56,7 @@ def parse_args():
 
     parser.add_argument('-f', '--finish', help='try to finish an incomplete file', nargs=1, type=str, default='')
 
-    parser.add_argument('-z', '--features', help='get back the learned model features', action='store_true')
+    parser.add_argument('-z', '--features_bool', help='get back the learned model features', action='store_true')
 
     return parser.parse_args()
 
@@ -105,7 +105,7 @@ def process_args(args) -> Any:
     module = importlib.import_module(f'src.graph_models')
     model_obj = getattr(module, model_name)
 
-    return args.sel[0], g, model_obj, int(args.gens[0]), args.pickle, int(args.num_graphs[0]), r, finish_path, args.features
+    return args.sel[0], g, model_obj, int(args.gens[0]), args.pickle, int(args.num_graphs[0]), r, finish_path, args.features_bool
 
 
 def make_dirs(gname, model) -> None:
@@ -125,7 +125,7 @@ def run_infinity_mirror(args, trial) -> None:
     Creates and runs infinity mirror
     :return:
     """
-    selection, g, model, num_gens, use_pickle, num_graphs, rewire, finish, features = process_args(args)
+    selection, g, model, num_gens, use_pickle, num_graphs, rewire, finish, features_bool = process_args(args)
 
     # process args returns the Class and not an object
     empty_g = nx.empty_graph(1)
@@ -145,7 +145,7 @@ def run_infinity_mirror(args, trial) -> None:
     assert selection == 'fast', 'invalid selection'
     num_graphs = 1  # only 1 graph per generation
     inf = InfinityMirror(initial_graph=g, num_generations=num_gens, model_obj=model_obj,
-                         num_graphs=num_graphs, trial=trial, r=rewire, dataset=g.name, model=args.model[0], finish=finish, features=features)
+                         num_graphs=num_graphs, trial=trial, r=rewire, dataset=g.name, model=args.model[0], finish=finish, features_bool=features_bool)
     tic = time.perf_counter()
     inf.run(use_pickle=use_pickle)
     toc = time.perf_counter()
