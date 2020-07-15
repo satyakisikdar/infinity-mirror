@@ -176,8 +176,8 @@ def fit_model(g, model_name):
 
     sess.close()  # close the session and free up resouces
     ### SS: compute final graph 
-    prob_mat = get_prob_mat_from_emb(emb)
-    return prob_mat
+    prob_mat, thresh_mat = get_prob_mat_from_emb(emb)
+    return prob_mat, thresh_mat
 
 if __name__ == '__main__':
     g = nx.karate_club_graph()
