@@ -1,6 +1,5 @@
 models="GCN_AE"  # space separated names of models, find the whole list in main.py
 graph='input/karate.g'  # external edge list 
-# graph='clique_ring 500 4'  # for synthetic graphs - find list in Synthetic Graph class in src/graphio.py 
 for model in $models
 do
     # -t: number of independent trials
