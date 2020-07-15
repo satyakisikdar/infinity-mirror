@@ -661,13 +661,15 @@ class GraphAutoEncoder(BaseGraphModel):
 
     def _fit(self) -> None:
         from src.autoencoders.fit import fit_model
-        prob_mat = fit_model(self.input_graph, model_name=self.model_name.lower())
+        prob_mat, thresh_mat = fit_model(self.input_graph, model_name=self.model_name.lower())
         self.params['prob_mat'] = sparse.csr_matrix(prob_mat)
+        self.params['thresh_mat'] = sparse.csr_matrix(thresh_mat)
         return
 
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
         assert 'prob_mat' in self.params, 'prob_mat not found'
-        g = get_graph_from_prob_matrix(self.params['prob_mat'], thresh=0.5)
+        assert 'thresh_mat' in self.params, 'thresh_mat not found'
+        g = get_graph_from_prob_matrix(self.params['thresh_mat'], thresh=0.5)
         g.name = gname
         g.gen_id = gen_id
 
