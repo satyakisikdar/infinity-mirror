@@ -58,6 +58,8 @@ def parse_args():
 
     parser.add_argument('-z', '--features_bool', help='get back the learned model features', action='store_true')
 
+    parser.add_argument('-l', '--take_lcc', help='whether or not to take only the largest connected component', action='store_true')
+
     return parser.parse_args()
 
 
@@ -91,7 +93,7 @@ def process_args(args) -> Any:
 
         g = SyntheticGraph(kind, **kwd_args).g
     else:
-        g = GraphReader(filename=args.input[0]).graph
+        g = GraphReader(filename=args.input[0], take_lcc=args.take_lcc).graph
         r = 0
 
     if finish_path is not None:
