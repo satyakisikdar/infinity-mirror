@@ -69,7 +69,7 @@ class InfinityMirror:
             if check_file_exists(self.graphs_pickle_path + pickle_ext):  # the whole pickle exists
                 graphs = load_pickle(self.graphs_pickle_path + pickle_ext)
                 #assert len(graphs) == 21, f'Expected 21 graphs, found {len(graphs)}'
-                assert len(graphs) == self.num_graphs + 1, f'Expected 21 graphs, found {len(graphs)}'
+                assert len(graphs) == self.num_generations + 1, f'Expected 21 graphs, found {len(graphs)}'
                 CP.print_green(f'Using completed pickle at {self.graphs_pickle_path + pickle_ext!r}. Loaded {len(graphs)} graphs')
                 return
             else:
