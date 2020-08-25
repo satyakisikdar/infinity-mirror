@@ -8,7 +8,9 @@ do
     # -s: selection strategy
     # -f: use an incomplete file as a starting point
     # -p: use pickles to prevent repeated computations
-    echo python3 main.py -i $graph -m $model -t 50 -n 20 -c 1 -s fast -p
-    python3 main.py -i $graph -m $model -t 50 -n 20 -c 1 -s fast -p
+    # -z: return the features the model learns
+    # -l: whether or not to take only the largest connected component
+    echo python3 main.py -i $graph -m $model -t 50 -n 20 -c 1 -s fast -p -l
+    python3 main.py -i $graph -m $model -t 50 -n 20 -c 1 -s fast -p -l
 done
 # output pickles are stored in infinity-mirror/output/pickles directory

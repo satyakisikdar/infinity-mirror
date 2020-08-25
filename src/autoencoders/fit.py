@@ -31,9 +31,9 @@ def fit_model(g, model_name):
     # Load graph dataset
     adj_init = nx.adjacency_matrix(g)
     features_init = sp.eye(g.order(), g.size())
-    
+
     print(f"Loading data... {g.name} n: {g.order()}, m: {g.size()}")
-    
+
     # The entire training+test process is repeated FLAGS.nb_run times
     for i in range(FLAGS.nb_run):
         if FLAGS.task == 'link_prediction' :
@@ -49,10 +49,10 @@ def fit_model(g, model_name):
                     break
         else:
             raise ValueError('Undefined task!')
-    
+
         # Start computation of running times
         t_start = time.time()
-    
+
         # Preprocessing and initialization
         print("Preprocessing and Initializing...")
         # Compute number of nodes
@@ -64,7 +64,7 @@ def fit_model(g, model_name):
         features = sparse_to_tuple(features)
         num_features = features[2][1]
         features_nonzero = features[1].shape[0]
-    
+
         # Define placeholders
         placeholders = {
             'features': tf.sparse_placeholder(tf.float32),
@@ -72,7 +72,7 @@ def fit_model(g, model_name):
             'adj_orig': tf.sparse_placeholder(tf.float32),
             'dropout': tf.placeholder_with_default(0., shape = ())
         }
-    
+
         # Create model
         model = None
         if model_name == 'gcn_ae':
@@ -98,7 +98,7 @@ def fit_model(g, model_name):
                                     features_nonzero)
         else:
             raise ValueError('Undefined model!')
-    
+
         # Optimizer
         pos_weight = float(adj.shape[0] * adj.shape[0] - adj.sum()) / adj.sum()
         norm = adj.shape[0] * adj.shape[0] / float((adj.shape[0] * adj.shape[0]
@@ -120,20 +120,20 @@ def fit_model(g, model_name):
                                    num_nodes = num_nodes,
                                    pos_weight = pos_weight,
                                    norm = norm)
-    
+
         # Normalization and preprocessing on adjacency matrix
         adj_norm = preprocess_graph(adj)
         adj_label = sparse_to_tuple(adj + sp.eye(adj.shape[0]))
-    
+
         # Initialize TF session
         sess = tf.Session()
         sess.run(tf.global_variables_initializer())
-    
+
         # Model training
         print(f"Training {model_name}...")
-        
+
         t = time.time()
-        print_every = 50 
+        print_every = 50
         for epoch in range(FLAGS.epochs):
             # Flag to compute running time for each epoch
             # Construct feed dictionary
@@ -158,12 +158,12 @@ def fit_model(g, model_name):
                     print("val_roc=", "{:.5f}".format(val_roc), "val_ap=", "{:.5f}".format(val_ap))
         # Flag to compute Graph AE/VAE training time
         t_model = time.time()
-    
+
         # Compute embedding
         # Get embedding from model
         emb = sess.run(model.z_mean, feed_dict = feed_dict)
         mean_time.append(time.time() - t_start)
-    
+
         # Test model
         print("Testing model...")
         # Link Prediction: classification edges/non-edges
@@ -173,11 +173,11 @@ def fit_model(g, model_name):
             # Report scores
             mean_roc.append(roc_score)
             mean_ap.append(ap_score)
-    
+
     sess.close()  # close the session and free up resouces
     ### SS: compute final graph 
-    prob_mat = get_prob_mat_from_emb(emb)
-    return prob_mat
+    prob_mat, thresh_mat = get_prob_mat_from_emb(emb)
+    return prob_mat, thresh_mat
 
 if __name__ == '__main__':
     g = nx.karate_club_graph()

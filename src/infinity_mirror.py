@@ -22,11 +22,11 @@ class InfinityMirror:
     """
     Class for InfinityMirror
     """
-    __slots__ = ('initial_graph', 'num_generations', 'num_graphs', 'model', 'initial_graph_stats', 'graphs',
-                 '_metrics', 'graphs_pickle_path', 'trial', 'rewire', 'finish_path')
+    __slots__ = ('initial_graph', 'num_generations', 'num_graphs', 'model', 'initial_graph_stats', 'graphs', 'features',
+                 'features_bool', '_metrics', 'graphs_pickle_path', 'graphs_features_path', 'trial', 'rewire', 'finish_path')
 
     def __init__(self, initial_graph: nx.Graph, model_obj: Any, num_generations: int,
-                 num_graphs: int, trial: int, r: float, dataset: str, model: str, finish: str='') -> None:
+                 num_graphs: int, trial: int, r: float, dataset: str, model: str, finish: str='', features_bool: bool=False) -> None:
         self.initial_graph: nx.Graph = initial_graph  # the initial starting point H_0
         self.num_graphs: int = num_graphs  # number of graphs per generation
         self.num_generations: int = num_generations  # number of generations
@@ -41,7 +41,10 @@ class InfinityMirror:
                                     'pgd_spearman', 'degree_cvm']  # list of metrics  ## GCD is removed
         self.rewire = int(r * 100)
         self.graphs_pickle_path: str = f'./output/pickles/{self.initial_graph.name}/{self.model.model_name}/list_{self.num_generations}_{self.trial}'
+        self.graphs_features_path: str = f'./output/features/{self.initial_graph.name}/{self.model.model_name}/list_{self.num_generations}_{self.trial}'
         self.graphs: List[nx.Graph] = []  # stores the list of graphs - one per generation
+        self.features: List[Any] = []  # stores the learned features used to generate the graph at the same index in self.graphs - one per generation
+        self.features_bool: bool = features_bool  # decides whether features are going to be extracted or not
         self.finish_path: str = finish
         if r != 0:
             self.graphs_pickle_path += f'_{r}'
@@ -65,7 +68,8 @@ class InfinityMirror:
         if use_pickle:
             if check_file_exists(self.graphs_pickle_path + pickle_ext):  # the whole pickle exists
                 graphs = load_pickle(self.graphs_pickle_path + pickle_ext)
-                assert len(graphs) == 21, f'Expected 21 graphs, found {len(graphs)}'
+                #assert len(graphs) == 21, f'Expected 21 graphs, found {len(graphs)}'
+                assert len(graphs) == self.num_generations + 1, f'Expected 21 graphs, found {len(graphs)}'
                 CP.print_green(f'Using completed pickle at {self.graphs_pickle_path + pickle_ext!r}. Loaded {len(graphs)} graphs')
                 return
             else:
@@ -92,6 +96,7 @@ class InfinityMirror:
         if len(self.graphs) == 0:
             self.initial_graph.level = 0
             self.graphs = [self.initial_graph]
+            self.features = [None]
 
         completed_trial = False
         for i in range(len(self.graphs) - 1, self.num_generations):
@@ -111,6 +116,8 @@ class InfinityMirror:
                 print(f'Generation failed {e}')
                 break
 
+            if self.features:
+                self.features.append(self.model.params)
             curr_graph = generated_graphs[0]  # we are only generating one graph
             curr_graph.name = f'{self.initial_graph.name}_{level}_{self.trial}'
             curr_graph.gen = level
@@ -118,18 +125,28 @@ class InfinityMirror:
 
             temp_pickle_path = self.graphs_pickle_path + f'_temp_{level}{pickle_ext}'
             prev_temp_pickle_path = self.graphs_pickle_path + f'_temp_{level-1}{pickle_ext}'
-            save_pickle(obj=self.graphs, path=temp_pickle_path)
-            delete_files(prev_temp_pickle_path)
 
-            if level == 20:
+            temp_features_path = self.graphs_features_path + f'_temp_{level}{pickle_ext}'
+            prev_temp_features_path = self.graphs_features_path + f'_temp_{level-1}{pickle_ext}'
+
+            save_pickle(obj=self.graphs, path=temp_pickle_path)
+            save_pickle(obj=self.features, path=temp_features_path)
+
+            delete_files(prev_temp_pickle_path)
+            delete_files(prev_temp_features_path)
+
+            #if level == 20:
+            if level == self.num_generations:
                 completed_trial = True
             pbar.update(1)
         pbar.close()
 
         if completed_trial:  # only delete the temp pickle if the trial finishes successfully
             delete_files(temp_pickle_path)  # delete the temp file if the loop finishes normally
+            delete_files(temp_features_path)  # delete the temp file if the loop finishes normally
             CP.print_green(f'List of {len(self.graphs)} Graphs is pickled at "{self.graphs_pickle_path + pickle_ext}"')
             save_pickle(obj=self.graphs, path=self.graphs_pickle_path + pickle_ext)
+            save_pickle(obj=self.features, path=self.graphs_features_path + pickle_ext)
         return
 
     def write_timing_stats(self, time_taken) -> None:

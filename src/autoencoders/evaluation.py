@@ -3,7 +3,7 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import average_precision_score, roc_auc_score, adjusted_mutual_info_score
 import numpy as np
 import tensorflow as tf
-import networkx as nx 
+import networkx as nx
 
 
 def get_prob_mat_from_emb(emb, thresh=0.5):
@@ -11,11 +11,13 @@ def get_prob_mat_from_emb(emb, thresh=0.5):
     Get adjacency matrix from embeddings - hard threshold
     TODO: make it a symmetric matrix
     :param emb: n*d matrix of embedding vectors for all graph nodes
-    :return: return adj matrix 
+    :return: return adj matrix
     """
-    mat = sigmoid(emb.dot(emb.T)) > thresh
-    np.fill_diagonal(mat, False)
-    return mat
+    mat = sigmoid(emb.dot(emb.T))
+    thresh_mat = sigmoid(emb.dot(emb.T)) > thresh
+    #np.fill_diagonal(prob_mat, 0)
+    np.fill_diagonal(thresh_mat, False)
+    return mat, thresh_mat
 
 def sigmoid(x):
     """ Sigmoid activation function

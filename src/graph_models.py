@@ -657,20 +657,22 @@ class GraphAutoEncoder(BaseGraphModel):
     def __init__(self, input_graph: nx.Graph, kind: str, trial: int, **kwargs) -> None:
         assert kind in ('GCN_AE', 'GCN_VAE', 'Linear_AE', 'Linear_VAE', 'Deep_GCN_AE', 'Deep_GCN_VAE'), f'improper kind: {kind}'
         super().__init__(model_name=kind, input_graph=input_graph, trial=trial)
-        return 
+        return
 
     def _fit(self) -> None:
         from src.autoencoders.fit import fit_model
-        prob_mat = fit_model(self.input_graph, model_name=self.model_name.lower())
+        prob_mat, thresh_mat = fit_model(self.input_graph, model_name=self.model_name.lower())
         self.params['prob_mat'] = sparse.csr_matrix(prob_mat)
+        self.params['thresh_mat'] = sparse.csr_matrix(thresh_mat)
         return
 
     def _gen(self, gname: str, gen_id: int) -> nx.Graph:
         assert 'prob_mat' in self.params, 'prob_mat not found'
-        g = get_graph_from_prob_matrix(self.params['prob_mat'], thresh=0.5)
+        assert 'thresh_mat' in self.params, 'thresh_mat not found'
+        g = get_graph_from_prob_matrix(self.params['thresh_mat'], thresh=0.5)
         g.name = gname
         g.gen_id = gen_id
-        
+
         return g
 
 
