@@ -9,6 +9,7 @@
 #include <vector> // this code makes heavy use of the 
 #include <queue>  // STL, since I suck at actual C
 #include <map>
+#include <cstdlib>
 
 using namespace std;
 
