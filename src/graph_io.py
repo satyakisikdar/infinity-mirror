@@ -1,5 +1,5 @@
 """
-Grpah i/o helpers
+Graph i/o helpers
 """
 import math
 from pathlib import Path
