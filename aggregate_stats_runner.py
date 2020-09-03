@@ -18,7 +18,7 @@ def confidence_interval(x):
 
 def main():
     dataset = 'clique-ring-500-4'
-    stat = 'laplacian_eigenvalues'
+    stat = 'degree_dist'
     post = all_post[stat]
 
     dataframes = []
@@ -39,15 +39,14 @@ def main():
 
     df_concat = pd.concat(dataframes)
 
-    df_mean = df_concat.groupby(['dataset', 'model', 'trial', 'gen'])[post].mean()
+    df_mean = df_concat.groupby(['dataset', 'model', 'gen'])[post].mean().reset_index()
+    df_ci_lower = df_concat.groupby(['dataset', 'model', 'gen'])[post].apply(lambda x: confidence_interval(x)[0]).reset_index()
+    df_ci_upper = df_concat.groupby(['dataset', 'model', 'gen'])[post].apply(lambda x: confidence_interval(x)[1]).reset_index()
 
-    df_ci_lower = df_concat.groupby(['dataset', 'model', 'trial', 'gen'])[post].apply(lambda x: confidence_interval(x)[0])
-
-    df_ci_upper = df_concat.groupby(['dataset', 'model', 'trial', 'gen'])[post].apply(lambda x: confidence_interval(x)[1])
+    df_mean['ci_lower'] = df_ci_lower[post]
+    df_mean['ci_upper'] = df_ci_upper[post]
 
     print(df_mean)
-    print(df_ci_lower)
-    print(df_ci_upper)
 
     return
 
