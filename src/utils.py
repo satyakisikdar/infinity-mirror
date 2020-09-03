@@ -359,3 +359,19 @@ def walker_texas_ranger(dataset='eucore', model='BTER', stat='pagerank', unique=
     if unique:
         return list(np.unique(trials))
     return trials, iterations, filenames
+
+def walker_michigan(dataset='eucore', model='BTER', stat='b_matrix'):
+    assert dataset in ['chess', 'clique-ring-500-4', 'eucore', 'flights', 'tree']
+    assert model in ['BTER', 'BUGGE', 'Chung-Lu', 'CNRG', 'Erdos-Renyi', 'GCN_AE', 'GraphRNN', 'HRG', 'Kronecker', 'Linear_AE', 'NetGAN', 'SBM']
+    assert stat in ['b_matrix', 'degree_dist', 'laplacian_eigenvalues', 'netlsd', 'pagerank', 'pgd_graphlet_counts']
+
+    base_path = f'/data/infinity-mirror/output/graph_stats/{dataset}/{model}/{stat}'
+
+    for subdir, dirs, files in os.walk(base_path):
+        for filename in files:
+            filepath = os.path.join(base_path, filename)
+            filename = filename.split('.')[0].split('_')
+            trial, gen = filename[1], filename[2]
+            yield filepath, int(trial), int(gen)
+
+    return
