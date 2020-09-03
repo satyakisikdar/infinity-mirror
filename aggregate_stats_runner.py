@@ -18,7 +18,7 @@ def confidence_interval(x):
 
 def main():
     dataset = 'clique-ring-500-4'
-    stat = 'pagerank'
+    stat = 'laplacian_eigenvalues'
     post = all_post[stat]
 
     dataframes = []
