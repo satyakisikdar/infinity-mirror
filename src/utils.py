@@ -395,6 +395,7 @@ def latex_printer(path):
     filename = path.split('/')[-1].split('.')[0]
 
     with open(path) as infile, open(f'data_latex/{filename}.tex', 'w') as outfile:
+        flag = True
         prev_model = ''
 
         for line in infile:
@@ -411,6 +412,9 @@ def latex_printer(path):
                 abs95d = line[4]
                 abs95u = line[5]
 
+                if model == 'NetGAN':
+                    flag = False
+
                 if prev_model != model:
                     _footer(outfile, dataset, prev_model, stat)
                     _header(outfile)
@@ -423,4 +427,8 @@ def latex_printer(path):
         if dataset == 'chess':
             _header(outfile)
             _footer(outfile, dataset, 'Kron', stat)
+
+        if flag:
+            _header(outfile)
+            _footer(outfile, dataset, 'NetGAN', stat)
     return
