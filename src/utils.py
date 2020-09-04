@@ -370,8 +370,15 @@ def walker_michigan(dataset='eucore', model='BTER', stat='b_matrix'):
     for subdir, dirs, files in os.walk(base_path):
         for filename in files:
             filepath = os.path.join(base_path, filename)
-            filename = filename.split('.')[0].split('_')
-            trial, gen = filename[1], filename[2]
+            split = filename.split('.')[0].split('_')
+            if len(filename) < 3:
+                ColorPrint.print_red(f'CAUTION: Skipped {filename}')
+                continue
+            trial, gen = split[1], split[2]
             yield filepath, int(trial), int(gen)
 
+    return
+
+def printer(df):
+    pass
     return

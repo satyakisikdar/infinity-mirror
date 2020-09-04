@@ -4,8 +4,11 @@ import numpy as np
 import pandas as pd
 import scipy.stats as stats
 
+import warnings
+warnings.filterwarnings("ignore")
+
 from src.aggregate_stats import compute_stat
-from src.utils import walker_michigan
+from src.utils import walker_michigan, printer
 
 all_datasets = ['chess', 'clique-ring-500-4', 'eucore', 'flights', 'tree']
 all_models = ['BTER', 'BUGGE', 'Chung-Lu', 'CNRG', 'Erdos-Renyi', 'GCN_AE', 'GraphRNN', 'HRG', 'Kronecker', 'Linear_AE', 'NetGAN', 'SBM']
@@ -17,12 +20,15 @@ def confidence_interval(x):
     return lower, upper
 
 def main():
-    dataset = 'clique-ring-500-4'
-    stat = 'degree_dist'
+    dataset = 'chess'
+    stat = 'b_matrix'
     post = all_post[stat]
+
+    print(f'aggregating {stat} for {dataset}')
 
     dataframes = []
     for model in all_models:
+        print(f'\tstarting {model}... ', end='', flush=True)
         agg = {}
 
         for filepath, trial, gen in walker_michigan(dataset, model, stat):
@@ -36,17 +42,23 @@ def main():
 
         df = compute_stat(dataset, model, stat, agg)
         dataframes.append(df)
+        print(f'done')
 
     df_concat = pd.concat(dataframes)
+    #print(df_concat.head())
 
-    df_mean = df_concat.groupby(['dataset', 'model', 'gen'])[post].mean().reset_index()
+    df_full = df_concat.groupby(['dataset', 'model', 'gen'])[post].mean().reset_index()
+    #print(df_full.head())
+
     df_ci_lower = df_concat.groupby(['dataset', 'model', 'gen'])[post].apply(lambda x: confidence_interval(x)[0]).reset_index()
     df_ci_upper = df_concat.groupby(['dataset', 'model', 'gen'])[post].apply(lambda x: confidence_interval(x)[1]).reset_index()
 
-    df_mean['ci_lower'] = df_ci_lower[post]
-    df_mean['ci_upper'] = df_ci_upper[post]
+    df_full['ci_lower'] = df_ci_lower[post]
+    df_full['ci_upper'] = df_ci_upper[post]
 
-    print(df_mean)
+    df_full = df_full.astype({'gen': int})
+    df_full.to_csv(f'dataframes/{dataset}_{post}.csv', sep='\t', index=False, na_rep='nan')
+    print(f'wrote {dataset}_{post}.csv to dataframes/')
 
     return
 
