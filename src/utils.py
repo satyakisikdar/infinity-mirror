@@ -379,6 +379,44 @@ def walker_michigan(dataset='eucore', model='BTER', stat='b_matrix'):
 
     return
 
-def printer(df):
-    pass
+def latex_printer(path):
+    def _header(outfile):
+        outfile.write('\\pgfplotstableread{\n')
+        outfile.write('model\tgen\tabs_mean\tabs95d\tabs95u\n')
+        return
+
+    def _footer(outfile, dataset, model, stat):
+        outfile.write('}{\\' + dataset + stat + model + '}\n')
+
+    dataset_map = {'chess': 'chess', 'clique-ring-500-4': 'cliquering', 'eucore': 'eucore', 'flights': 'flights', 'tree': 'tree'}
+    model_map = {'BTER': 'BTER', 'BUGGE': 'BUGGE', 'Chung-Lu': 'CL', 'CNRG': 'CNRG', 'Erdos-Renyi': 'ER', 'HRG': 'HRG', 'Kronecker': 'Kron', 'NetGAN': 'NetGAN', 'SBM': 'SBM', 'GCN_AE': 'GCNAE', 'Linear_AE': 'LinearAE', 'GraphRNN': 'GraphRNN'}
+    stat_map = {'degree_js': 'degree', 'lambda_dist': 'lambda', 'netlsd': 'netlsd', 'pagerank_js': 'pagerank', 'pgd_rgfd': 'pgd', 'portrait_js': 'portrait'}
+
+    filename = path.split('/')[-1].split('.')[0]
+
+    with open(path) as infile, open(f'data_latex/{filename}.tex', 'w') as outfile:
+        prev_model = ''
+
+        for line in infile:
+            line = line.strip().split('\t')
+
+            if line[0] == 'dataset':
+                _header(outfile)
+                stat = stat_map[line[3]]
+            else:
+                dataset = dataset_map[line[0]]
+                model = model_map[line[1]]
+                gen = line[2]
+                abs_mean = line[3]
+                abs95d = line[4]
+                abs95u = line[5]
+
+                if prev_model != model:
+                    _footer(outfile, dataset, prev_model, stat)
+                    _header(outfile)
+
+                outfile.write(f'{model}\t{gen}\t{abs_mean}\t{abs95d}\t{abs95u}\n')
+
+                prev_model = model
+        _footer(outfile, dataset, model, stat)
     return
