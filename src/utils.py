@@ -391,11 +391,14 @@ def latex_printer(path):
     dataset_map = {'chess': 'chess', 'clique-ring-500-4': 'cliquering', 'eucore': 'eucore', 'flights': 'flights', 'tree': 'tree'}
     model_map = {'BTER': 'BTER', 'BUGGE': 'BUGGE', 'Chung-Lu': 'CL', 'CNRG': 'CNRG', 'Erdos-Renyi': 'ER', 'HRG': 'HRG', 'Kronecker': 'Kron', 'NetGAN': 'NetGAN', 'SBM': 'SBM', 'GCN_AE': 'GCNAE', 'Linear_AE': 'LinearAE', 'GraphRNN': 'GraphRNN'}
     stat_map = {'degree_js': 'degree', 'lambda_dist': 'lambda', 'netlsd': 'netlsd', 'pagerank_js': 'pagerank', 'pgd_rgfd': 'pgd', 'portrait_js': 'portrait'}
+    check_map = {}
+
+    for key, value in model_map.items():
+        check_map[value] = True
 
     filename = path.split('/')[-1].split('.')[0]
 
     with open(path) as infile, open(f'data_latex/{filename}.tex', 'w') as outfile:
-        flag = True
         prev_model = ''
 
         for line in infile:
@@ -412,8 +415,7 @@ def latex_printer(path):
                 abs95d = line[4]
                 abs95u = line[5]
 
-                if model == 'NetGAN':
-                    flag = False
+                check_map[model] = False
 
                 if prev_model != model:
                     _footer(outfile, dataset, prev_model, stat)
@@ -424,11 +426,8 @@ def latex_printer(path):
 
         _footer(outfile, dataset, model, stat)
 
-        if dataset == 'chess':
-            _header(outfile)
-            _footer(outfile, dataset, 'Kron', stat)
-
-        if flag:
-            _header(outfile)
-            _footer(outfile, dataset, 'NetGAN', stat)
+        for key, value in check_map.items():
+            if value:
+                _header(outfile)
+                _footer(outfile, dataset, key, stat)
     return
