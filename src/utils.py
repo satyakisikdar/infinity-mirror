@@ -370,8 +370,64 @@ def walker_michigan(dataset='eucore', model='BTER', stat='b_matrix'):
     for subdir, dirs, files in os.walk(base_path):
         for filename in files:
             filepath = os.path.join(base_path, filename)
-            filename = filename.split('.')[0].split('_')
-            trial, gen = filename[1], filename[2]
+            split = filename.split('.')[0].split('_')
+            if len(filename) < 3:
+                ColorPrint.print_red(f'CAUTION: Skipped {filename}')
+                continue
+            trial, gen = split[1], split[2]
             yield filepath, int(trial), int(gen)
 
+    return
+
+def latex_printer(path):
+    def _header(outfile):
+        outfile.write('\\pgfplotstableread{\n')
+        outfile.write('model\tgen\tabs_mean\tabs95d\tabs95u\n')
+        return
+
+    def _footer(outfile, dataset, model, stat):
+        outfile.write('}{\\' + dataset + stat + model + '}\n')
+
+    dataset_map = {'chess': 'chess', 'clique-ring-500-4': 'cliquering', 'eucore': 'eucore', 'flights': 'flights', 'tree': 'tree'}
+    model_map = {'BTER': 'BTER', 'BUGGE': 'BUGGE', 'Chung-Lu': 'CL', 'CNRG': 'CNRG', 'Erdos-Renyi': 'ER', 'HRG': 'HRG', 'Kronecker': 'Kron', 'NetGAN': 'NetGAN', 'SBM': 'SBM', 'GCN_AE': 'GCNAE', 'Linear_AE': 'LinearAE', 'GraphRNN': 'GraphRNN'}
+    stat_map = {'degree_js': 'degree', 'lambda_dist': 'lambda', 'netlsd': 'netlsd', 'pagerank_js': 'pagerank', 'pgd_rgfd': 'pgd', 'portrait_js': 'portrait'}
+    check_map = {}
+
+    for key, value in model_map.items():
+        check_map[value] = True
+
+    filename = path.split('/')[-1].split('.')[0]
+
+    with open(path) as infile, open(f'data_latex/{filename}.tex', 'w') as outfile:
+        prev_model = ''
+
+        for line in infile:
+            line = line.strip().split('\t')
+
+            if line[0] == 'dataset':
+                _header(outfile)
+                stat = stat_map[line[3]]
+            else:
+                dataset = dataset_map[line[0]]
+                model = model_map[line[1]]
+                gen = line[2]
+                abs_mean = line[3]
+                abs95d = line[4]
+                abs95u = line[5]
+
+                check_map[model] = False
+
+                if prev_model != model:
+                    _footer(outfile, dataset, prev_model, stat)
+                    _header(outfile)
+
+                outfile.write(f'{model}\t{gen}\t{abs_mean}\t{abs95d}\t{abs95u}\n')
+                prev_model = model
+
+        _footer(outfile, dataset, model, stat)
+
+        for key, value in check_map.items():
+            if value:
+                _header(outfile)
+                _footer(outfile, dataset, key, stat)
     return

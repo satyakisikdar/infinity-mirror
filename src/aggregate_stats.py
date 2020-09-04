@@ -5,7 +5,6 @@ from scipy.stats import entropy
 from scipy.spatial import distance
 
 import src.graph_comparison
-from src.portrait.portrait_divergence import portrait_divergence
 
 def compute_stat(dataset, model, stat, agg):
     def _convert(agg):
@@ -31,14 +30,17 @@ def compute_stat(dataset, model, stat, agg):
                     total = sum(graphlets.values())
 
                     for idx, count in graphlets.items():
-                        graphlets[idx] = count/total
+                        if total != 0:
+                            graphlets[idx] = count/total
+                        else:
+                            graphlets[idx] = 0
 
                     agg[trial][gen] = graphlets
         return agg
 
     if stat == 'b_matrix':
         agg = _convert(agg)
-        rows = portrait_divergence(dataset, model, agg)
+        rows = portrait_js(dataset, model, agg)
     elif stat == 'degree_dist':
         rows = degree_js(dataset, model, agg)
     elif stat == 'laplacian_eigenvalues':
@@ -116,7 +118,10 @@ def pagerank_js(dataset, model, agg):
         for gen in agg[trial].keys():
             if gen != 0:
                 pr2 = agg[trial][gen]
-                hist_upperbound = max(max(pr1), max(pr2))
+                try:
+                    hist_upperbound = max(max(pr1), max(pr2))
+                except ValueError as e:
+                    continue
 
                 g1_hist = np.histogram(pr1, range=(0, hist_upperbound), bins=100)[0] + 0.00001
                 g2_hist = np.histogram(pr2, range=(0, hist_upperbound), bins=100)[0] + 0.00001
@@ -150,7 +155,7 @@ def pgd_rgfd(dataset, model, agg):
                 rows['pgd_rgfd'].append(rgfd)
     return rows
 
-def portrait_divergence(dataset, model, agg):
+def portrait_js(dataset, model, agg):
     def _pad_portraits_to_same_size(B1, B2):
         ns, ms = B1.shape
         nl, ml = B2.shape
@@ -188,7 +193,7 @@ def portrait_divergence(dataset, model, agg):
 
         return JSDpq
 
-    rows = {'dataset': [], 'model': [], 'trial': [], 'gen': [], 'portrait_divergence': []}
+    rows = {'dataset': [], 'model': [], 'trial': [], 'gen': [], 'portrait_js': []}
 
     for trial in agg.keys():
         for gen in agg[trial].keys():
@@ -199,5 +204,5 @@ def portrait_divergence(dataset, model, agg):
                 rows['model'].append(model)
                 rows['trial'].append(trial)
                 rows['gen'].append(gen)
-                rows['portrait_divergence'].append(d)
+                rows['portrait_js'].append(d)
     return rows
