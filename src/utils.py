@@ -416,7 +416,11 @@ def latex_printer(path):
                     _header(outfile)
 
                 outfile.write(f'{model}\t{gen}\t{abs_mean}\t{abs95d}\t{abs95u}\n')
-
                 prev_model = model
+
         _footer(outfile, dataset, model, stat)
+
+        if dataset == 'chess':
+            _header(outfile)
+            _footer(outfile, dataset, 'Kron', stat)
     return
