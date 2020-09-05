@@ -1,4 +1,5 @@
 import functools
+import gzip
 import json
 import os
 import pickle
@@ -9,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Union, Any, Tuple, List
 
-import gzip
+import igraph as ig
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
@@ -378,6 +379,35 @@ def walker_michigan(dataset='eucore', model='BTER', stat='b_matrix'):
             yield filepath, int(trial), int(gen)
 
     return
+
+
+def nx_to_igraph(nx_g) -> ig.Graph:
+    """
+    Convert networkx graph to an equivalent igraph Graph
+    attributes are stored as vertex sequences
+    """
+    nx_g = nx.convert_node_labels_to_integers(nx_g, label_attribute='old_label')
+    old_label = nx.get_node_attributes(nx_g, 'old_label')
+
+    weights = nx.get_edge_attributes(nx_g, name='wt')  # WEIGHTS are stored in WT
+    if len(weights) == 0:
+        is_weighted = False
+        edge_list = list(nx_g.edges())
+    else:
+        is_weighted = True
+        edge_list = [(u, v, w) for (u, v), w in weights.items()]
+
+    is_directed = nx_g.is_directed()
+    ig_g = ig.Graph.TupleList(edges=edge_list, directed=is_directed,
+                              weights=is_weighted)
+
+#     logging.error(f'iGraph: n={ig_g.vcount()}\tm={ig_g.ecount()}\tweighted={is_weighted}\tdirected={is_directed}')
+
+    for v in ig_g.vs:
+        v['name'] = str(old_label[v.index])  # store the original labels in the name attribute
+        v['label'] = str(v['name'])
+
+    return ig_g
 
 def latex_printer(path):
     def _header(outfile):
