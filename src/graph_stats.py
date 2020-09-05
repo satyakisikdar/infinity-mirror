@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Dict, Tuple, List, Union, Any
 from src.portrait.portrait_divergence import _graph_or_portrait
 from src.utils import check_file_exists, ColorPrint as CP, save_pickle, get_imt_output_directory, save_zipped_json, \
-    verify_file
+    verify_file, nx_to_igraph
 
 sns.set()
 sns.set_style("darkgrid")
@@ -173,6 +173,18 @@ class GraphStats:
         self.leiden_communities()
         self.giant_component_frac()
         return
+
+    def average_path_length(self) -> float:
+        ig_g = nx_to_igraph(self.graph)
+        apl = ig_g.average_path_length()
+        self.stats['average_path_length'] = apl
+        return apl
+
+    def average_clustering(self) -> float:
+        ig_g = nx_to_igraph(self.graph)
+        avg_cl = ig_g.transitivity_avglocal_undirected(mode='zero')
+        self.stats['average_clustering'] = avg_cl
+        return avg_cl
 
     def leiden_communities(self) -> Tuple[int, float]:
         """
@@ -475,8 +487,9 @@ if __name__ == '__main__':
     # g = nx.erdos_renyi_graph(5, 0.2, seed=1); dataset = 'ER-5-2'
     # g = nx.path_graph(5)
     gs = GraphStats(graph=g, trial=0, dataset=dataset, model='CNRG', iteration=0)
-    graphlets = gs.pgd_graphlet_counts()
-    print(graphlets)
+    # graphlets = gs.pgd_graphlet_counts()
+    gs.average_path_length()
+    print(gs.stats)
     # gs.netlsd()
     # gs.pagerank()
     # gs.laplacian_eigenvalues()
