@@ -364,7 +364,7 @@ def walker_texas_ranger(dataset='eucore', model='BTER', stat='pagerank', unique=
 def walker_michigan(dataset='eucore', model='BTER', stat='b_matrix'):
     assert dataset in ['chess', 'clique-ring-500-4', 'eucore', 'flights', 'tree']
     assert model in ['BTER', 'BUGGE', 'Chung-Lu', 'CNRG', 'Erdos-Renyi', 'GCN_AE', 'GraphRNN', 'HRG', 'Kronecker', 'Linear_AE', 'NetGAN', 'SBM']
-    assert stat in ['b_matrix', 'degree_dist', 'laplacian_eigenvalues', 'netlsd', 'pagerank', 'pgd_graphlet_counts']
+    assert stat in ['b_matrix', 'degree_dist', 'laplacian_eigenvalues', 'netlsd', 'pagerank', 'pgd_graphlet_counts', 'average_path_length', 'average_clustering']
 
     base_path = f'/data/infinity-mirror/output/graph_stats/{dataset}/{model}/{stat}'
 
@@ -420,7 +420,7 @@ def latex_printer(path):
 
     dataset_map = {'chess': 'chess', 'clique-ring-500-4': 'cliquering', 'eucore': 'eucore', 'flights': 'flights', 'tree': 'tree'}
     model_map = {'BTER': 'BTER', 'BUGGE': 'BUGGE', 'Chung-Lu': 'CL', 'CNRG': 'CNRG', 'Erdos-Renyi': 'ER', 'HRG': 'HRG', 'Kronecker': 'Kron', 'NetGAN': 'NetGAN', 'SBM': 'SBM', 'GCN_AE': 'GCNAE', 'Linear_AE': 'LinearAE', 'GraphRNN': 'GraphRNN'}
-    stat_map = {'degree_js': 'degree', 'lambda_dist': 'lambda', 'netlsd': 'netlsd', 'pagerank_js': 'pagerank', 'pgd_rgfd': 'pgd', 'portrait_js': 'portrait'}
+    stat_map = {'degree_js': 'degree', 'lambda_dist': 'lambda', 'netlsd': 'netlsd', 'pagerank_js': 'pagerank', 'pgd_rgfd': 'pgd', 'portrait_js': 'portrait', 'avg_pl': 'apl', 'avg_clustering': 'clustering'}
     check_map = {}
 
     for key, value in model_map.items():

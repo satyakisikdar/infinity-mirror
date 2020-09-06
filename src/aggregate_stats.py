@@ -54,9 +54,41 @@ def compute_stat(dataset, model, stat, agg):
     elif stat == 'pgd_graphlet_counts':
         agg = _normalize_graphlets(agg)
         rows = pgd_rgfd(dataset, model, agg)
+    elif stat == 'average_path_length':
+        rows = average_path_length(dataset, model, agg)
+    elif stat == 'average_clustering':
+        rows = average_clustering(dataset, model, agg)
     else:
         raise NotImplementedError
     return pd.DataFrame(rows)
+
+def average_clustering(dataset, model, agg):
+    rows = {'dataset': [], 'model': [], 'trial': [], 'gen': [], 'avg_clustering': []}
+
+    for trial in agg.keys():
+        for gen in agg[trial].keys():
+            avg_clustering = agg[trial][gen]
+
+            rows['dataset'].append(dataset)
+            rows['model'].append(model)
+            rows['trial'].append(trial)
+            rows['gen'].append(gen)
+            rows['avg_clustering'].append(avg_clustering)
+    return rows
+
+def average_path_length(dataset, model, agg):
+    rows = {'dataset': [], 'model': [], 'trial': [], 'gen': [], 'avg_pl': []}
+
+    for trial in agg.keys():
+        for gen in agg[trial].keys():
+            avg_pl = agg[trial][gen]
+
+            rows['dataset'].append(dataset)
+            rows['model'].append(model)
+            rows['trial'].append(trial)
+            rows['gen'].append(gen)
+            rows['avg_pl'].append(avg_pl)
+    return rows
 
 def degree_js(dataset, model, agg):
     rows = {'dataset': [], 'model': [], 'trial': [], 'gen': [], 'degree_js': []}

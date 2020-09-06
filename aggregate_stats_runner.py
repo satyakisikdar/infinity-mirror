@@ -8,20 +8,21 @@ import warnings
 warnings.filterwarnings("ignore")
 
 from src.aggregate_stats import compute_stat
-from src.utils import walker_michigan, printer
+from src.utils import walker_michigan, latex_printer
 
 all_datasets = ['chess', 'clique-ring-500-4', 'eucore', 'flights', 'tree']
 all_models = ['BTER', 'BUGGE', 'Chung-Lu', 'CNRG', 'Erdos-Renyi', 'GCN_AE', 'GraphRNN', 'HRG', 'Kronecker', 'Linear_AE', 'NetGAN', 'SBM']
-all_stats = ['b_matrix', 'degree_dist', 'laplacian_eigenvalues', 'netlsd', 'pagerank', 'pgd_graphlet_counts']
-all_post = {'b_matrix': 'portrait_js', 'degree_dist': 'degree_js', 'laplacian_eigenvalues': 'lambda_dist', 'netlsd': 'netlsd', 'pagerank': 'pagerank_js', 'pgd_graphlet_counts': 'pgd_rgfd'}
+all_stats = ['b_matrix', 'degree_dist', 'laplacian_eigenvalues', 'netlsd', 'pagerank', 'pgd_graphlet_counts', 'average_path_length', 'average_clustering']
+all_post = {'b_matrix': 'portrait_js', 'degree_dist': 'degree_js', 'laplacian_eigenvalues': 'lambda_dist', 'netlsd': 'netlsd', 'pagerank': 'pagerank_js', 'pgd_graphlet_counts': 'pgd_rgfd', 'average_path_length': 'avg_pl', 'average_clustering': 'avg_clustering'}
 
 def confidence_interval(x):
     lower, upper = stats.t.interval(0.95, len(x) - 1, loc=np.mean(x), scale=stats.sem(x))
     return lower, upper
 
 def main():
-    dataset = 'chess'
-    stat = 'b_matrix'
+    dataset = 'clique-ring-500-4'
+    #stat = 'average_path_length'
+    stat = 'average_clustering'
     post = all_post[stat]
 
     print(f'aggregating {stat} for {dataset}')
