@@ -409,7 +409,7 @@ def nx_to_igraph(nx_g) -> ig.Graph:
 
     return ig_g
 
-def latex_printer(path):
+def latex_mono_printer(path):
     def _header(outfile):
         outfile.write('\\pgfplotstableread{\n')
         outfile.write('model\tgen\tabs_mean\tabs95d\tabs95u\n')
@@ -460,4 +460,57 @@ def latex_printer(path):
             if value:
                 _header(outfile)
                 _footer(outfile, dataset, key, stat)
+    return
+
+def latex_bi_printer(path):
+    def _header(outfile, stat1, stat2):
+        outfile.write('\\pgfplotstableread{\n')
+        outfile.write(f'dataset\tmodel\tgen\t{stat1}\t{stat2}\n')
+        return
+
+    def _footer(outfile, dataset, model, stat1, stat2):
+        outfile.write('}{\\' + model + dataset + stat_map[(stat1, stat2)] + '}\n')
+
+    dataset_map = {'chess': 'chess', 'clique-ring-500-4': 'cr', 'eucore': 'eucore', 'flights': 'flights', 'tree': 'tree'}
+    model_map = {'BTER': 'BTER', 'BUGGE': 'BUGGE', 'Chung-Lu': 'ChungLu', 'CNRG': 'CNRG', 'Erdos-Renyi': 'ErdosRenyi', 'HRG': 'HRG', 'Kronecker': 'Kronecker', 'NetGAN': 'NetGAN', 'SBM': 'SBM', 'GCN_AE': 'GCNAE', 'Linear_AE': 'LinearAE', 'GraphRNN': 'GraphRNN'}
+    stat_map = {('clu', 'pl'): 'APLCC'}
+    check_map = {}
+
+    for key, value in model_map.items():
+        check_map[value] = True
+
+    filename = path.split('/')[-1].split('.')[0]
+
+    with open(path) as infile, open(f'data_latex/{filename}.tex', 'w') as outfile:
+        prev_model = ''
+
+        for line in infile:
+            line = line.strip().split('\t')
+
+            if line[0] == 'dataset':
+                stat1 = line[3]
+                stat2 = line[4]
+                _header(outfile, stat1, stat2)
+            else:
+                dataset = dataset_map[line[0]]
+                model = model_map[line[1]]
+                gen = line[2]
+                mean1 = line[3]
+                mean2 = line[4]
+
+                check_map[model] = False
+
+                if prev_model != model:
+                    _footer(outfile, dataset, prev_model, stat1, stat2)
+                    _header(outfile, stat1, stat2)
+
+                outfile.write(f'{dataset}\t{model}\t{gen}\t{mean1}\t{mean2}\n')
+                prev_model = model
+
+        _footer(outfile, dataset, model, stat1, stat2)
+
+        for key, value in check_map.items():
+            if value:
+                _header(outfile, stat1, stat2)
+                _footer(outfile, dataset, key, stat1, stat2)
     return
