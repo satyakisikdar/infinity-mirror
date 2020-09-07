@@ -372,7 +372,7 @@ def walker_michigan(dataset='eucore', model='BTER', stat='b_matrix'):
         for filename in files:
             filepath = os.path.join(base_path, filename)
             split = filename.split('.')[0].split('_')
-            if len(filename) < 3:
+            if len(filename) < 3 or filename[0] == '.':
                 ColorPrint.print_red(f'CAUTION: Skipped {filename}')
                 continue
             trial, gen = split[1], split[2]
