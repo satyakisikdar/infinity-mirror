@@ -6,7 +6,7 @@ from scipy.spatial import distance
 
 import src.graph_comparison
 
-def compute_stat(dataset, model, stat, agg):
+def compute_mono_stat(dataset, model, stat, agg):
     def _convert(agg):
         for trial in agg.keys():
             for gen in agg[trial].keys():
@@ -54,9 +54,66 @@ def compute_stat(dataset, model, stat, agg):
     elif stat == 'pgd_graphlet_counts':
         agg = _normalize_graphlets(agg)
         rows = pgd_rgfd(dataset, model, agg)
+    elif stat == 'average_path_length':
+        rows = average_path_length(dataset, model, agg)
+    elif stat == 'average_clustering':
+        rows = average_clustering(dataset, model, agg)
+    elif stat == 'apl_cc':
+        rows = apl_cc(dataset, model, agg)
     else:
         raise NotImplementedError
     return pd.DataFrame(rows)
+
+def compute_bi_stat(dataset, model, stat, agg1, agg2):
+    if stat == 'apl_cc':
+        rows = apl_cc(dataset, model, agg1, agg2)
+    else:
+        raise NotImplementedError
+    return pd.DataFrame(rows)
+
+def apl_cc(dataset, model, agg1, agg2):
+    rows = {'dataset': [], 'model': [], 'trial': [], 'gen': [], 'clu': [], 'pl': []}
+
+    for trial in agg1.keys():
+        for gen in agg1[trial].keys():
+            clu = agg1[trial][gen]
+            pl = agg2[trial][gen]
+
+            rows['dataset'].append(dataset)
+            rows['model'].append(model)
+            rows['trial'].append(trial)
+            rows['gen'].append(gen)
+            rows['clu'].append(clu)
+            rows['pl'].append(pl)
+    return rows
+
+def average_clustering(dataset, model, agg):
+    rows = {'dataset': [], 'model': [], 'trial': [], 'gen': [], 'avg_clustering': []}
+
+    for trial in agg.keys():
+        for gen in agg[trial].keys():
+            avg_clustering = agg[trial][gen]
+
+            rows['dataset'].append(dataset)
+            rows['model'].append(model)
+            rows['trial'].append(trial)
+            rows['gen'].append(gen)
+            rows['avg_clustering'].append(avg_clustering)
+    return rows
+
+def average_path_length(dataset, model, agg):
+    rows = {'dataset': [], 'model': [], 'trial': [], 'gen': [], 'avg_pl': []}
+
+    for trial in agg.keys():
+        for gen in agg[trial].keys():
+            avg_pl = agg[trial][gen]
+
+            rows['dataset'].append(dataset)
+            rows['model'].append(model)
+            rows['trial'].append(trial)
+            rows['gen'].append(gen)
+            rows['avg_pl'].append(avg_pl)
+    return rows
 
 def degree_js(dataset, model, agg):
     rows = {'dataset': [], 'model': [], 'trial': [], 'gen': [], 'degree_js': []}
