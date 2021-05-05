@@ -2,6 +2,7 @@ import functools
 import gzip
 import json
 import os
+import stat
 import pickle
 import re
 import sys
@@ -195,12 +196,14 @@ def load_imt_trial(input_path, dataset, model) -> (pd.DataFrame, int):
         yield imt_dataframe, trial_id
 
 
-def ensure_dir(path: Union[str, Path], recursive: bool=False, exist_ok: bool=True) -> None:
+def ensure_dir(path: Union[str, Path], recursive: bool=False, exist_ok: bool=True, make_public=True) -> None:
     path = Path(path)
     if not path.exists():
         ColorPrint.print_blue(f'Creating dir: {path!r}')
         path.mkdir(parents=recursive, exist_ok=exist_ok)
         # os.makedirs(path, exist_ok=True)
+    if make_public:
+        os.chmod(path=path, mode=stat.S_IRWXG)
     return
 
 
