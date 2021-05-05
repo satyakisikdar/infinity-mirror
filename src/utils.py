@@ -204,6 +204,15 @@ def ensure_dir(path: Union[str, Path], recursive: bool=False, exist_ok: bool=Tru
     return
 
 
+def verify_file(path) -> bool:
+    """
+    Given a filepath, verify_file will return true or false depending on the existence of the file.
+    :param path:
+    :return: bool
+    """
+    return os.path.exists(path)
+
+
 def make_plot(y, kind='line', x=None, title='', xlabel='', ylabel='') -> None:
     if isinstance(y, dict):
         lists = sorted(y.items())
@@ -251,15 +260,6 @@ class ColorPrint:
     def print_none(message, end='\n'):
         pass
         # sys.stdout.write(message + end)
-
-# todo: throw these things away and consolidate 
-def verify_file(path) -> bool:
-    """
-    Given a filepath, verify_file will return true or false depending on the existence of the file.
-    :param path:
-    :return: bool
-    """
-    return os.path.exists(path)
 
 
 def get_imt_output_directory() -> os.path:

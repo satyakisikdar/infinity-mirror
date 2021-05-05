@@ -41,8 +41,6 @@ class InfinityMirror:
         #self.initial_graph_stats: GraphStats = GraphStats(graph=self.initial_graph, dataset=dataset, model=model, iteration=, trial=)
         self._metrics: List[str] = ['deltacon0', 'lambda_dist', 'pagerank_cvm', 'node_diff', 'edge_diff', 'pgd_pearson',
                                     'pgd_spearman', 'degree_cvm']  # list of metrics  ## GCD is removed
-        imt_output_dir = get_imt_output_directory()
-        imt_input_dir = get_imt_input_directory()
 
         self.rewire = int(r * 100)
         #TODO: needs to get base directory and wait to store in bucket
