@@ -253,16 +253,6 @@ class ColorPrint:
         # sys.stdout.write(message + end)
 
 # todo: throw these things away and consolidate 
-def verify_dir(path) -> None:
-    """
-    Given a path, verify_dir will check if the directory exists and if not, it will create the directory.
-    :param path:
-    :return: None
-    """
-    p = Path(path)
-    return os.path.exists(path)
-
-
 def verify_file(path) -> bool:
     """
     Given a filepath, verify_file will return true or false depending on the existence of the file.
