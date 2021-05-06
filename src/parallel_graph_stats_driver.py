@@ -21,9 +21,10 @@ def stats_computation(bucket, dataset, model, trial, filename, stats):
 
 if __name__ == '__main__':
     stat = ['pagerank', 'degree_dist']
-    buckets, datasets, models, trials, filenames = walker()
+    datasets, models, trials, filenames = walker()
     #datasets, models, trials, filenames = ['eucore']*10, ['BTER']*10, [str(x) for x in range(1, 11)], [f'list_20_{x}.pkl.gz' for x in range(1, 11)]
 
-    args = [(bucket, dataset, model, trial, filename, stat) for bucket, dataset, model, trial, filename in zip(buckets, datasets, models, trials, filenames)]
-
+    args = [(dataset, model, trial, filename, stat) for dataset, model, trial, filename in zip(datasets, models, trials, filenames)]
+    
+    print(args)
     parallel_async(stats_computation, args)
