@@ -22,7 +22,8 @@ from collections import Counter, deque
 from pathlib import Path
 from typing import Dict, Tuple, List, Union, Any
 from src.portrait.portrait_divergence import _graph_or_portrait
-from src.utils import check_file_exists, ColorPrint as CP, save_pickle, get_imt_output_directory, save_zipped_json, \
+from src.utils import check_file_exists, ColorPrint as CP, ensure_dir, save_pickle, get_imt_output_directory, \
+    save_zipped_json, \
     verify_file, nx_to_igraph
 
 sns.set()
@@ -120,8 +121,12 @@ class GraphStats:
                                  if callable(getattr(self, method_name)) and not method_name.startswith('_')]
             output_directory = get_imt_output_directory()
 
+            file_output_directory = os.path.join(output_directory, 'graph_stats', self.dataset, self.model, statistic)
+            ensure_dir(file_output_directory, recursive=True)
+
             filename = os.path.join(output_directory, 'graph_stats', self.dataset, self.model, statistic,
                                     f'gs_{self.trial}_{self.iteration}.json.gz')
+
 
             # if the file already exists and overwrite flag is not set, then don't rework.
             if not overwrite and verify_file(filename):
