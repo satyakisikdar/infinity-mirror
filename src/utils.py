@@ -2,6 +2,7 @@ import functools
 import gzip
 import json
 import os
+import stat
 import pickle
 import re
 import sys
@@ -195,13 +196,24 @@ def load_imt_trial(input_path, dataset, model) -> (pd.DataFrame, int):
         yield imt_dataframe, trial_id
 
 
-def ensure_dir(path: Union[str, Path], recursive: bool=False, exist_ok: bool=True) -> None:
+def ensure_dir(path: Union[str, Path], recursive: bool=False, exist_ok: bool=True, make_public=True) -> None:
     path = Path(path)
     if not path.exists():
         ColorPrint.print_blue(f'Creating dir: {path!r}')
         path.mkdir(parents=recursive, exist_ok=exist_ok)
         # os.makedirs(path, exist_ok=True)
+    if make_public:
+        os.chmod(path=path, mode=stat.S_IRWXG)
     return
+
+
+def verify_file(path) -> bool:
+    """
+    Given a filepath, verify_file will return true or false depending on the existence of the file.
+    :param path:
+    :return: bool
+    """
+    return os.path.exists(path)
 
 
 def make_plot(y, kind='line', x=None, title='', xlabel='', ylabel='') -> None:
@@ -251,25 +263,6 @@ class ColorPrint:
     def print_none(message, end='\n'):
         pass
         # sys.stdout.write(message + end)
-
-# todo: throw these things away and consolidate 
-def verify_dir(path) -> None:
-    """
-    Given a path, verify_dir will check if the directory exists and if not, it will create the directory.
-    :param path:
-    :return: None
-    """
-    p = Path(path)
-    return os.path.exists(path)
-
-
-def verify_file(path) -> bool:
-    """
-    Given a filepath, verify_file will return true or false depending on the existence of the file.
-    :param path:
-    :return: bool
-    """
-    return os.path.exists(path)
 
 
 def get_imt_output_directory() -> os.path:

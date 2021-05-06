@@ -8,7 +8,9 @@ from typing import Any, List
 import networkx as nx
 from tqdm import tqdm
 
-from src.utils import ColorPrint as CP, load_pickle, check_file_exists, delete_files, save_pickle
+from src.utils import ColorPrint as CP, get_imt_input_directory, get_imt_output_directory, load_pickle, \
+    check_file_exists, delete_files, \
+    save_pickle
 
 Stats = namedtuple('Stats',
                    'name id graph score')  # stores the different stats for each graph. name: name of metric, id: graph_id
@@ -39,9 +41,11 @@ class InfinityMirror:
         #self.initial_graph_stats: GraphStats = GraphStats(graph=self.initial_graph, dataset=dataset, model=model, iteration=, trial=)
         self._metrics: List[str] = ['deltacon0', 'lambda_dist', 'pagerank_cvm', 'node_diff', 'edge_diff', 'pgd_pearson',
                                     'pgd_spearman', 'degree_cvm']  # list of metrics  ## GCD is removed
+
         self.rewire = int(r * 100)
-        self.graphs_pickle_path: str = f'./output/pickles/{self.initial_graph.name}/{self.model.model_name}/list_{self.num_generations}_{self.trial}'
-        self.graphs_features_path: str = f'./output/features/{self.initial_graph.name}/{self.model.model_name}/list_{self.num_generations}_{self.trial}'
+        #TODO: needs to get base directory and wait to store in bucket
+        self.graphs_pickle_path: str = f'{get_imt_output_directory()}pickles/{self.initial_graph.name}/{self.model.model_name}/list_{self.num_generations}_{self.trial}'
+        self.graphs_features_path: str = f'{get_imt_output_directory()}features/{self.initial_graph.name}/{self.model.model_name}/list_{self.num_generations}_{self.trial}'
         self.graphs: List[nx.Graph] = []  # stores the list of graphs - one per generation
         self.features: List[Any] = []  # stores the learned features used to generate the graph at the same index in self.graphs - one per generation
         self.features_bool: bool = features_bool  # decides whether features are going to be extracted or not
@@ -157,7 +161,7 @@ class InfinityMirror:
         """
         fieldnames = ['trial', 'gname', 'model', 'sel', 'gens', 'time']
 
-        stats_file = './output/timing_stats.csv'
+        stats_file = f'{get_imt_output_directory()}/timing_stats.csv'
         if not check_file_exists(stats_file):  # initialize the file with headers
             writer = csv.DictWriter(open(stats_file, 'w'), fieldnames=fieldnames)
             writer.writeheader()
@@ -176,7 +180,7 @@ class InfinityMirror:
         """
         fieldnames = ['trial', 'gname', 'model', 'sel', 'gens', 'level']
 
-        fail_file = './output/fail_stats.csv'
+        fail_file = f'{get_imt_output_directory()}/fail_stats.csv'
         if not check_file_exists(fail_file):  # initialize the file with headers
             writer = csv.DictWriter(open(fail_file, 'w'), fieldnames=fieldnames)
             writer.writeheader()
