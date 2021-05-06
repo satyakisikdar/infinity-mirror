@@ -5,8 +5,8 @@ from src.graph_stats import GraphStats
 from src.parallel import parallel_async
 from src.utils import load_pickle, get_imt_input_directory, walker, ColorPrint
 
-def stats_computation(bucket, dataset, model, trial, filename, stats):
-    path = os.path.join(get_imt_input_directory(), bucket, dataset, model, filename)
+def stats_computation(dataset, model, trial, filename, stats):
+    path = os.path.join(get_imt_input_directory().replace('input', 'output/pickles'), dataset, model, filename)
     graph_list = load_pickle(path)
     assert isinstance(graph_list, list), f'Expected type "list" and got type {type(graph_list)}.'
     assert all(isinstance(g, nx.Graph) for g in graph_list), f'Expected a list of nx.Graph and got disappointed instead.'
