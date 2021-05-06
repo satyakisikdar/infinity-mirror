@@ -203,7 +203,7 @@ def ensure_dir(path: Union[str, Path], recursive: bool=False, exist_ok: bool=Tru
         path.mkdir(parents=recursive, exist_ok=exist_ok)
         # os.makedirs(path, exist_ok=True)
     if make_public:
-        os.chmod(path=path, mode=stat.S_IRWXG)
+        os.chmod(path=path, mode=0o777)
     return
 
 
