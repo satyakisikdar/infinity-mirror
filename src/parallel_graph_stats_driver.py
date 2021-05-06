@@ -25,6 +25,6 @@ if __name__ == '__main__':
     #datasets, models, trials, filenames = ['eucore']*10, ['BTER']*10, [str(x) for x in range(1, 11)], [f'list_20_{x}.pkl.gz' for x in range(1, 11)]
 
     args = [(dataset, model, trial, filename, stat) for dataset, model, trial, filename in zip(datasets, models, trials, filenames)]
-    
+
     print(args)
     parallel_async(stats_computation, args)

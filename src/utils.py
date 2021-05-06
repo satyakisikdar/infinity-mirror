@@ -293,6 +293,7 @@ def get_imt_input_directory() -> os.path:
 
 def walker():
     base_path = get_imt_input_directory()
+    base_path = os.path.join(base_path, 'pickles')
     datasets, models, trials, filenames = [], [], [], []
 
     for subdir, dirs, files in os.walk(base_path):
