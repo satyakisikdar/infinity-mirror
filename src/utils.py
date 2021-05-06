@@ -293,24 +293,21 @@ def get_imt_input_directory() -> os.path:
 
 def walker():
     base_path = get_imt_input_directory()
-    buckets, datasets, models, trials, filenames = [], [], [], [], []
+    datasets, models, trials, filenames = [], [], [], [], []
 
     for subdir, dirs, files in os.walk(base_path):
-        if 'bucket3' not in subdir:
-            for filename in files:
-                subdir_list = subdir.split('/')
-                bucket = subdir_list[-3]
-                dataset = subdir_list[-2]
-                model = subdir_list[-1]
-                trial = int(filename.split('_')[-1].strip('.pkl.gz'))
+        for filename in files:
+            subdir_list = subdir.split('/')
+            dataset = subdir_list[-2]
+            model = subdir_list[-1]
+            trial = int(filename.split('_')[-1].strip('.pkl.gz'))
 
-                buckets.append(bucket)
-                datasets.append(dataset)
-                models.append(model)
-                trials.append(trial)
-                filenames.append(filename)
+            datasets.append(dataset)
+            models.append(model)
+            trials.append(trial)
+            filenames.append(filename)
 
-    return buckets, datasets, models, trials, filenames
+    return datasets, models, trials, filenames
 
 def walker_prime():
     base_path = get_imt_input_directory()
