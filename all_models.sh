@@ -1,5 +1,5 @@
-models="NetGAN"  # "Kronecker CNRG ChungLu SBM"  # space separated names of models, find the whole list in main.py
-graph='input/3-comm-new.g'  # external edge list 
+models="Kronecker CNRG ChungLu SBM BUGGE HRG ErdosRenyi"  # space separated names of models, find the whole list in main.py
+graph='input/karate.g'  # external edge list 
 # graph='clique_ring 500 4'  # for synthetic graphs - find list in Synthetic Graph class in src/graphio.py 
 for model in $models
 do
