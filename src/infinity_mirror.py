@@ -1,11 +1,15 @@
 import csv
+import datetime
 import os
 import re
+import time
 from collections import namedtuple
 from os.path import join
+from pathlib import Path
 from typing import Any, List
 
 import networkx as nx
+import numpy as np
 from tqdm import tqdm
 
 from src.utils import ColorPrint as CP, get_imt_input_directory, get_imt_output_directory, load_pickle, \
@@ -109,14 +113,20 @@ class InfinityMirror:
 
             level = i + 1
             try:
+                fit_time_start = time.perf_counter()
                 self.model.update(new_input_graph=curr_graph)  # update the model
+                fit_time = time.perf_counter() - fit_time_start
             except Exception as e:
+                fit_time = np.nan
                 print(f'Model fit failed {e}')
                 break
 
             try:
+                gen_time_start = time.perf_counter()
                 generated_graphs = self.model.generate(num_graphs=self.num_graphs, gen_id=level)  # generate a new set of graphs
+                gen_time = time.perf_counter() - gen_time_start
             except Exception as e:
+                gen_time = np.nan
                 print(f'Generation failed {e}')
                 break
 
@@ -139,7 +149,8 @@ class InfinityMirror:
             delete_files(prev_temp_pickle_path)
             delete_files(prev_temp_features_path)
 
-            #if level == 20:
+            self.write_timing_csv(iter_=level, fit_time=fit_time, gen_time=gen_time)
+
             if level == self.num_generations:
                 completed_trial = True
             pbar.update(1)
@@ -151,6 +162,25 @@ class InfinityMirror:
             CP.print_green(f'List of {len(self.graphs)} Graphs is pickled at "{self.graphs_pickle_path + pickle_ext}"')
             save_pickle(obj=self.graphs, path=self.graphs_pickle_path + pickle_ext)
             save_pickle(obj=self.features, path=self.graphs_features_path + pickle_ext)
+        return
+
+    def write_timing_csv(self, iter_: int, fit_time: float, gen_time: float) -> None:
+        """
+        Writes the timings stats for each iteration
+        """
+        fieldnames = ['date', 'gname', 'model', 'trial', 'iter', 'gens', 'fit_time', 'gen_time']
+
+        stats_file = Path(get_imt_output_directory()) / 'new_timing_stats.csv'
+        if not stats_file.exists():
+            writer = csv.DictWriter(open(stats_file, 'w'), fieldnames=fieldnames)
+            writer.writeheader()
+
+        with open(stats_file, 'a') as fp:
+            writer = csv.DictWriter(fp, fieldnames=fieldnames)
+            row = {'date': str(datetime.datetime.now().date()), 'gname': self.initial_graph.name,
+                   'model': self.model.model_name, 'trial': self.trial, 'iter': iter_, 'gens': self.num_generations,
+                   'fit_time': fit_time, 'gen_time': gen_time}
+            writer.writerow(row)
         return
 
     def write_timing_stats(self, time_taken) -> None:
