@@ -21,7 +21,7 @@ os.environ["NUMEXPR_NUM_THREADS"] = "2"  # export NUMEXPR_NUM_THREADS=6
 
 from src.graph_io import GraphReader, SyntheticGraph
 from src.infinity_mirror import InfinityMirror
-from src.utils import timer, ColorPrint as CP
+from src.utils import timer, ColorPrint as CP, get_imt_output_directory
 
 
 def parse_args():
@@ -110,15 +110,18 @@ def process_args(args) -> Any:
     return args.sel[0], g, model_obj, int(args.gens[0]), args.pickle, int(args.num_graphs[0]), r, finish_path, args.features_bool
 
 
-def make_dirs(gname, model) -> None:
+def make_dirs(output_dir: str, gname: str, model: str) -> None:
     """
     Makes input and output directories if they do not exist already
     :return:
     """
-    for dirname in ('input', 'output', 'analysis', 'src/scratch', 'output/pickles', f'output/pickles/{gname}',
-                    f'output/pickles/{gname}/{model}', 'output/features', f'output/features/{gname}', f'output/features/{gname}/{model}'):
-        if not Path(f'./{dirname}').exists():
-            os.makedirs(f'./{dirname}', exist_ok=True)
+    output_dir = Path(output_dir)
+    for dirname in ('pickles', f'pickles/{gname}', f'pickles/{gname}/{model}', 'features',
+                    f'features/{gname}', f'features/{gname}/{model}'):
+        dir_ = output_dir / dirname
+        if not dir_.exists():
+            CP.print_blue(f'Making dir {dir_!r}')
+            os.makedirs(dir_, exist_ok=True)
     return
 
 
@@ -142,7 +145,9 @@ def run_infinity_mirror(args, trial) -> None:
         model_obj = model(
             input_graph=empty_g,
             trial=trial)  # this is a roundabout way to ensure the name of GraphModel object is correct
-    make_dirs(g.name, model=model_obj.model_name)
+
+    imt_output_dir = get_imt_output_directory()
+    make_dirs(output_dir=imt_output_dir, gname=g.name, model=model_obj.model_name)
 
     assert selection == 'fast', 'invalid selection'
     num_graphs = 1  # only 1 graph per generation
