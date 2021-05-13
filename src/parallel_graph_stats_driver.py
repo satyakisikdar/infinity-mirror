@@ -20,7 +20,7 @@ def stats_computation(dataset, model, trial, filename, stats):
     return None
 
 if __name__ == '__main__':
-    stat = ['pagerank', 'degree_dist']
+    stat = ['pagerank', 'degree_dist', 'laplacian_eigenvalues'][-1: ]
     datasets, models, trials, filenames = walker()
     #datasets, models, trials, filenames = ['eucore']*10, ['BTER']*10, [str(x) for x in range(1, 11)], [f'list_20_{x}.pkl.gz' for x in range(1, 11)]
 
