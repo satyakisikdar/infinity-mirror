@@ -36,6 +36,8 @@ def fit(adj):
     max_tries = 10
     tries = 0
     while tries < max_tries:
+        if tries == max_tries:
+            raise Exception('NetGAN fit failed.. no split found')
         try:
             train_ones, val_ones, \
             val_zeros, test_ones, test_zeros = utils.train_val_test_split_adjacency(adj, val_share, test_share, undirected=True,
