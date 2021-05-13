@@ -157,7 +157,7 @@ if __name__ == '__main__':
     model_type = 'mlp'
 
     base_path = '/home/danielgonzalez/repos/infinity-mirror/src/graphrnn/graphs/GraphRNN_MLP/'
-    datasets = 'tree', 'clique-ring-500-4', 'flights', 'eucore', 'chess'
+    datasets = 'tree', 'clique-ring-500-4', 'flights', 'eucore', 'chess', 'enron', 'cond-mat'
     dataset = argv[1]
     assert dataset in datasets, f'Invalid {dataset}, pick from {datasets}'
     path_to_pickles = join(base_path, f'{dataset}_size10_ratio5')
