@@ -24,7 +24,7 @@ from typing import Dict, Tuple, List, Union, Any
 from src.portrait.portrait_divergence import _graph_or_portrait
 from src.utils import check_file_exists, ColorPrint as CP, ensure_dir, save_pickle, get_imt_output_directory, \
     save_zipped_json, \
-    verify_file, nx_to_igraph
+    verify_file, nx_to_igraph, get_imt_input_directory
 
 sns.set()
 sns.set_style("darkgrid")
@@ -432,7 +432,7 @@ class GraphStats:
         Return the dictionary of graphlets and their counts - based on Neville's PGD
         :return:
         """
-        pgd_path = './src/PGD'
+        pgd_path = Path(get_imt_input_directory()) / 'src' / 'PGD'
         graphlet_counts = {}
 
         if 'Linux' in platform.platform() and check_file_exists(f'{pgd_path}/pgd_0'):
