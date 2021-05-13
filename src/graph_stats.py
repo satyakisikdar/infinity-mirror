@@ -432,10 +432,10 @@ class GraphStats:
         Return the dictionary of graphlets and their counts - based on Neville's PGD
         :return:
         """
-        pgd_path = Path(get_imt_input_directory()) / 'src' / 'PGD'
+        pgd_path = Path(get_imt_input_directory()).parent / 'src' / 'PGD'
         graphlet_counts = {}
 
-        if 'Linux' in platform.platform() and check_file_exists(f'{pgd_path}/pgd_0'):
+        if 'Linux' in platform.platform() and (pgd_path / 'pgd_0').exists():
             edgelist = '\n'.join(nx.generate_edgelist(self.graph, data=False))
             edgelist += '\nX'  # add the X
             dummy_path = f'{pgd_path}/dummy.txt'
@@ -492,8 +492,8 @@ if __name__ == '__main__':
     # g = nx.erdos_renyi_graph(5, 0.2, seed=1); dataset = 'ER-5-2'
     # g = nx.path_graph(5)
     gs = GraphStats(graph=g, trial=0, dataset=dataset, model='CNRG', iteration=0)
-    # graphlets = gs.pgd_graphlet_counts()
-    gs.average_path_length()
+    graphlets = gs.pgd_graphlet_counts()
+    # gs.average_path_length()
     print(gs.stats)
     # gs.netlsd()
     # gs.pagerank()
