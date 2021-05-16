@@ -542,9 +542,8 @@ class Kronecker(BaseGraphModel):
     def __init__(self, input_graph: nx.Graph, trial: int, **kwargs) -> None:
         super().__init__(model_name='Kronecker', input_graph=input_graph, trial=trial)
         if 'Linux' in platform.platform():
-            self.kronfit_exec = './kronfit_linux'
-            self.krongen_exec = './krongen_linux'
-
+            self.kronfit_exec = './kronfit_dac'
+            self.krongen_exec = './krongen_dac'
         else:
             self.kronfit_exec = './kronfit_mac'
             self.krongen_exec = './krongen_mac'
@@ -560,7 +559,7 @@ class Kronecker(BaseGraphModel):
         g = nx.convert_node_labels_to_integers(self.input_graph, first_label=1, label_attribute='old_label')
         directed_g = g.to_directed()  # kronecker expects a directed graph
 
-        edgelist_path = f'src/kronecker/{self.initial_gname}_{self.trial}.txt'
+        edgelist_path = f'./src/kronecker/{self.initial_gname}_{self.trial}.txt'
         nx.write_edgelist(directed_g, edgelist_path, data=False)
 
         bash_code = f'cd src/kronecker; {self.kronfit_exec} -i:{self.initial_gname}_{self.trial}.txt -o:{self.initial_gname}_{self.trial}-fit -s:50000'
@@ -596,7 +595,7 @@ class Kronecker(BaseGraphModel):
         assert 'initiator_matrix' in self.params, 'Initiator matrix not found'
         matrix = self.params['initiator_matrix']
 
-        output_file = f'src/kronecker/{self.initial_gname}_{self.trial}_kron.txt'
+        output_file = f'./src/kronecker/{self.initial_gname}_{self.trial}_kron.txt'
 
         if len(matrix) == 0:  # KronFit failed
             CP.print_blue(f'Error in KronGen: "{self.input_graph.name}"')
