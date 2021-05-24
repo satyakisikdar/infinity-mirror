@@ -24,7 +24,7 @@ from typing import Dict, Tuple, List, Union, Any
 from src.portrait.portrait_divergence import _graph_or_portrait
 from src.utils import check_file_exists, ColorPrint as CP, ensure_dir, save_pickle, get_imt_output_directory, \
     save_zipped_json, \
-    verify_file, nx_to_igraph
+    verify_file, nx_to_igraph, get_imt_input_directory
 
 sns.set()
 sns.set_style("darkgrid")
@@ -432,10 +432,10 @@ class GraphStats:
         Return the dictionary of graphlets and their counts - based on Neville's PGD
         :return:
         """
-        pgd_path = './src/PGD'
+        pgd_path = Path(get_imt_input_directory()).parent / 'src' / 'PGD'
         graphlet_counts = {}
 
-        if 'Linux' in platform.platform() and check_file_exists(f'{pgd_path}/pgd_0'):
+        if 'Linux' in platform.platform() and (pgd_path / 'pgd_0').exists():
             edgelist = '\n'.join(nx.generate_edgelist(self.graph, data=False))
             edgelist += '\nX'  # add the X
             dummy_path = f'{pgd_path}/dummy.txt'
@@ -492,8 +492,8 @@ if __name__ == '__main__':
     # g = nx.erdos_renyi_graph(5, 0.2, seed=1); dataset = 'ER-5-2'
     # g = nx.path_graph(5)
     gs = GraphStats(graph=g, trial=0, dataset=dataset, model='CNRG', iteration=0)
-    # graphlets = gs.pgd_graphlet_counts()
-    gs.average_path_length()
+    graphlets = gs.pgd_graphlet_counts()
+    # gs.average_path_length()
     print(gs.stats)
     # gs.netlsd()
     # gs.pagerank()

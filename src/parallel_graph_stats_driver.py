@@ -1,12 +1,16 @@
 import os
-import sys; sys.path.extend('../')
+import sys;
+from pathlib import Path
+
+sys.path.extend('../')
 import networkx as nx
 from src.graph_stats import GraphStats
 from src.parallel import parallel_async
-from src.utils import load_pickle, get_imt_input_directory, walker, ColorPrint
+from src.utils import load_pickle, get_imt_input_directory, walker, ColorPrint, get_imt_output_directory
+
 
 def stats_computation(dataset, model, trial, filename, stats):
-    path = os.path.join(get_imt_input_directory().replace('input', 'output/pickles'), dataset, model, filename)
+    path = Path(get_imt_output_directory()) / 'pickles' / dataset / model / filename
     graph_list = load_pickle(path)
     assert isinstance(graph_list, list), f'Expected type "list" and got type {type(graph_list)}.'
     assert all(isinstance(g, nx.Graph) for g in graph_list), f'Expected a list of nx.Graph and got disappointed instead.'
@@ -20,8 +24,9 @@ def stats_computation(dataset, model, trial, filename, stats):
     return None
 
 if __name__ == '__main__':
-    stat = ['pagerank', 'degree_dist', 'laplacian_eigenvalues'][-1: ]
+    stat = ['pagerank', 'degree_dist', 'laplacian_eigenvalues', 'pgd_graphlet_counts'][-1: ]
     datasets, models, trials, filenames = walker()
+
     #datasets, models, trials, filenames = ['eucore']*10, ['BTER']*10, [str(x) for x in range(1, 11)], [f'list_20_{x}.pkl.gz' for x in range(1, 11)]
 
     args = [(dataset, model, trial, filename, stat) for dataset, model, trial, filename in zip(datasets, models, trials, filenames)]
