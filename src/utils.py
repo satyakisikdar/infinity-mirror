@@ -160,14 +160,22 @@ def load_pickle(path: Union[Path, str]) -> Any:
     return pickle.load(open(path, 'rb'))
 
 
-def load_zipped_json(filename: Union[str, Path], keys_to_int: bool = False, debug: bool = False) -> Any:
+def load_zipped_json(filename: Union[str, Path], keys_to_int: bool = False, debug: bool = False,
+                     delete_corrupted: bool = False) -> Any:
+    filename = Path(filename)
     if debug:
         ColorPrint.print_blue(f'Loading {filename!r}')
-    with gzip.open(filename, 'rb') as f:
-        text = f.read()
-        temp = text.decode('utf-8')
-        d = json.loads(temp)
-
+    try:
+        with gzip.open(filename, 'rb') as f:
+            text = f.read()
+            temp = text.decode('utf-8')
+            d = json.loads(temp)
+    except Exception as e:
+        print(f'Error reading json {filename} {e}')
+        d = {}
+        if filename.exists() and delete_corrupted:
+            ColorPrint.print_red(f'Deleting file {filename!r}')
+            os.remove(filename)
     # json sadness - convert all the keys to integer, if such a thing is possible
     if isinstance(d, dict) and keys_to_int:
         d = {int(k): v for k, v in d.items()}
@@ -332,12 +340,15 @@ def walker_prime():
 
     return buckets, datasets, models, trials, filenames
 
+
 def walker_texas_ranger(dataset='eucore', model='BTER', stat='pagerank', unique=False):
     base_path = os.path.join(get_imt_output_directory(), 'graph_stats', dataset, model, stat)
     trials, iterations, filenames = [], [], []
 
     for subdir, dirs, files in os.walk(base_path):
         for filename in files:
+            if not filename.endswith('.json.gz'):  # skips over non json files
+                continue
             subdir_list = subdir.split('/')
             dataset = subdir_list[-3]
             model = subdir_list[-2]
