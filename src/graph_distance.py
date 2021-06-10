@@ -47,7 +47,8 @@ class GraphDistance:
         imt_output_directory = get_imt_output_directory()
         if not self.root or not self.root_metric == metric:
             self.root = load_zipped_json(filename=join(imt_output_directory, 'graph_stats', self.dataset, self.model,
-                                                       metric, f'gs_{self.trial}_0.json.gz'), keys_to_int=True)
+                                                       metric, f'gs_{self.trial}_0.json.gz'), keys_to_int=True,
+                                         delete_corrupted=True)
             # look for the last iterable file for this dataset and model combination
             for iteration in reversed(range(21)):
                 filename = join(imt_output_directory, 'graph_stats', self.dataset, self.model,
@@ -69,7 +70,9 @@ class GraphDistance:
 
         obj_iter = load_zipped_json(filename=join(imt_output_directory, 'graph_stats', self.dataset, self.model,
                                                   metric, f'gs_{self.trial}_{self.iteration}.json.gz'),
-                                    keys_to_int=True)
+                                    keys_to_int=True, delete_corrupted=True)
+        if len(obj_iter) == 0:
+            raise Exception('JSON read failed')
 
         return self.root, obj_iter
 
@@ -88,7 +91,7 @@ class GraphDistance:
         lambda_seq_iter = np.array(lambda_seq_iter[: k])
 
         dist = la.norm(lambda_seq_root - lambda_seq_iter, ord=p) / k
-        self.stats['lambda_dist'] = dist
+        self.stats['lambda_distance'] = dist
 
         return dist
 
