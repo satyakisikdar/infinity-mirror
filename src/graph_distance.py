@@ -22,8 +22,9 @@ from src.utils import get_imt_output_directory, load_zipped_json, verify_file
 
 
 class GraphDistance:
-    implemented_metrics = {'pagerank_js': 'pagerank', 'degree_js': 'degree_dist', 'pgd_distance': 'pgd_graphlet_counts', 'netlsd_distance': 'netlsd',
-                           'lambda_distance': 'laplacian_eigenvalues', 'portrait_divergence': 'portrait'}
+    implemented_metrics = {'pagerank_js': 'pagerank', 'degree_js': 'degree_dist', 'pgd_distance': 'pgd_graphlet_counts',
+                           'netlsd_distance': 'netlsd', 'lambda_distance': 'laplacian_eigenvalues',
+                           'portrait_divergence': 'b_matrix'}
 
     def __init__(self, dataset: str, trial: int, model: str, metrics: List[str], iteration: Union[None, int] = None):
 
@@ -138,7 +139,7 @@ class GraphDistance:
         """
         b_matrix_1, b_matrix_2 = map(np.array, self.get_pair_of_zipped_objects(metric='b_matrix'))
         portrait_divergence = _calculate_portrait_divergence(b_matrix_1, b_matrix_2)
-
+        self.stats['portrait_divergence'] = portrait_divergence
         return portrait_divergence
 
     def pgd_distance(self):  # todo
