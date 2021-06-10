@@ -32,8 +32,8 @@ def train_mlp_epoch(epoch, args, rnn, output, data_loader,
         y_len = y_len.numpy().tolist()
         x = torch.index_select(x_unsorted, 0, sort_index)
         y = torch.index_select(y_unsorted, 0, sort_index)
-        x = x.cuda()
-        y = y.cuda()
+        x = x.cpu()
+        y = y.cpu()
 
         h = rnn(x, pack=True, input_len=y_len)
         y_pred = output(h)
@@ -68,16 +68,16 @@ def test_mlp_epoch(epoch, args, rnn, output, test_batch_size=16, save_histogram=
 
     # generate graphs
     max_num_node = int(args.max_num_node)
-    y_pred = torch.zeros(test_batch_size, max_num_node, args.max_prev_node).cuda()  # normalized prediction score
-    y_pred_long = torch.zeros(test_batch_size, max_num_node, args.max_prev_node).cuda()  # discrete prediction
-    x_step = torch.ones(test_batch_size, 1, args.max_prev_node).cuda()
+    y_pred = torch.zeros(test_batch_size, max_num_node, args.max_prev_node).cpu()  # normalized prediction score
+    y_pred_long = torch.zeros(test_batch_size, max_num_node, args.max_prev_node).cpu()  # discrete prediction
+    x_step = torch.ones(test_batch_size, 1, args.max_prev_node).cpu()
     for i in range(max_num_node):
         h = rnn(x_step)
         y_pred_step = output(h)
         y_pred[:, i:i + 1, :] = torch.sigmoid(y_pred_step)
         x_step = sample_sigmoid(y_pred_step, sample=True, sample_time=sample_time)
         y_pred_long[:, i:i + 1, :] = x_step
-        rnn.hidden = rnn.hidden.data.cuda()
+        rnn.hidden = rnn.hidden.data.cpu()
     y_pred_data = y_pred.data
     y_pred_long_data = y_pred_long.data.long()
 
@@ -108,19 +108,19 @@ def test_mlp_partial_epoch(epoch, args, rnn, output, data_loader, save_histogram
         rnn.hidden = rnn.init_hidden(test_batch_size)
         # generate graphs
         max_num_node = int(args.max_num_node)
-        y_pred = torch.zeros(test_batch_size, max_num_node, args.max_prev_node).cuda()  # normalized prediction score
-        y_pred_long = torch.zeros(test_batch_size, max_num_node, args.max_prev_node).cuda()  # discrete prediction
-        x_step = torch.ones(test_batch_size, 1, args.max_prev_node).cuda()
+        y_pred = torch.zeros(test_batch_size, max_num_node, args.max_prev_node).cpu()  # normalized prediction score
+        y_pred_long = torch.zeros(test_batch_size, max_num_node, args.max_prev_node).cpu()  # discrete prediction
+        x_step = torch.ones(test_batch_size, 1, args.max_prev_node).cpu()
         for i in range(max_num_node):
             print('finish node', i)
             h = rnn(x_step)
             y_pred_step = output(h)
             y_pred[:, i:i + 1, :] = torch.sigmoid(y_pred_step)
-            x_step = sample_sigmoid_supervised(y_pred_step, y[:, i:i + 1, :].cuda(), current=i, y_len=y_len,
+            x_step = sample_sigmoid_supervised(y_pred_step, y[:, i:i + 1, :].cpu(), current=i, y_len=y_len,
                                                sample_time=sample_time)
 
             y_pred_long[:, i:i + 1, :] = x_step
-            rnn.hidden = rnn.hidden.data.cuda()
+            rnn.hidden = rnn.hidden.data.cpu()
         y_pred_data = y_pred.data
         y_pred_long_data = y_pred_long.data.long()
 
@@ -144,19 +144,19 @@ def test_mlp_partial_simple_epoch(epoch, args, rnn, output, data_loader, save_hi
         rnn.hidden = rnn.init_hidden(test_batch_size)
         # generate graphs
         max_num_node = int(args.max_num_node)
-        y_pred = torch.zeros(test_batch_size, max_num_node, args.max_prev_node).cuda()  # normalized prediction score
-        y_pred_long = torch.zeros(test_batch_size, max_num_node, args.max_prev_node).cuda()  # discrete prediction
-        x_step = torch.ones(test_batch_size, 1, args.max_prev_node).cuda()
+        y_pred = torch.zeros(test_batch_size, max_num_node, args.max_prev_node).cpu()  # normalized prediction score
+        y_pred_long = torch.zeros(test_batch_size, max_num_node, args.max_prev_node).cpu()  # discrete prediction
+        x_step = torch.ones(test_batch_size, 1, args.max_prev_node).cpu()
         for i in range(max_num_node):
             print('finish node', i)
             h = rnn(x_step)
             y_pred_step = output(h)
             y_pred[:, i:i + 1, :] = torch.sigmoid(y_pred_step)
-            x_step = sample_sigmoid_supervised_simple(y_pred_step, y[:, i:i + 1, :].cuda(), current=i, y_len=y_len,
+            x_step = sample_sigmoid_supervised_simple(y_pred_step, y[:, i:i + 1, :].cpu(), current=i, y_len=y_len,
                                                       sample_time=sample_time)
 
             y_pred_long[:, i:i + 1, :] = x_step
-            rnn.hidden = rnn.hidden.data.cuda()
+            rnn.hidden = rnn.hidden.data.cpu()
         y_pred_data = y_pred.data
         y_pred_long_data = y_pred_long.data.long()
 
@@ -189,8 +189,8 @@ def train_mlp_forward_epoch(epoch, args, rnn, output, data_loader):
         y_len = y_len.numpy().tolist()
         x = torch.index_select(x_unsorted, 0, sort_index)
         y = torch.index_select(y_unsorted, 0, sort_index)
-        x = x.cuda()
-        y = y.cuda()
+        x = x.cpu()
+        y = y.cpu()
 
         h = rnn(x, pack=True, input_len=y_len)
         y_pred = output(h)
