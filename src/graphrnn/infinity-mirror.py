@@ -157,7 +157,7 @@ if __name__ == '__main__':
     model_type = 'mlp'
 
     base_path = '/scratch365/ssikdar/infinity-mirror/output/graphrnn/'
-    datasets = 'tree', 'clique-ring-500-4', 'flights', 'eucore', 'chess', 'enron', 'cond-mat'
+    datasets = 'tree', 'clique-ring-500-4', 'flights', 'eucore', 'chess', 'enron', 'cond-mat', 'karate'
     dataset = argv[1]
     assert dataset in datasets, f'Invalid {dataset}, pick from {datasets}'
     path_to_pickles = join(base_path, f'{dataset}_size10_ratio5')
