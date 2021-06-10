@@ -156,7 +156,7 @@ if __name__ == '__main__':
     batch_size, batch_ratio = 10, 5  # 10, 5 is faster
     model_type = 'mlp'
 
-    base_path = '/home/danielgonzalez/repos/infinity-mirror/src/graphrnn/graphs/GraphRNN_MLP/'
+    base_path = '/scratch365/ssikdar/infinity-mirror/output/graphrnn/'
     datasets = 'tree', 'clique-ring-500-4', 'flights', 'eucore', 'chess', 'enron', 'cond-mat'
     dataset = argv[1]
     assert dataset in datasets, f'Invalid {dataset}, pick from {datasets}'
@@ -174,7 +174,7 @@ if __name__ == '__main__':
         CP.print_orange(f'Resuming pickle from iteration {current_iteration}')
         assert len(graphs) == 50, f'Expected 50 graphs, found {len(graphs)}'
     else:
-        most_recent_completed_file, current_iteration = f'/home/danielgonzalez/repos/infinity-mirror/input/{dataset}.g', 0
+        most_recent_completed_file, current_iteration = f'/afs/crc.nd.edu/user/d/dgonza26/infinity-mirror/input/{dataset}.g', 0
         g = init(filename=most_recent_completed_file)
         graphs = [nx.Graph(g)] * 50
 

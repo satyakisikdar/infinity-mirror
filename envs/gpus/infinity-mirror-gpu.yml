@@ -1,4 +1,4 @@
-name: infinity-mirror
+name: infinity-mirror-gpu
 channels:
   - ostrokach-forge
   - conda-forge

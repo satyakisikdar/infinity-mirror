@@ -54,7 +54,7 @@ class Args:
         ### output config and make dirs
 
         # self.dir_input = "/dfs/scratch0/jiaxuany0/"
-        self.dir_input = '/home/danielgonzalez/repos/infinity-mirror/src/graphrnn/'
+        self.dir_input = '/afs/crc.nd.edu/user/d/dgonza26/infinity-mirror/src/graphrnn/'
         self.model_save_path = self.dir_input+'model_save/' # only for nll evaluation
         self.graph_save_path = self.dir_input+'graphs/'
         self.figure_save_path = self.dir_input+'figures/'
