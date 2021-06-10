@@ -15,7 +15,7 @@ def stats_computation(dataset, model, trial, filename, stats):
     assert isinstance(graph_list, list), f'Expected type "list" and got type {type(graph_list)}.'
     assert all(isinstance(g, nx.Graph) for g in graph_list), f'Expected a list of nx.Graph and got disappointed instead.'
 
-    ColorPrint.print_orange(f'{filename} has length {len(graph_list)}')
+    # ColorPrint.print_orange(f'{filename} has length {len(graph_list)}')
 
     for idx, G in enumerate(graph_list):
         gs_obj = GraphStats(graph=G, dataset=dataset, model=model, trial=trial, iteration=idx)
@@ -23,13 +23,14 @@ def stats_computation(dataset, model, trial, filename, stats):
 
     return None
 
-if __name__ == '__main__':
-    stat = ['pagerank', 'degree_dist', 'laplacian_eigenvalues', 'pgd_graphlet_counts'][-1: ]
-    datasets, models, trials, filenames = walker()
 
+if __name__ == '__main__':
+    stat = ['pagerank', 'degree_dist', 'pgd_graphlet_counts', 'laplacian_eigenvalues', 'b_matrix']#[-1:]
+    datasets, models, trials, filenames = walker()
     #datasets, models, trials, filenames = ['eucore']*10, ['BTER']*10, [str(x) for x in range(1, 11)], [f'list_20_{x}.pkl.gz' for x in range(1, 11)]
 
-    args = [(dataset, model, trial, filename, stat) for dataset, model, trial, filename in zip(datasets, models, trials, filenames)]
+    args = [(dataset, model, trial, filename, stat)
+            for dataset, model, trial, filename in zip(datasets, models, trials, filenames)
+            if dataset != 'enron']
 
-    print(args)
-    parallel_async(stats_computation, args)
+    parallel_async(stats_computation, args, num_workers=8)
