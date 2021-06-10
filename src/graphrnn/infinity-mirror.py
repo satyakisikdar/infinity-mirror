@@ -74,9 +74,9 @@ def fit(graphs: List[nx.Graph], model_type: str, gname: str, iteration: int, bat
 
     rnn = GRU_plain(input_size=args.max_prev_node, embedding_size=args.embedding_size_rnn,
                     hidden_size=args.hidden_size_rnn, num_layers=args.num_layers, has_input=True,
-                    has_output=False).cuda()
+                    has_output=False)#.cuda()
     output = MLP_plain(h_size=args.hidden_size_rnn, embedding_size=args.embedding_size_output,
-                       y_size=args.max_prev_node).cuda()
+                       y_size=args.max_prev_node)#.cuda()
 
     ### start training
     # todo try to catch the log data (might be the actual console logs)
