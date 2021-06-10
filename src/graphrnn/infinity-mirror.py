@@ -32,7 +32,7 @@ def fit(graphs: List[nx.Graph], model_type: str, gname: str, iteration: int, bat
     graphs = cleaned_graphs
 
     args = Args(graph_type=gname, note=note_dict[model_type.lower()], batch_size=batch_size, batch_ratio=batch_ratio)
-    os.environ['CUDA_VISIBLE_DEVICES'] = str(args.cuda)
+    os.environ['CUDA_VISIBLE_DEVICES'] = ''  # str(args.cuda)
 
     # random.seed(123)
     shuffle(graphs)
