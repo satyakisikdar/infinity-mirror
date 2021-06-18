@@ -143,11 +143,11 @@ class InfinityMirror:
             temp_features_path = self.graphs_features_path + f'_temp_{level}{pickle_ext}'
             prev_temp_features_path = self.graphs_features_path + f'_temp_{level-1}{pickle_ext}'
 
-            save_pickle(obj=self.graphs, path=temp_pickle_path)
-            save_pickle(obj=self.features, path=temp_features_path)
+            #save_pickle(obj=self.graphs, path=temp_pickle_path)
+            #save_pickle(obj=self.features, path=temp_features_path)
 
-            delete_files(prev_temp_pickle_path)
-            delete_files(prev_temp_features_path)
+            #delete_files(prev_temp_pickle_path)
+            #delete_files(prev_temp_features_path)
 
             self.write_timing_csv(iter_=level, fit_time=fit_time, gen_time=gen_time)
 
@@ -156,12 +156,12 @@ class InfinityMirror:
             pbar.update(1)
         pbar.close()
 
-        if completed_trial:  # only delete the temp pickle if the trial finishes successfully
-            delete_files(temp_pickle_path)  # delete the temp file if the loop finishes normally
-            delete_files(temp_features_path)  # delete the temp file if the loop finishes normally
-            CP.print_green(f'List of {len(self.graphs)} Graphs is pickled at "{self.graphs_pickle_path + pickle_ext}"')
-            save_pickle(obj=self.graphs, path=self.graphs_pickle_path + pickle_ext)
-            save_pickle(obj=self.features, path=self.graphs_features_path + pickle_ext)
+        #if completed_trial:  # only delete the temp pickle if the trial finishes successfully
+        #    delete_files(temp_pickle_path)  # delete the temp file if the loop finishes normally
+        #    delete_files(temp_features_path)  # delete the temp file if the loop finishes normally
+        #    CP.print_green(f'List of {len(self.graphs)} Graphs is pickled at "{self.graphs_pickle_path + pickle_ext}"')
+        #    save_pickle(obj=self.graphs, path=self.graphs_pickle_path + pickle_ext)
+        #    save_pickle(obj=self.features, path=self.graphs_features_path + pickle_ext)
         return
 
     def write_timing_csv(self, iter_: int, fit_time: float, gen_time: float) -> None:
