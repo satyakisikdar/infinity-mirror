@@ -307,6 +307,8 @@ def walker():
 
     for subdir, dirs, files in os.walk(base_path):
         for filename in files:
+            if not filename.endswith('.pkl.gz'):
+                continue
             subdir_list = subdir.split('/')
             dataset = subdir_list[-2]
             model = subdir_list[-1]

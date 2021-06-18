@@ -177,7 +177,7 @@ class InfinityMirror:
 
         with open(stats_file, 'a') as fp:
             writer = csv.DictWriter(fp, fieldnames=fieldnames)
-            row = {'date': str(datetime.datetime.now().date()), 'gname': self.initial_graph.name,
+            row = {'date': str(datetime.datetime.now()), 'gname': self.initial_graph.name,
                    'model': self.model.model_name, 'trial': self.trial, 'iter': iter_, 'gens': self.num_generations,
                    'fit_time': fit_time, 'gen_time': gen_time}
             writer.writerow(row)

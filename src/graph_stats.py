@@ -130,13 +130,13 @@ class GraphStats:
 
             # if the file already exists and overwrite flag is not set, then don't rework.
             if not overwrite and verify_file(filename):
-                CP.print_green(f'Statistic: {statistic} output file for {self.model}-{self.dataset}-{self.trial} already exists. Skipping.')
+                CP.print_green(f'{statistic!r} output for {self.model}-{self.dataset}-{self.trial} exists. Skipping.')
                 return
 
             try:
                 data = self[statistic]  # todo : maybe there's a better way?!
                 save_zipped_json(data, filename)
-                CP.print_blue(f'Stats json stored at {filename}')
+                CP.print_blue(f'Stats json stored at {" ".join(Path(filename).parts[-4:])}')
             except Exception as e:
                 CP.print_red(f'Exception occurred on {filename}!')
                 CP.print_red(str(e))

@@ -331,7 +331,7 @@ class BTER(BaseGraphModel):
 
     def _fit(self) -> None:
         # find degree distribution and avg clustering by degree
-        g_stats = GraphStats(self.input_graph, trial=-1)
+        g_stats = GraphStats(self.input_graph, trial=-1, dataset=self.initial_gname, iteration=-1, model=self.model_name)
 
         self.params['n'] = self.input_graph.order()
         self.params['degree_dist'] = g_stats.degree_dist(normalized=False)  # we need the counts
