@@ -11,7 +11,7 @@ idna==2.8
 jmespath==0.9.4
 leidenalg==0.7.0
 networkx==2.3
-numpy==1.15.4
+numpy==1.21.0
 pandas==0.23.4
 python-dateutil==2.8.1
 python-igraph==0.7.1.post6
